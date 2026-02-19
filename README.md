@@ -33,7 +33,7 @@ The findings in this paper are derived from a verifiable chain of statistical te
 
 ```
 ├── paper/
-│   └── Complexity_Kink.pdf         # Full paper (PDF)
+│   └── complexity_kink_2026.tex    # Full paper (LaTeX source)
 ├── src/
 │   ├── config.py                   # Central configuration
 │   ├── feature_extractor_iv.py     # Feature extraction + pass rate computation
