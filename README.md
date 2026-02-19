@@ -26,14 +26,14 @@ The findings in this paper are derived from a verifiable chain of statistical te
 3. **Threshold Selection:** Bootstrap Hansen test identifies the optimal structural break at $\kappa \approx 6.5$ ($p < 0.001$).
 4. **Robustness:** 500-iteration placebo tests confirm the "Complexity Kink" is not a statistical artifact of the instrument construction.
 
-For a full reproducibility audit, see [data_provenance_report.md](paper/data_provenance_report.md).
+
 
 ## Repository Structure
 
 
 ```
 ├── paper/
-│   └── complexity_kink_2026.tex    # Full paper (LaTeX)
+│   └── Complexity_Kink.pdf         # Full paper (PDF)
 ├── src/
 │   ├── config.py                   # Central configuration
 │   ├── feature_extractor_iv.py     # Feature extraction + pass rate computation
