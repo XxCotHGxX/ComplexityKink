@@ -1,0 +1,36 @@
+# Data files (too large for git)
+data/*.jsonl
+data/*.json
+data/*.csv
+
+# Model artifacts and outputs
+output/*.joblib
+output/*.png
+output/*.html
+output/*.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary verification outputs
+/tmp/
