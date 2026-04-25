@@ -3,11 +3,19 @@ Stage 2: The corrected analysis pipeline.
 
 Implements:
 1. Proper 2SLS via linearmodels.iv.IV2SLS (correct standard errors)
-2. Hausman endogeneity test (OLS vs 2SLS)
-3. Bootstrap Hansen threshold test (sup-Wald with null distribution)
-4. Placebo test (shuffled instruments)
-5. Continuous pass rate as dependent variable
-6. Memorization control (m_mem_jaccard) as regressor
+2. Sargan-Hansen J-test for instrument validity
+3. Hausman endogeneity test (OLS vs 2SLS)
+4. Bootstrap Hansen threshold test (sup-Wald with null distribution)
+5. Placebo test (shuffled instruments)
+6. Continuous pass rate as dependent variable
+
+DATA PROVENANCE: Imports data loading from ``data_loader`` (single source
+of truth). `CONTROL_COLS` is intentionally empty ,  see the rationale block
+in config.py. Earlier versions of this pipeline included `e_norm` and
+`m_mem_jaccard` as controls; both are post-treatment (derived from the
+generated code) and so reintroduce the very endogeneity the IV strategy
+removes. Legitimate controls must be derivable pre-generation from the
+instruction or from fixed task metadata.
 """
 import json
 import argparse
@@ -24,55 +32,66 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import (
-    DEFAULT_ENRICHED_FILE, DEFAULT_MODEL_PATH, OUTPUT_DIR,
-    IV_FEATURE_COLS, CONTROL_COLS,
+    DEFAULT_ENRICHED_FILE, DEFAULT_OOF_FILE, DEFAULT_MODEL_PATH, OUTPUT_DIR,
+    IV_FEATURE_COLS, REDUCED_IV_COLS, CONSERVATIVE_IV_COLS, CONTROL_COLS,
+    THRESHOLD_GRID_MODE, THRESHOLD_GRID_N_POINTS,
     THRESHOLD_GRID_START, THRESHOLD_GRID_END, THRESHOLD_GRID_STEP,
-    HANSEN_BOOTSTRAP_ITERATIONS, PLACEBO_ITERATIONS, MIN_REGIME_SIZE
+    HANSEN_BOOTSTRAP_ITERATIONS, PLACEBO_ITERATIONS, THRESHOLD_CI_BOOTSTRAP,
+    MIN_REGIME_SIZE, CLUSTER_COL,
 )
+from data_loader import load_enriched_dataset
 
 
-def _compute_pass_rate(item):
-    """Compute pass rate from the status field when pass_rate is not stored."""
-    if 'pass_rate' in item:
-        return float(item['pass_rate'])
-    status = item.get('status', [])
-    if isinstance(status, list) and len(status) > 0:
-        n_pass = sum(1 for s in status if isinstance(s, str) and 'pass' in s.lower())
-        return n_pass / len(status)
-    return 0.0
+def _fit_kwargs(df):
+    """Cluster-robust covariance if the cluster column is present; else HC1.
+
+    Clustering on ``CLUSTER_COL`` (prompt id) accounts for within-prompt
+    correlation across the ~18 models that answer each prompt. Without it
+    the 2SLS standard errors treat (prompt, model) pairs as independent
+    draws, which they are not.
+    """
+    if CLUSTER_COL in df.columns and df[CLUSTER_COL].notna().any():
+        return {"cov_type": "clustered", "clusters": df[CLUSTER_COL]}
+    return {"cov_type": "robust"}
+
+
+def build_threshold_grid(df, kappa_col="kappa_predicted"):
+    """Return a threshold grid that guarantees MIN_REGIME_SIZE on both sides.
+
+    The percentile mode converts MIN_REGIME_SIZE into quantile bounds of
+    ``kappa_col`` so every candidate threshold yields a valid split by
+    construction. A fixed absolute grid would silently exclude candidates
+    near the tails of a right-skewed kappa distribution and bias the
+    sup-Wald search toward the centre (which is precisely the regime where
+    noise-driven local maxima are most likely).
+    """
+    if THRESHOLD_GRID_MODE == "percentile":
+        kappa = df[kappa_col].dropna().values
+        n = len(kappa)
+        if n < 2 * MIN_REGIME_SIZE:
+            # Too few observations for a valid split at any threshold.
+            return np.array([])
+        q_low = MIN_REGIME_SIZE / n
+        q_high = 1.0 - q_low
+        qs = np.linspace(q_low, q_high, THRESHOLD_GRID_N_POINTS)
+        grid = np.quantile(kappa, qs)
+        # Deduplicate after quantile rounding on discrete kappa values.
+        return np.unique(np.round(grid, 4))
+    return np.arange(THRESHOLD_GRID_START, THRESHOLD_GRID_END, THRESHOLD_GRID_STEP)
 
 
 def load_data_for_stage2(enriched_file, model_path):
-    """Load data and generate predicted kappa from Stage 1 model."""
-    print("Loading data and model...")
-    data = []
-    with open(enriched_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            item = json.loads(line)
-            row = dict(item.get('iv_features', {}))
-            row['id'] = item.get('id', '')
-            row['kappa_actual'] = item.get('kappa_cyclomatic', 1)
-            row['is_success'] = item.get('is_success', 0)
-            row['pass_rate'] = _compute_pass_rate(item)
-            row['e_norm'] = item.get('e_norm', 0.0)
-            row['m_mem_jaccard'] = item.get('m_mem_jaccard', 0.0)
-            row['coupling_depth'] = item.get('coupling_depth', 0)
-            row['lang'] = item.get('lang', 'unknown')
-            data.append(row)
-    
-    df = pd.DataFrame(data)
+    """Load data and generate predicted kappa from Stage 1 model if needed."""
+    df, feature_cols = load_enriched_dataset(enriched_file)
     model = joblib.load(model_path)
     
-    # Available IV feature columns
-    feature_cols = [c for c in IV_FEATURE_COLS if c in df.columns]
+    # Generate predicted kappa (instrumented variable) if not pre-provided
+    if df['kappa_predicted'].isnull().any():
+        missing = df['kappa_predicted'].isnull()
+        X_features = df.loc[missing, feature_cols].values
+        df.loc[missing, 'kappa_predicted'] = model.predict(X_features)
+        print(f"Filled {missing.sum()} missing kappa_predicted from model")
     
-    # Generate predicted kappa (instrumented variable)
-    X_features = df[feature_cols].values
-    df['kappa_predicted'] = model.predict(X_features)
-    
-    print(f"Loaded {len(df)} samples")
-    print(f"Success rate: {df['is_success'].mean():.3f}")
-    print(f"Mean pass_rate: {df['pass_rate'].mean():.3f}")
     print(f"Mean kappa_actual: {df['kappa_actual'].mean():.2f}")
     print(f"Mean kappa_predicted: {df['kappa_predicted'].mean():.2f}")
     
@@ -107,9 +126,16 @@ def run_proper_2sls(df, feature_cols):
     instruments = df[feature_cols]
     
     # --- Model A: Naive OLS (biased baseline) ---
+    # Cluster-robust SEs when the prompt id is present; HC1 is kept as a
+    # fallback so partial datasets (e.g. the verification sample) still run.
     print("\n--- Model A: Naive OLS (uses output kappa - BIASED) ---")
     X_naive = sm.add_constant(df[['kappa_actual'] + exog_cols])
-    ols_naive = sm.OLS(dep_var, X_naive).fit(cov_type='HC1')
+    if CLUSTER_COL in df.columns and df[CLUSTER_COL].notna().any():
+        ols_naive = sm.OLS(dep_var, X_naive).fit(
+            cov_type='cluster', cov_kwds={'groups': df[CLUSTER_COL]}
+        )
+    else:
+        ols_naive = sm.OLS(dep_var, X_naive).fit(cov_type='HC1')
     
     print(f"  kappa_actual coef: {ols_naive.params['kappa_actual']:.6f}")
     print(f"  kappa_actual SE:   {ols_naive.bse['kappa_actual']:.6f}")
@@ -127,7 +153,7 @@ def run_proper_2sls(df, feature_cols):
             endog=endog,
             instruments=instruments
         )
-        iv_results = iv_model.fit(cov_type='robust')
+        iv_results = iv_model.fit(**_fit_kwargs(df))
         
         print(f"  kappa_actual coef (instrumented): {iv_results.params['kappa_actual']:.6f}")
         print(f"  kappa_actual SE:   {iv_results.std_errors['kappa_actual']:.6f}")
@@ -150,6 +176,29 @@ def run_proper_2sls(df, feature_cols):
         # Partial R-squared
         print(f"  Partial R-squared: {fs.diagnostics['partial.rsquared'].iloc[0]:.4f}")
         
+        # --- Sargan-Hansen J-test for instrument validity ---
+        print("\n--- Sargan-Hansen J-Test (Over-Identifying Restrictions) ---")
+        print("  NOTE: This tests whether instruments are validly excluded")
+        print("  from the structural equation.  Distinct from the Hansen")
+        print("  threshold test (which tests for structural breaks).")
+        try:
+            j_stat = iv_results.sargan
+            print(f"  J-statistic:  {j_stat.stat:.4f}")
+            print(f"  J p-value:    {j_stat.pval:.6f}")
+            print(f"  J df:         {j_stat.df}")
+            if j_stat.pval > 0.05:
+                print(f"  PASS: Cannot reject instrument validity (p > 0.05)")
+            else:
+                print(f"  WARNING: Instruments may be invalid (p < 0.05).")
+                print(f"  Consider dropping suspect instruments (inst_tokens, inst_avg_word_len).")
+            # Bind properties so we can extract them later
+            iv_results.j_stat_val = j_stat.stat
+            iv_results.j_pval = j_stat.pval
+        except Exception as e:
+            print(f"  J-test failed: {e}")
+            iv_results.j_stat_val = np.nan
+            iv_results.j_pval = np.nan
+        
     except Exception as e:
         print(f"  2SLS failed: {e}")
         print("  Falling back to manual reduced-form approach...")
@@ -162,7 +211,7 @@ def run_proper_2sls(df, feature_cols):
 # 2. HAUSMAN ENDOGENEITY TEST
 # ============================================================
 
-def hausman_test(df, feature_cols):
+def hausman_test(df, feature_cols, iv_results=None):
     """
     Hausman test: formally tests whether OLS and 2SLS produce
     significantly different estimates. If p < 0.05, endogeneity is confirmed
@@ -172,6 +221,22 @@ def hausman_test(df, feature_cols):
     print("HAUSMAN ENDOGENEITY TEST")
     print("="*70)
     
+    if iv_results is not None and hasattr(iv_results, 'wu_hausman'):
+        print("  Using built-in Wu-Hausman test from linearmodels IV2SLS...")
+        try:
+            H = iv_results.wu_hausman.stat
+            p_hausman = iv_results.wu_hausman.pval
+            print(f"  Hausman statistic: {H:.4f}")
+            print(f"  Hausman p-value:   {p_hausman:.6f}")
+            if p_hausman < 0.05:
+                print(f"  RESULT: Endogeneity CONFIRMED (p < 0.05). 2SLS preferred.")
+            else:
+                print(f"  RESULT: No significant endogeneity detected. OLS may be sufficient.")
+            return H, p_hausman
+        except Exception as e:
+            print(f"  Built-in Wu-Hausman failed: {e}")
+            pass
+            
     exog_cols = [c for c in CONTROL_COLS if c in df.columns]
     
     # OLS estimate
@@ -278,19 +343,24 @@ def hansen_threshold_test(df, dep_col='pass_rate', kappa_col='kappa_predicted'):
     print("HANSEN BOOTSTRAP THRESHOLD TEST")
     print("="*70)
     
-    thresholds = np.arange(THRESHOLD_GRID_START, THRESHOLD_GRID_END, THRESHOLD_GRID_STEP)
-    
+    thresholds = build_threshold_grid(df, kappa_col)
+
     # Step 1: Compute observed Wald statistics across the grid
-    print(f"  Searching {len(thresholds)} candidate thresholds [{THRESHOLD_GRID_START}, {THRESHOLD_GRID_END}]...")
+    if len(thresholds) == 0:
+        print("  ERROR: Grid is empty ,  sample too small for MIN_REGIME_SIZE.")
+        return None, None, None, None, None, []
+    print(f"  Searching {len(thresholds)} candidate thresholds "
+          f"[{thresholds.min():.2f}, {thresholds.max():.2f}] "
+          f"(mode={THRESHOLD_GRID_MODE})...")
     wald_stats = []
     for gamma in thresholds:
         w = compute_threshold_wald(df, gamma, dep_col, kappa_col)
         wald_stats.append((gamma, w))
-    
+
     valid_stats = [(g, w) for g, w in wald_stats if not np.isnan(w)]
     if not valid_stats:
         print("  ERROR: No valid threshold found. All splits too small.")
-        return None, None, None, None
+        return None, None, None, None, None, wald_stats
     
     # Observed sup-Wald
     best_gamma, sup_wald = max(valid_stats, key=lambda x: x[1])
@@ -337,11 +407,48 @@ def hansen_threshold_test(df, dep_col='pass_rate', kappa_col='kappa_predicted'):
         
         if (b + 1) % 100 == 0:
             print(f"    Bootstrap iteration {b + 1}/{HANSEN_BOOTSTRAP_ITERATIONS}")
+            
+    # Step 3: Threshold Confidence Interval (cluster bootstrap under the alternative).
+    # We resample whole clusters (prompt ids), not individual rows. Row-level
+    # resampling would treat the ~18 model observations per prompt as
+    # independent draws and produce an artificially tight CI.
+    print(f"\n  Building {THRESHOLD_CI_BOOTSTRAP} cluster-bootstrap threshold CIs...")
+    boot_gammas = []
+    if CLUSTER_COL in df.columns:
+        clusters = df.groupby(CLUSTER_COL, sort=False).indices
+        cluster_ids = np.array(list(clusters.keys()))
+        cluster_rows = [clusters[cid] for cid in cluster_ids]
+    else:
+        cluster_ids = np.arange(len(df))
+        cluster_rows = [np.array([i]) for i in cluster_ids]
+
+    for b in range(THRESHOLD_CI_BOOTSTRAP):
+        rng_b = np.random.RandomState(10_000 + b)
+        sampled = rng_b.choice(len(cluster_ids), size=len(cluster_ids), replace=True)
+        row_idx = np.concatenate([cluster_rows[i] for i in sampled])
+        df_boot = df.iloc[row_idx]
+
+        boot_walds = []
+        for gamma in thresholds:
+            w = compute_threshold_wald(df_boot, gamma, dep_col, kappa_col)
+            if not np.isnan(w):
+                boot_walds.append((gamma, w))
+
+        if boot_walds:
+            boot_best_gamma, _ = max(boot_walds, key=lambda x: x[1])
+            boot_gammas.append(boot_best_gamma)
+            
+    ci_lower = None
+    ci_upper = None
+    if boot_gammas:
+        ci_lower = np.percentile(boot_gammas, 2.5)
+        ci_upper = np.percentile(boot_gammas, 97.5)
+        print(f"  Threshold 95% CI: [{ci_lower:.2f}, {ci_upper:.2f}]")
+        print(f"  Bootstrap threshold std dev: {np.std(boot_gammas):.2f}")
     
-    # Step 3: p-value = proportion of bootstrap sup-Walds exceeding observed
+    # Step 4: p-value = proportion of bootstrap sup-Walds exceeding observed
     if boot_sup_walds:
         p_hansen = np.mean(np.array(boot_sup_walds) >= sup_wald)
-        ci_gammas = []
         
         print(f"\n  Bootstrap p-value: {p_hansen:.4f}")
         if p_hansen < 0.01:
@@ -356,7 +463,7 @@ def hansen_threshold_test(df, dep_col='pass_rate', kappa_col='kappa_predicted'):
         p_hansen = np.nan
         print(f"  WARNING: Bootstrap produced no valid statistics.")
     
-    return best_gamma, sup_wald, p_hansen, wald_stats
+    return best_gamma, sup_wald, p_hansen, ci_lower, ci_upper, wald_stats
 
 
 # ============================================================
@@ -373,7 +480,14 @@ def placebo_test(df, dep_col='pass_rate', kappa_col='kappa_predicted'):
     print("PLACEBO TEST (Shuffled Instruments)")
     print("="*70)
     
-    thresholds = np.arange(THRESHOLD_GRID_START, THRESHOLD_GRID_END, THRESHOLD_GRID_STEP)
+    # Placebo uses the same grid as the observed test so the null distribution
+    # it generates is directly comparable. Seed 123 is kept distinct from the
+    # Hansen bootstrap seed (42) so the two procedures draw independent
+    # random sequences and cannot accidentally share state.
+    thresholds = build_threshold_grid(df, kappa_col)
+    if len(thresholds) == 0:
+        print("  ERROR: Grid is empty ,  sample too small for MIN_REGIME_SIZE.")
+        return [], []
     rng = np.random.RandomState(123)
     
     placebo_gammas = []
@@ -414,6 +528,149 @@ def placebo_test(df, dep_col='pass_rate', kappa_col='kappa_predicted'):
 
 
 # ============================================================
+# 5. REGIME-SPLIT 2SLS (The "Complexity Kink")
+# ============================================================
+
+def run_regime_split_2sls(df, feature_cols, gamma, dep_var='pass_rate', kappa_col='kappa_actual'):
+    """
+    Runs 2SLS separately on the low-complexity and high-complexity regimes
+    defined by the threshold gamma. This cleanly handles the endogeneity
+    in BOTH regimes, avoiding the bias of just comparing OLS splits.
+    """
+    print("\n" + "="*70)
+    print("REGIME-SPLIT 2SLS (Estimating the Kink)")
+    print("="*70)
+    
+    if gamma is None or np.isnan(gamma):
+        print("  Skipping regime-split 2SLS (no valid threshold provided).")
+        return None, None
+        
+    exog_cols = [c for c in CONTROL_COLS if c in df.columns]
+    
+    # Split the sample based on the PREDICTED kappa (the exogenous instrument index)
+    # We split on predicted kappa to avoid endogeneity in the split selection itself.
+    low_df = df[df['kappa_predicted'] <= gamma].copy()
+    high_df = df[df['kappa_predicted'] > gamma].copy()
+    
+    if len(low_df) < MIN_REGIME_SIZE or len(high_df) < MIN_REGIME_SIZE:
+        print("  WARNING: Regimes too small for reliable 2SLS. Skipping.")
+        return None, None
+        
+    print(f"  Split at gamma* = {gamma:.2f}")
+    print(f"  Low Regime N  = {len(low_df)}")
+    print(f"  High Regime N = {len(high_df)}")
+    
+    def run_split(split_df, regime_name):
+        exog = sm.add_constant(split_df[exog_cols])
+        endog = split_df[[kappa_col]]
+        instruments = split_df[feature_cols]
+        dep = split_df[dep_var]
+        
+        try:
+            iv_model = IV2SLS(dependent=dep, exog=exog, endog=endog, instruments=instruments)
+            res = iv_model.fit(**_fit_kwargs(split_df))
+
+            coef = res.params[kappa_col]
+            se = res.std_errors[kappa_col]
+            pval = res.pvalues[kappa_col]
+            
+            print(f"\n  [{regime_name} Regime] kappa coef: {coef:.6f}")
+            print(f"  [{regime_name} Regime] SE:         {se:.6f}")
+            print(f"  [{regime_name} Regime] p-value:    {pval:.6f}")
+            
+            return res
+        except Exception as e:
+            print(f"  [{regime_name} Regime] 2SLS failed: {e}")
+            return None
+            
+    res_low = run_split(low_df, "LOW")
+    res_high = run_split(high_df, "HIGH")
+    
+    if res_low is not None and res_high is not None:
+        # Quick Wald test for difference in coefficients
+        diff = res_low.params[kappa_col] - res_high.params[kappa_col]
+        se_diff = np.sqrt(res_low.std_errors[kappa_col]**2 + res_high.std_errors[kappa_col]**2)
+        z_stat = diff / se_diff
+        p_val = 2 * (1 - stats.norm.cdf(abs(z_stat)))
+        
+        print(f"\n  Difference (Low - High): {diff:.6f}")
+        print(f"  Z-statistic:             {z_stat:.4f}")
+        print(f"  p-value for difference:  {p_val:.6f}")
+        if p_val < 0.05:
+            print("  RESULT: The return to human effort (kappa) is significantly different across regimes.")
+            if res_low.params[kappa_col] > res_high.params[kappa_col]:
+                print("          Human effort matters MORE in the LOW complexity regime.")
+            else:
+                print("          Human effort matters MORE in the HIGH complexity regime.")
+        else:
+            print("  RESULT: Cannot reject that returns to human effort are equal across regimes.")
+            
+    return res_low, res_high
+
+
+# ============================================================
+# 6. INSTRUMENT ROBUSTNESS CHECK
+# ============================================================
+
+def run_instrument_robustness(df):
+    """
+    Re-runs the main 2SLS using more conservative instrument subsets
+    to ensure results are not driven solely by potentially violative
+    instruments (like prompt length/lexical complexity).
+    """
+    print("\n" + "="*70)
+    print("INSTRUMENT SUBSET ROBUSTNESS CHECK")
+    print("="*70)
+    
+    dep_var = df['pass_rate']
+    endog = df[['kappa_actual']]
+    exog_cols = [c for c in CONTROL_COLS if c in df.columns]
+    exog = sm.add_constant(df[exog_cols])
+    
+    subsets = {
+        "Full Set": IV_FEATURE_COLS,
+        "Reduced Set (No Length/Lexical)": REDUCED_IV_COLS,
+        "Conservative (Pure Structural)": CONSERVATIVE_IV_COLS
+    }
+    
+    results = {}
+    
+    for name, subset in subsets.items():
+        print(f"\n--- {name} ---")
+        print(f"  Instruments ({len(subset)}): {', '.join(subset)}")
+        instruments = df[subset]
+        
+        try:
+            iv_model = IV2SLS(dependent=dep_var, exog=exog, endog=endog, instruments=instruments)
+            res = iv_model.fit(**_fit_kwargs(df))
+
+            coef = res.params['kappa_actual']
+            se = res.std_errors['kappa_actual']
+            pval = res.pvalues['kappa_actual']
+            fstat = res.first_stage.diagnostics['f.stat'].iloc[0]
+            
+            j_stat_val, j_pval = np.nan, np.nan
+            if hasattr(res, 'sargan'):
+                j_stat_val = res.sargan.stat
+                j_pval = res.sargan.pval
+                
+            print(f"  kappa coef: {coef:.6f} (p={pval:.4f})")
+            print(f"  1st stage F: {fstat:.2f}")
+            if not np.isnan(j_pval):
+                print(f"  J-test p-value: {j_pval:.4f}")
+                
+            results[name] = {
+                'coef': coef, 'se': se, 'pval': pval,
+                'fstat': fstat, 'j_pval': j_pval
+            }
+        except Exception as e:
+            print(f"  Failed: {e}")
+            results[name] = None
+            
+    return results
+
+
+# ============================================================
 # MAIN
 # ============================================================
 
@@ -429,18 +686,24 @@ def run_stage2_analysis(enriched_file, model_path):
     results['iv_results'] = iv_results
     
     # 2. Hausman test
-    h_stat, h_pval = hausman_test(df, feature_cols)
+    h_stat, h_pval = hausman_test(df, feature_cols, iv_results)
     results['hausman_stat'] = h_stat
     results['hausman_pval'] = h_pval
     
-    # 3. Hansen threshold test
-    gamma, sup_wald, p_hansen, wald_curve = hansen_threshold_test(df)
+    # 3. Instrument Robustness Check
+    robustness_results = run_instrument_robustness(df)
+    results['instrument_robustness'] = robustness_results
+    
+    # 4. Hansen threshold test
+    gamma, sup_wald, p_hansen, ci_lower, ci_upper, wald_curve = hansen_threshold_test(df)
     results['threshold_gamma'] = gamma
     results['threshold_sup_wald'] = sup_wald
     results['threshold_pval'] = p_hansen
+    results['threshold_ci_lower'] = ci_lower
+    results['threshold_ci_upper'] = ci_upper
     results['wald_curve'] = wald_curve
     
-    # 4. Placebo test
+    # 5. Placebo test
     placebo_gammas, placebo_walds = placebo_test(df)
     results['placebo_gammas'] = placebo_gammas
     results['placebo_walds'] = placebo_walds
@@ -466,6 +729,40 @@ def run_stage2_analysis(enriched_file, model_path):
             else:
                 print(f"  RESULT: Real kink sup-Wald within placebo range. Kink may be SPURIOUS.")
     
+    # 5. Regime-Split 2SLS Analysis
+    res_low, res_high = run_regime_split_2sls(df, feature_cols, gamma)
+    results['regime_low_iv'] = res_low
+    results['regime_high_iv'] = res_high
+
+    # 6. Survivorship robustness: re-run the threshold test using the
+    # all-samples Stage 1 predictor. Stage 1's primary predictor is fit on
+    # pass_rate == 1.0 only, which means it extrapolates onto the failure
+    # regime. If that extrapolation is manufacturing the kink, the all-samples
+    # predictor ,  which is trained on failures too ,  will produce a different
+    # threshold location or a much weaker sup-Wald. Agreement across the two
+    # predictors is the strongest single sign that the kink is structural
+    # rather than a filter artefact.
+    if (
+        'kappa_predicted_all_samples' in df.columns
+        and df['kappa_predicted_all_samples'].notna().any()
+    ):
+        print("\n" + "=" * 70)
+        print("ROBUSTNESS: THRESHOLD TEST WITH ALL-SAMPLES STAGE 1 PREDICTOR")
+        print("=" * 70)
+        robust_out = hansen_threshold_test(
+            df, dep_col='pass_rate', kappa_col='kappa_predicted_all_samples'
+        )
+        (robust_gamma, robust_sup_wald, robust_pval,
+         robust_ci_lo, robust_ci_hi, _) = robust_out
+        results['robust_gamma'] = robust_gamma
+        results['robust_sup_wald'] = robust_sup_wald
+        results['robust_pval'] = robust_pval
+        results['robust_ci_lower'] = robust_ci_lo
+        results['robust_ci_upper'] = robust_ci_hi
+    else:
+        print("\n  [Skipped all-samples robustness: predictor column not present. "
+              "Re-run train_stage1_iv.py to generate it.]")
+    
     # Save results summary
     summary_path = os.path.join(OUTPUT_DIR, "stage2_results_summary.txt")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -476,10 +773,26 @@ def run_stage2_analysis(enriched_file, model_path):
             f.write(f"2SLS kappa coefficient: {iv_results.params['kappa_actual']:.6f}\n")
             f.write(f"2SLS kappa p-value: {iv_results.pvalues['kappa_actual']:.6f}\n")
             f.write(f"First-stage F-stat: {iv_results.first_stage.diagnostics['f.stat'].iloc[0]:.2f}\n")
-        f.write(f"Hausman statistic: {h_stat}\n")
+            if hasattr(iv_results, 'j_stat_val'):
+                f.write(f"Sargan-Hansen J-stat: {iv_results.j_stat_val:.4f}\n")
+                f.write(f"Sargan-Hansen J-pval: {iv_results.j_pval:.6f}\n")
+        f.write(f"\nHausman statistic: {h_stat}\n")
         f.write(f"Hausman p-value: {h_pval}\n")
-        f.write(f"Hansen threshold (gamma): {gamma}\n")
+        f.write(f"\nHansen threshold (gamma): {gamma}\n")
         f.write(f"Hansen bootstrap p-value: {p_hansen}\n")
+        if ci_lower is not None:
+            f.write(f"Hansen threshold 95% CI: [{ci_lower:.2f}, {ci_upper:.2f}]\n")
+            
+        f.write("\nINSTRUMENT ROBUSTNESS:\n")
+        for name, r in robustness_results.items():
+            if r is not None:
+                f.write(f"{name}: coef={r['coef']:.6f} (p={r['pval']:.4f}), F={r['fstat']:.2f}, J-p={r['j_pval']:.4f}\n")
+        
+        if res_low is not None and res_high is not None:
+            f.write("\nREGIME-SPLIT 2SLS:\n")
+            f.write(f"Low Regime kappa coef:  {res_low.params['kappa_actual']:.6f} (p={res_low.pvalues['kappa_actual']:.4f})\n")
+            f.write(f"High Regime kappa coef: {res_high.params['kappa_actual']:.6f} (p={res_high.pvalues['kappa_actual']:.4f})\n")
+            
     print(f"\nResults summary saved to {summary_path}")
     
     return df, results
@@ -487,8 +800,8 @@ def run_stage2_analysis(enriched_file, model_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Stage 2: 2SLS + Hansen + Hausman + Placebo")
-    parser.add_argument("--input", default=DEFAULT_ENRICHED_FILE,
-                        help="Path to enriched JSONL file")
+    parser.add_argument("--input", default=DEFAULT_OOF_FILE,
+                        help="Path to OOF-enriched JSONL file")
     parser.add_argument("--model", default=DEFAULT_MODEL_PATH,
                         help="Path to Stage 1 model")
     args = parser.parse_args()

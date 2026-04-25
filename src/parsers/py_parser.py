@@ -16,10 +16,15 @@ def calculate_cyclomatic_complexity(code):
     logical 'and', 'or', and list comprehensions.
     """
     if not code or not isinstance(code, str):
-        return 1
-        
+        return None  # Unknown complexity ,  do NOT default to 1
+
     tree = parser.parse(bytes(code, "utf8"))
-    
+
+    # If the root node has errors spanning the entire source, treat as
+    # unparsable.  Tree-sitter wraps syntax errors in ERROR nodes.
+    if tree.root_node.has_error and tree.root_node.child_count == 1:
+        return None  # Unparsable code ,  do NOT default to 1
+
     # Decision points in Python tree-sitter grammar
     decision_nodes = {
         'if_statement',
@@ -54,7 +59,7 @@ def calculate_nesting_depth(code):
     This captures architectural complexity beyond simple branch counting.
     """
     if not code or not isinstance(code, str):
-        return 0
+        return None  # Unknown depth ,  do NOT default to 0
 
     tree = parser.parse(bytes(code, "utf8"))
     
@@ -87,8 +92,8 @@ def extract_ast_features(code):
     """
     if not code or not isinstance(code, str):
         return {
-            'ast_cyclomatic': 1,
-            'ast_nesting_depth': 0,
+            'ast_cyclomatic': None,
+            'ast_nesting_depth': None,
             'ast_function_count': 0,
             'ast_class_count': 0,
         }

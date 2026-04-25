@@ -1,0 +1,24 @@
+# Sandboxed scoring container — executes LLM-generated code safely
+# No GUI, no network, minimal attack surface
+FROM python:3.11-slim
+
+# Prevent GUI popups and interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DISPLAY=""
+ENV MPLBACKEND=Agg
+
+# Install only what the scorer needs
+RUN pip install --no-cache-dir lizard
+
+WORKDIR /app
+
+# Score script is mounted with the rest of the repo
+# Usage (from project root):
+#   docker build -f docker/Dockerfile.scorer -t scorer .
+#   docker run --network none -v ${PWD}/data:/data -v ${PWD}/src:/src scorer \
+#       --prompts /data/experiment_prompts.jsonl \
+#       --generations-dir /data/generations \
+#       --output-dir /data/scored \
+#       --only gpt-4.1
+
+ENTRYPOINT ["python", "/src/data_provenance/03_execute_and_score.py"]

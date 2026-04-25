@@ -1,0 +1,83 @@
+{
+    "_comment": "Example model configuration. Copy to models.json and set environment variables for API keys. Keys prefixed with $ are resolved from the environment at runtime (e.g. $OPENROUTER_API_KEY -> os.environ['OPENROUTER_API_KEY']).",
+    "models": [
+        {
+            "_comment": "OpenAI models via GitHub Copilot (requires Copilot subscription)",
+            "model_id": "gpt-4.1",
+            "api_model": "gpt-4.1",
+            "backend": "copilot",
+            "tier": "efficient",
+            "rpm": 10
+        },
+        {
+            "_comment": "OpenRouter models (get key at https://openrouter.ai/keys)",
+            "model_id": "anthropic/claude-sonnet-4.6",
+            "api_model": "anthropic/claude-sonnet-4.6",
+            "backend": "openai",
+            "base_url": "https://openrouter.ai/api/v1",
+            "api_key": "$OPENROUTER_API_KEY",
+            "tier": "frontier",
+            "rpm": 10
+        },
+        {
+            "_comment": "Azure OpenAI (set AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT)",
+            "model_id": "azure/gpt-4.1",
+            "api_model": "gpt-4.1",
+            "backend": "azure",
+            "api_key": "$AZURE_OPENAI_API_KEY",
+            "azure_endpoint": "$AZURE_OPENAI_ENDPOINT",
+            "azure_deployment": "gpt-4.1",
+            "api_version": "2024-05-13",
+            "tier": "frontier",
+            "rpm": 100
+        },
+        {
+            "_comment": "Azure AI Inference (serverless models via Azure AI Foundry)",
+            "model_id": "azure/kimi-k2.5",
+            "api_model": "Kimi-K2.5",
+            "backend": "azure_inference",
+            "api_key": "$AZURE_OPENAI_API_KEY",
+            "azure_endpoint": "https://YOUR_RESOURCE.cognitiveservices.azure.com/",
+            "azure_deployment": "Kimi-K2.5",
+            "tier": "frontier",
+            "rpm": 250
+        },
+        {
+            "_comment": "Google Gemini via CLI auth (see load_keys.py)",
+            "model_id": "google/gemini-3.1-pro-preview",
+            "api_model": "gemini-3.1-pro-preview",
+            "backend": "antigravity",
+            "tier": "frontier",
+            "rpm": 5,
+            "max_retries": 10
+        },
+        {
+            "_comment": "xAI Grok (set XAI_API_KEY)",
+            "model_id": "x-ai/grok-4",
+            "api_model": "grok-4",
+            "backend": "openai",
+            "base_url": "https://api.x.ai/v1",
+            "api_key": "$XAI_API_KEY",
+            "tier": "frontier",
+            "rpm": 500
+        },
+        {
+            "_comment": "Anthropic direct (set ANTHROPIC_API_KEY)",
+            "model_id": "anthropic/claude-sonnet-4.6",
+            "api_model": "claude-sonnet-4-6",
+            "backend": "anthropic",
+            "tier": "frontier",
+            "rpm": 10
+        },
+        {
+            "_comment": "Local models via LM Studio or Ollama (OpenAI-compatible endpoint)",
+            "model_id": "qwen3.5-9b",
+            "api_model": "qwen/qwen3.5-9b",
+            "backend": "local",
+            "base_url": "http://localhost:1234/v1",
+            "tier": "open-source",
+            "rpm": 5,
+            "max_tokens": 2048
+        }
+    ]
+}

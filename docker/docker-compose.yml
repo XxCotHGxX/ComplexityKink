@@ -1,0 +1,43 @@
+# docker-compose.yml — local testing before Azure push
+# Run: docker compose up
+#
+# NOTE: Requires NVIDIA Docker runtime (nvidia-container-toolkit)
+# and at least one CUDA-capable GPU.
+
+services:
+  qwen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        HF_TOKEN: "${HF_TOKEN}"   # Set in shell or .env file
+    image: qwen-vllm:latest
+    ports:
+      - "1234:8000"   # Maps container port 8000 → local port 1234
+                      # (matches models.json base_url: http://localhost:1234/v1)
+    environment:
+      HF_TOKEN: "${HF_TOKEN}"
+      MODEL_ID: "Qwen/Qwen2.5-Coder-7B-Instruct"
+      MODEL_ALIAS: "qwen/qwen3.5-9b"
+      GPU_MEMORY_UTILIZATION: "0.90"
+      MAX_MODEL_LEN: "32768"
+    volumes:
+      - model-cache:/model-cache   # Persist model weights across restarts
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s    # Give it time to download + load
+
+volumes:
+  model-cache:
+    driver: local

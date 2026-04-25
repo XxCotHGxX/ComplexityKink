@@ -1,6 +1,9 @@
 """
 Modern Plotly-based visualizations for the Complexity Kink paper.
 Produces interactive HTML + static PNG exports.
+
+DATA PROVENANCE: Uses ``data_loader.load_enriched_dataset`` and reads
+``kappa_predicted`` from the OOF-enriched JSONL, NOT from model.predict().
 """
 import json
 import numpy as np
@@ -10,30 +13,51 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from config import DEFAULT_OOF_FILE, DEFAULT_MODEL_PATH, IV_FEATURE_COLS
+from data_loader import load_enriched_dataset
+from generate_viz import find_threshold
+
+
+# Threshold for kink annotations is computed from the data at runtime rather
+# than hard-coded, so interactive figures always agree with the estimator in
+# run_stage2_iv.py. Avoiding a fixed value prevents the interactive panels
+# from silently drifting behind the latest analysis.
+_KINK = None
+
+
+def _kink(df):
+    global _KINK
+    if _KINK is None:
+        _KINK = float(find_threshold(df))
+    return _KINK
+
+
+def _round_half(x):
+    """Round to the nearest 0.5 for nicer bin edges while staying data-driven."""
+    return round(x * 2) / 2
 
 # ── Data Loading ──────────────────────────────────────────────────────
 def load_data():
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_path = os.path.join(base, 'data', 'iv_enriched_dataset.jsonl')
+    data_path = os.path.join(base, 'data', 'iv_enriched_oof.jsonl')
     model_path = os.path.join(base, 'output', 'kappa_predictor_stage1.joblib')
 
-    data = []
-    with open(data_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            item = json.loads(line)
-            row = dict(item.get('iv_features', {}))
-            row['kappa_actual'] = item.get('kappa_cyclomatic', 1)
-            status = item.get('status', [])
-            row['pass_rate'] = sum(1 for s in status if 'pass' in s.lower()) / len(status) if status else 0
-            row['is_success'] = item.get('is_success', 0)
-            row['e_norm'] = item.get('e_norm', 0)
-            data.append(row)
+    df, feature_cols = load_enriched_dataset(data_path)
 
-    df = pd.DataFrame(data)
-    model = joblib.load(model_path)
-    feat_cols = ['inst_tokens','inst_if_count','inst_loop_count','inst_class_count',
-                 'inst_func_count','inst_logic_count','inst_total_structural','inst_avg_word_len']
-    df['kappa_predicted'] = model.predict(df[feat_cols].values)
+    # Fill any missing predictions via model fallback
+    n_missing = df['kappa_predicted'].isna().sum()
+    if n_missing > 0:
+        print(f"WARNING: {n_missing} samples lack kappa_predicted. "
+              f"Falling back to model.predict().")
+        model = joblib.load(model_path)
+        missing = df['kappa_predicted'].isna()
+        df.loc[missing, 'kappa_predicted'] = model.predict(
+            df.loc[missing, feature_cols].values
+        )
+
     return df
 
 # ── Color Palette ─────────────────────────────────────────────────────
@@ -64,7 +88,7 @@ def style_axes(fig):
 
 # ── Figure 1: Imposter Violin Plot ───────────────────────────────────
 def fig_imposter_violins(df, outdir):
-    """Show predicted kappa distributions per observed kappa bin -- exposes imposters."""
+    """Show predicted kappa distributions per observed kappa bin - exposes imposters."""
     subset = df[df['kappa_actual'].between(1, 8)].copy()
     subset['kappa_obs_label'] = 'κ_obs = ' + subset['kappa_actual'].astype(str)
 
@@ -84,8 +108,9 @@ def fig_imposter_violins(df, outdir):
             marker=dict(color=color, size=2),
         ))
 
-    fig.add_hline(y=6.5, line_dash='dash', line_color=COLORS['orange'],
-                  annotation_text='Complexity Kink (κ=6.5)',
+    gamma = _kink(df)
+    fig.add_hline(y=gamma, line_dash='dash', line_color=COLORS['orange'],
+                  annotation_text=f'Complexity Kink (κ={gamma:.1f})',
                   annotation_position='top right',
                   annotation_font_color=COLORS['orange'])
 
@@ -109,12 +134,15 @@ def fig_imposter_violins(df, outdir):
 def fig_sankey_flow(df, outdir):
     """Shows how tasks flow from predicted bins to observed bins (misclassification)."""
     df_copy = df.copy()
+    gamma = _round_half(_kink(df))
     df_copy['pred_bin'] = pd.cut(df_copy['kappa_predicted'],
-                                  bins=[0, 3, 6.5, 10, 15, 50],
-                                  labels=['κ̂ 0-3', 'κ̂ 3-6.5', 'κ̂ 6.5-10', 'κ̂ 10-15', 'κ̂ 15+'])
+                                  bins=[0, 3, gamma, 10, 15, 50],
+                                  labels=['κ̂ 0-3', f'κ̂ 3-{gamma:g}',
+                                          f'κ̂ {gamma:g}-10', 'κ̂ 10-15', 'κ̂ 15+'])
     df_copy['obs_bin'] = pd.cut(df_copy['kappa_actual'],
-                                 bins=[0, 1, 3, 6.5, 10, 50],
-                                 labels=['κ=1', 'κ 2-3', 'κ 4-6', 'κ 7-10', 'κ 11+'])
+                                 bins=[0, 1, 3, gamma, 10, 50],
+                                 labels=['κ=1', 'κ 2-3', f'κ 4-{int(np.ceil(gamma))}',
+                                         f'κ {int(np.ceil(gamma))+1}-10', 'κ 11+'])
 
     flow = df_copy.groupby(['pred_bin', 'obs_bin']).size().reset_index(name='count')
     flow = flow[flow['count'] > 50]  # filter noise
@@ -155,13 +183,13 @@ def fig_sankey_flow(df, outdir):
             target=target_idx,
             value=flow['count'].tolist(),
             color=link_colors,
-            hovertemplate='%{source.label} → %{target.label}: %{value} tasks<extra></extra>',
+            hovertemplate='%{source.label} to %{target.label}: %{value} tasks<extra></extra>',
         ),
     ))
 
     fig.update_layout(
         **LAYOUT_DEFAULTS,
-        title=dict(text='Task Misclassification Flow<br><sup style="color:#7d8590">Predicted complexity (left) → Observed output complexity (right). Red = misclassified to κ=1</sup>',
+        title=dict(text='Task Misclassification Flow<br><sup style="color:#7d8590">Predicted complexity (left) to Observed output complexity (right). Red = misclassified to κ=1</sup>',
                    font_size=18),
         height=500,
         width=900,
@@ -209,9 +237,10 @@ def fig_kink_scatter(df, outdir):
         hovertemplate='κ̂ = %{x:.1f}<br>Pass Rate = %{y:.1%}<br><extra></extra>',
     ))
 
-    # Kink line
-    fig.add_vline(x=6.5, line_dash='dash', line_color=COLORS['red'], line_width=2)
-    fig.add_annotation(x=6.5, y=0.52, text='Complexity Kink<br>κ̂ = 6.5',
+    # Kink line (data-driven; matches run_stage2_iv.py estimator)
+    gamma = _kink(df)
+    fig.add_vline(x=gamma, line_dash='dash', line_color=COLORS['red'], line_width=2)
+    fig.add_annotation(x=gamma, y=0.52, text=f'Complexity Kink<br>κ̂ = {gamma:.1f}',
                        showarrow=True, arrowhead=2, arrowcolor=COLORS['red'],
                        font=dict(color=COLORS['red'], size=14),
                        ax=60, ay=-40)
@@ -241,20 +270,19 @@ def fig_kink_scatter(df, outdir):
 
 # ── Figure 4: Phase Heatmap ──────────────────────────────────────────
 def fig_phase_heatmap(df, outdir):
-    """Interactive heatmap: complexity x entropy → pass rate."""
+    """Interactive heatmap: complexity x instruction length to pass rate."""
     df_copy = df.copy()
     df_copy['K_bin'] = pd.cut(df_copy['kappa_predicted'], bins=12,
                                labels=[f'{x:.0f}' for x in np.linspace(2, 16, 12)])
-    df_copy['E_bin'] = pd.cut(df_copy['e_norm'], bins=8,
-                               labels=[f'{x:.2f}' for x in np.linspace(0.1, 0.9, 8)])
+    df_copy['T_bin'] = pd.cut(df_copy['inst_tokens'], bins=8)
 
-    heatmap = df_copy.pivot_table(index='K_bin', columns='E_bin',
+    heatmap = df_copy.pivot_table(index='K_bin', columns='T_bin',
                                    values='pass_rate', aggfunc='mean',
                                    observed=False)
 
     fig = go.Figure(go.Heatmap(
         z=heatmap.values,
-        x=heatmap.columns.astype(str),
+        x=[str(c) for c in heatmap.columns],
         y=heatmap.index.astype(str),
         colorscale=[
             [0.0, '#1a1e2e'],
@@ -264,14 +292,14 @@ def fig_phase_heatmap(df, outdir):
             [1.0, '#3fb950'],
         ],
         colorbar=dict(title='Pass Rate', tickformat='.0%'),
-        hovertemplate='Complexity: %{y}<br>Entropy: %{x}<br>Pass Rate: %{z:.1%}<extra></extra>',
+        hovertemplate='Complexity: %{y}<br>Tokens: %{x}<br>Pass Rate: %{z:.1%}<extra></extra>',
     ))
 
     fig.update_layout(
         **LAYOUT_DEFAULTS,
-        title=dict(text='Performance Phase Diagram<br><sup style="color:#7d8590">Pass rate by predicted complexity × instruction entropy</sup>',
+        title=dict(text='Performance Phase Diagram<br><sup style="color:#7d8590">Pass rate by predicted complexity x instruction length</sup>',
                    font_size=18),
-        xaxis_title='Instruction Entropy (E_norm)',
+        xaxis_title='Instruction Length (tokens)',
         yaxis_title='Predicted Complexity (κ̂)',
         height=550,
         width=900,
@@ -293,8 +321,8 @@ def fig_before_after(df, outdir):
     corrected = df_copy.groupby('pred_int')['pass_rate'].mean()
 
     fig = make_subplots(rows=1, cols=2, subplot_titles=[
-        '<span style="color:#f85149">Naive View (Output κ) — BIASED</span>',
-        '<span style="color:#3fb950">Corrected View (Predicted κ̂) — 2SLS</span>',
+        '<span style="color:#f85149">Naive View (Output κ) ,  BIASED</span>',
+        '<span style="color:#3fb950">Corrected View (Predicted κ̂) ,  2SLS</span>',
     ], horizontal_spacing=0.12)
 
     fig.add_trace(go.Bar(
@@ -306,13 +334,13 @@ def fig_before_after(df, outdir):
 
     fig.add_trace(go.Bar(
         x=corrected.index, y=corrected.values,
-        marker_color=[COLORS['red'] if k > 6.5 else COLORS['green'] for k in corrected.index],
+        marker_color=[COLORS['red'] if k > _kink(df) else COLORS['green'] for k in corrected.index],
         hovertemplate='κ̂=%{x}<br>Pass Rate=%{y:.1%}<extra></extra>',
         showlegend=False,
     ), row=1, col=2)
 
-    # Kink line on corrected
-    fig.add_vline(x=6.5, line_dash='dash', line_color=COLORS['orange'],
+    # Kink line on corrected (data-driven)
+    fig.add_vline(x=_kink(df), line_dash='dash', line_color=COLORS['orange'],
                   line_width=2, row=1, col=2)
 
     fig.update_layout(

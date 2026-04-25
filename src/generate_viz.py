@@ -1,6 +1,10 @@
 """
 Visualization suite for the Complexity Kink Research.
 Generates publication-quality figures with dynamically computed thresholds.
+
+DATA PROVENANCE: Uses ``data_loader.load_enriched_dataset`` and reads
+``kappa_predicted`` from the OOF-enriched JSONL (honest out-of-fold
+predictions), NOT from ``model.predict()`` on the full dataset.
 """
 import json
 import argparse
@@ -14,43 +18,28 @@ import joblib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import (
-    DEFAULT_ENRICHED_FILE, DEFAULT_MODEL_PATH, OUTPUT_DIR,
+    DEFAULT_OOF_FILE, DEFAULT_MODEL_PATH, OUTPUT_DIR,
     IV_FEATURE_COLS, CONTROL_COLS,
-    THRESHOLD_GRID_START, THRESHOLD_GRID_END, THRESHOLD_GRID_STEP,
-    MIN_REGIME_SIZE
+    MIN_REGIME_SIZE,
 )
-
-
-def _compute_pass_rate(item):
-    """Compute pass rate from the status field when pass_rate is not stored."""
-    if 'pass_rate' in item:
-        return float(item['pass_rate'])
-    status = item.get('status', [])
-    if isinstance(status, list) and len(status) > 0:
-        n_pass = sum(1 for s in status if isinstance(s, str) and 'pass' in s.lower())
-        return n_pass / len(status)
-    return 0.0
+from data_loader import load_enriched_dataset
+from run_stage2_iv import build_threshold_grid
 
 
 def load_and_predict(enriched_file, model_path):
-    """Load data and generate predicted kappa."""
-    print("Loading data for visualization...")
-    data = []
-    with open(enriched_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            item = json.loads(line)
-            row = dict(item.get('iv_features', {}))
-            row['kappa_actual'] = item.get('kappa_cyclomatic', 1)
-            row['is_success'] = item.get('is_success', 0)
-            row['pass_rate'] = _compute_pass_rate(item)
-            row['e_norm'] = item.get('e_norm', 0.0)
-            data.append(row)
+    """Load data with OOF-predicted kappa.  Falls back to model if needed."""
+    df, feature_cols = load_enriched_dataset(enriched_file)
     
-    df = pd.DataFrame(data)
-    model = joblib.load(model_path)
-    
-    feature_cols = [c for c in IV_FEATURE_COLS if c in df.columns]
-    df['kappa_predicted'] = model.predict(df[feature_cols].values)
+    # Prefer OOF predictions already stored in the JSONL
+    n_missing = df['kappa_predicted'].isna().sum()
+    if n_missing > 0:
+        print(f"WARNING: {n_missing} samples lack kappa_predicted. "
+              f"Falling back to model.predict() for those rows.")
+        model = joblib.load(model_path)
+        missing = df['kappa_predicted'].isna()
+        df.loc[missing, 'kappa_predicted'] = model.predict(
+            df.loc[missing, feature_cols].values
+        )
     
     return df
 
@@ -59,13 +48,14 @@ def find_threshold(df, dep_col='pass_rate', kappa_col='kappa_predicted'):
     """Find the best threshold dynamically using segmented regression."""
     import statsmodels.api as sm
     
-    thresholds = np.arange(THRESHOLD_GRID_START, THRESHOLD_GRID_END, THRESHOLD_GRID_STEP)
+    thresholds = build_threshold_grid(df, kappa_col=kappa_col)
     best_gamma = None
     best_fstat = -np.inf
     
-    exog_cols = [c for c in CONTROL_COLS if c in df.columns and c in df.columns]
+    exog_cols = [c for c in CONTROL_COLS if c in df.columns]
     
-    X_pooled = sm.add_constant(df[[kappa_col] + exog_cols].dropna())
+    regressors = [kappa_col] + exog_cols
+    X_pooled = sm.add_constant(df[regressors].dropna())
     if len(X_pooled) < MIN_REGIME_SIZE * 2:
         return 6.0  # fallback
     
@@ -151,10 +141,10 @@ def generate_visualizations(enriched_file, model_path, output_dir=None):
     # 2. Phase Diagram Heatmap
     # ================================================================
     plt.figure(figsize=(10, 8))
-    df['E_bin'] = pd.cut(df['e_norm'], bins=15)
+    df['T_bin'] = pd.cut(df['inst_tokens'], bins=15)
     df['K_bin'] = pd.cut(df['kappa_predicted'], bins=15)
     
-    heatmap_data = df.pivot_table(index='K_bin', columns='E_bin', 
+    heatmap_data = df.pivot_table(index='K_bin', columns='T_bin', 
                                    values='pass_rate', aggfunc='mean')
     heatmap_data = heatmap_data.iloc[::-1]
     
@@ -162,7 +152,7 @@ def generate_visualizations(enriched_file, model_path, output_dir=None):
     plt.title("LLM Performance Phase Diagram\n"
               "Green = Safe Zone | Red = Logic Collapse", fontsize=16)
     plt.ylabel("Target Structural Complexity (kappa_hat)")
-    plt.xlabel("Normalized Instruction Entropy (E_norm)")
+    plt.xlabel("Instruction Length (tokens)")
     
     path2 = os.path.join(output_dir, "performance_phase_diagram.png")
     plt.savefig(path2, dpi=150, bbox_inches='tight')
@@ -174,7 +164,7 @@ def generate_visualizations(enriched_file, model_path, output_dir=None):
     # ================================================================
     import statsmodels.api as sm
     
-    thresholds = np.arange(THRESHOLD_GRID_START, THRESHOLD_GRID_END, THRESHOLD_GRID_STEP)
+    thresholds = build_threshold_grid(df, kappa_col='kappa_predicted')
     exog_cols = [c for c in CONTROL_COLS if c in df.columns]
     
     X_pooled = sm.add_constant(df[['kappa_predicted'] + exog_cols])
@@ -222,8 +212,8 @@ def generate_visualizations(enriched_file, model_path, output_dir=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate visualizations")
-    parser.add_argument("--input", default=DEFAULT_ENRICHED_FILE,
-                        help="Path to enriched JSONL file")
+    parser.add_argument("--input", default=DEFAULT_OOF_FILE,
+                        help="Path to OOF-enriched JSONL file")
     parser.add_argument("--model", default=DEFAULT_MODEL_PATH,
                         help="Path to Stage 1 model")
     parser.add_argument("--output-dir", default=OUTPUT_DIR,
