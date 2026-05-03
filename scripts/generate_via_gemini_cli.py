@@ -9,12 +9,13 @@ Usage:
 """
 import json
 import os
+import shutil
 import subprocess
 import time
 import re
 from datetime import datetime, timezone
 
-GEMINI_CMD = r"C:\Users\herna\AppData\Roaming\npm\gemini.cmd"
+GEMINI_CMD = os.environ.get("GEMINI_CMD") or shutil.which("gemini") or shutil.which("gemini.cmd")
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROMPTS_PATH = os.path.join(BASE, "data", "experiment_prompts.jsonl")
@@ -57,6 +58,8 @@ def main():
     parser.add_argument("--retry-backoff", type=float, default=5.0,
                         help="Base seconds for exponential backoff between retries")
     args = parser.parse_args()
+    if not GEMINI_CMD:
+        raise SystemExit("Gemini CLI not found. Install `gemini` or set GEMINI_CMD to its executable path.")
 
     api_model = args.model
     model_id = args.model_id

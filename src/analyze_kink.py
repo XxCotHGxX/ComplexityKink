@@ -39,7 +39,13 @@ RUBRIC_DIMS = [
 # the rubric-based analysis uses the same Hansen-search philosophy as
 # run_stage2_iv.py: percentile-spaced candidates that guarantee valid splits.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import MIN_REGIME_SIZE as MIN_REGIME
+from config import (
+    HANSEN_BOOTSTRAP_ITERATIONS,
+    PLACEBO_ITERATIONS,
+    STAGE_C_EXCLUDED_MODELS,
+    THRESHOLD_CI_BOOTSTRAP,
+    MIN_REGIME_SIZE as MIN_REGIME,
+)
 from run_stage2_iv import build_threshold_grid
 
 COLORS = {
@@ -1020,9 +1026,9 @@ def main():
     outdir = os.path.join(base, "results")
     os.makedirs(outdir, exist_ok=True)
 
-    n_boot = 100 if args.fast else 500
-    n_ci_boot = 50 if args.fast else 200
-    n_placebo = 100 if args.fast else 500
+    n_boot = 100 if args.fast else HANSEN_BOOTSTRAP_ITERATIONS
+    n_ci_boot = 50 if args.fast else THRESHOLD_CI_BOOTSTRAP
+    n_placebo = 100 if args.fast else PLACEBO_ITERATIONS
 
     print(f"Bootstrap iterations: {n_boot} (--fast={'yes' if args.fast else 'no'})")
 
@@ -1038,10 +1044,16 @@ def main():
     print("Discovering scored models...")
     models = discover_models(scored_dir)
     print(f"  Found {len(models)} model files")
+    if STAGE_C_EXCLUDED_MODELS:
+        excluded = ", ".join(sorted(STAGE_C_EXCLUDED_MODELS))
+        print(f"  Excluding from Stage C panel: {excluded}")
 
     # Load each model
     model_dfs = {}
     for name, path in models:
+        if name in STAGE_C_EXCLUDED_MODELS:
+            print(f"  Skipping {name}: excluded from Stage C panel")
+            continue
         df = load_scored_model(path, rubric)
         if len(df) < 200:
             print(f"  Skipping {name}: only {len(df)} valid rows (need 200+)")

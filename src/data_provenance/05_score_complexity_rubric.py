@@ -88,41 +88,50 @@ Respond with ONLY a JSON object, no other text:
 {"branching": <0-4>, "iteration": <0-4>, "state": <0-4>, "data_structures": <0-4>, "edge_cases": <0-4>, "composition": <0-4>}"""
 
 
-def score_prompt(client, prompt_text, prompt_id):
+def score_prompt(client, prompt_text, prompt_id, max_retries=3, retry_base_delay=5.0):
     """Score a single prompt via o4-mini."""
-    try:
-        response = client.chat.completions.create(
-            model=SCORING_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt_text},
-            ],
-            max_completion_tokens=2000,
-        )
-        raw = response.choices[0].message.content.strip()
+    raw = ""
+    last_error = None
+    for attempt in range(max_retries + 1):
+        try:
+            response = client.chat.completions.create(
+                model=SCORING_MODEL,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt_text},
+                ],
+                max_completion_tokens=2000,
+            )
+            raw = (response.choices[0].message.content or "").strip()
 
-        # Parse JSON from response (handle markdown code blocks if present)
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        raw = raw.strip()
+            # Parse JSON from response (handle markdown code blocks if present)
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            raw = raw.strip()
 
-        scores = json.loads(raw)
+            scores = json.loads(raw)
 
-        # Validate all 6 dimensions present and in range
-        dims = ["branching", "iteration", "state", "data_structures", "edge_cases", "composition"]
-        for d in dims:
-            if d not in scores or not isinstance(scores[d], int) or scores[d] < 0 or scores[d] > 4:
-                return prompt_id, None, f"Invalid score for {d}: {scores.get(d)}"
+            # Validate all 6 dimensions present and in range
+            dims = ["branching", "iteration", "state", "data_structures", "edge_cases", "composition"]
+            for d in dims:
+                if d not in scores or not isinstance(scores[d], int) or scores[d] < 0 or scores[d] > 4:
+                    return prompt_id, None, f"Invalid score for {d}: {scores.get(d)}"
 
-        composite = sum(scores[d] for d in dims)
-        return prompt_id, {"scores": scores, "composite": composite}, None
+            composite = sum(scores[d] for d in dims)
+            return prompt_id, {"scores": scores, "composite": composite}, None
 
-    except json.JSONDecodeError as e:
-        return prompt_id, None, f"JSON parse error: {e} | raw: {raw[:200]}"
-    except Exception as e:
-        return prompt_id, None, f"API error: {e}"
+        except json.JSONDecodeError as e:
+            last_error = f"JSON parse error: {e} | raw: {raw[:200]}"
+        except Exception as e:
+            last_error = f"API error: {e}"
+
+        if attempt < max_retries:
+            delay = retry_base_delay * (2 ** attempt)
+            time.sleep(delay)
+
+    return prompt_id, None, last_error
 
 
 def main():
@@ -130,6 +139,8 @@ def main():
     parser.add_argument("--prompts", default="data/experiment_prompts.jsonl")
     parser.add_argument("--output", default="data/complexity_rubric_scores.jsonl")
     parser.add_argument("--workers", type=int, default=5)
+    parser.add_argument("--max-retries", type=int, default=3)
+    parser.add_argument("--retry-base-delay", type=float, default=5.0)
     args = parser.parse_args()
 
     # Resume: keep only rows with valid scores and rewrite the output so
@@ -187,7 +198,10 @@ def main():
     with open(args.output, "a", encoding="utf-8") as f_out:
         with ThreadPoolExecutor(max_workers=args.workers) as pool:
             futures = {
-                pool.submit(score_prompt, client, p["input"], p["prompt_id"]): p["prompt_id"]
+                pool.submit(
+                    score_prompt, client, p["input"], p["prompt_id"],
+                    args.max_retries, args.retry_base_delay,
+                ): p["prompt_id"]
                 for p in prompts
             }
 

@@ -32,7 +32,6 @@ import datetime as dt
 import json
 import os
 import sys
-import time
 from pathlib import Path
 
 from google import genai
@@ -42,6 +41,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = ROOT / "data" / "experiment_prompts.jsonl"
 GEN_DIR = ROOT / "data" / "generations"
 STATE_DIR = ROOT / "data" / "batch_state"
+REQUEST_DIR = ROOT / "data" / "batch_requests"
+RESULT_DIR = ROOT / "data" / "batch_results"
 
 SYSTEM_PROMPT = (
     "You are an expert Python programmer. Write a single, complete Python "
@@ -57,9 +58,13 @@ def _client():
     return genai.Client(api_key=key)
 
 
-def _load_prompts():
+def _safe_name(model_id):
+    return model_id.replace("/", "_").replace(":", "_").replace(" ", "_")
+
+
+def _load_prompts(path):
     prompts = {}
-    with open(PROMPTS, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         for line in f:
             if not line.strip():
                 continue
@@ -91,14 +96,12 @@ def _load_done(gen_path):
     return done
 
 
-def _state_path(model_id):
-    slug = model_id.replace("/", "_")
-    return STATE_DIR / f"{slug}.json"
+def _state_path(model_id, state_dir):
+    return state_dir / f"{_safe_name(model_id)}.json"
 
 
-def _gen_path(model_id):
-    slug = model_id.replace("/", "_")
-    return GEN_DIR / f"{slug}.jsonl"
+def _gen_path(model_id, gen_dir):
+    return gen_dir / f"{_safe_name(model_id)}.jsonl"
 
 
 def _user_content(prompt_rec):
@@ -111,11 +114,16 @@ def _user_content(prompt_rec):
 # ── submit ─────────────────────────────────────────────────────────
 
 def cmd_submit(args):
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    GEN_DIR.mkdir(parents=True, exist_ok=True)
+    prompts_path = Path(args.prompts)
+    gen_dir = Path(args.gen_dir)
+    state_dir = Path(args.state_dir)
+    request_dir = Path(args.request_dir)
+    state_dir.mkdir(parents=True, exist_ok=True)
+    gen_dir.mkdir(parents=True, exist_ok=True)
+    request_dir.mkdir(parents=True, exist_ok=True)
 
-    prompts = _load_prompts()
-    gen_path = _gen_path(args.model)
+    prompts = _load_prompts(prompts_path)
+    gen_path = _gen_path(args.model, gen_dir)
     done = _load_done(gen_path)
     remaining = [p for pid, p in prompts.items() if pid not in done]
     print(f"Prompts: {len(prompts)}  done: {len(done)}  remaining: {len(remaining)}")
@@ -125,11 +133,9 @@ def cmd_submit(args):
 
     # Build a JSONL batch file. Each line is a GenerateContentRequest with
     # a stable `key` so we can map responses back to prompt_ids.
-    batch_dir = ROOT / "data" / "batch_requests"
-    batch_dir.mkdir(parents=True, exist_ok=True)
     ts = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-    slug = args.model.replace("/", "_")
-    batch_file = batch_dir / f"{slug}_{ts}.jsonl"
+    slug = _safe_name(args.model)
+    batch_file = request_dir / f"{slug}_{ts}.jsonl"
 
     with open(batch_file, "w", encoding="utf-8") as f:
         for p in remaining:
@@ -168,13 +174,15 @@ def cmd_submit(args):
     )
     print(f"Batch job: {batch.name}  state={batch.state}")
 
-    state_path = _state_path(args.model)
+    state_path = _state_path(args.model, state_dir)
     state = {
         "model_id": args.model,
         "api_model": args.api_model,
         "batch_name": batch.name,
         "uploaded_file": uploaded.name,
         "batch_file_local": str(batch_file),
+        "prompts": str(prompts_path),
+        "generation_output": str(gen_path),
         "submitted_at": ts,
         "n_requests": len(remaining),
     }
@@ -185,7 +193,7 @@ def cmd_submit(args):
 # ── status ─────────────────────────────────────────────────────────
 
 def cmd_status(args):
-    state_path = _state_path(args.model)
+    state_path = _state_path(args.model, Path(args.state_dir))
     if not state_path.exists():
         raise SystemExit(f"No state file at {state_path}")
     state = json.loads(state_path.read_text(encoding="utf-8"))
@@ -260,7 +268,7 @@ def _clean_code(text):
 
 
 def cmd_retrieve(args):
-    state_path = _state_path(args.model)
+    state_path = _state_path(args.model, Path(args.state_dir))
     if not state_path.exists():
         raise SystemExit(f"No state file at {state_path}")
     state = json.loads(state_path.read_text(encoding="utf-8"))
@@ -297,16 +305,31 @@ def cmd_retrieve(args):
 
     print(f"Retrieved {len(rows)} responses.")
 
-    gen_path = _gen_path(args.model)
+    gen_path = _gen_path(args.model, Path(args.gen_dir))
     gen_path.parent.mkdir(parents=True, exist_ok=True)
     ts = dt.datetime.utcnow().isoformat()
-    written, errors, empty = 0, 0, 0
+    seen = _load_done(gen_path)
+    written, errors, empty, skipped = 0, 0, 0, 0
+    result_dir = Path(args.result_dir)
+    result_dir.mkdir(parents=True, exist_ok=True)
+    raw_results_path = result_dir / f"{_safe_name(args.model)}_{state['batch_name'].replace('/', '_')}_results.jsonl"
+    with open(raw_results_path, "w", encoding="utf-8") as raw_out:
+        for key, resp, err in rows:
+            raw_out.write(json.dumps({
+                "key": key,
+                "response": resp,
+                "error": str(err) if err else None,
+            }, default=str) + "\n")
+
     with open(gen_path, "a", encoding="utf-8") as f:
         for key, resp, err in rows:
             try:
                 pid = int(key) if key and str(key).isdigit() else key
             except Exception:
                 pid = key
+            if str(pid) in {str(x) for x in seen}:
+                skipped += 1
+                continue
             if err:
                 f.write(json.dumps({
                     "prompt_id": pid,
@@ -332,7 +355,20 @@ def cmd_retrieve(args):
             }) + "\n")
             written += 1
 
-    print(f"Appended to {gen_path}: written={written} errors={errors} empty={empty}")
+    state["retrieved_at"] = ts
+    state["raw_results_path"] = str(raw_results_path)
+    state["retrieve_counts"] = {
+        "written": written,
+        "errors": errors,
+        "empty": empty,
+        "skipped_existing": skipped,
+    }
+    state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    print(f"Raw results: {raw_results_path}")
+    print(
+        f"Appended to {gen_path}: written={written} "
+        f"errors={errors} empty={empty} skipped_existing={skipped}"
+    )
 
 
 # ── main ───────────────────────────────────────────────────────────
@@ -340,6 +376,11 @@ def cmd_retrieve(args):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--prompts", default=str(PROMPTS))
+    ap.add_argument("--gen-dir", default=str(GEN_DIR))
+    ap.add_argument("--state-dir", default=str(STATE_DIR))
+    ap.add_argument("--request-dir", default=str(REQUEST_DIR))
+    ap.add_argument("--result-dir", default=str(RESULT_DIR))
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("submit", help="Build batch file and submit")

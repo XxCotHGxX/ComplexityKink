@@ -31,15 +31,13 @@ from analyze_kink import (
     RUBRIC_DIMS, load_rubric_scores, load_scored_model,
     discover_models, build_combined_df, compute_wald,
 )
+from config import STAGE_C_EXCLUDED_MODELS
 from run_stage2_iv import build_threshold_grid
 
 
 RUBRIC_PATH = "data/complexity_rubric_scores.jsonl"
 SCORED_DIR = "data/scored"
 OUT_PATH = "results/paper_numbers.json"
-
-EXCLUDED_MODELS = {"auroragpt-it-v4"}
-
 
 def main():
     print("Loading rubric scores...")
@@ -50,8 +48,8 @@ def main():
     models = discover_models(SCORED_DIR)
     model_dfs = {}
     for name, path in models:
-        if name in EXCLUDED_MODELS:
-            print(f"  SKIP {name} (out of distribution)")
+        if name in STAGE_C_EXCLUDED_MODELS:
+            print(f"  SKIP {name} (excluded from Stage C panel)")
             continue
         df = load_scored_model(path, rubric)
         if len(df) > 0:
