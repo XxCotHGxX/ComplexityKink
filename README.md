@@ -34,13 +34,13 @@ The methodology developed in three stages, each correcting a weakness of the pri
 | Quantity | Stage B (preprint) | Stage C (this repo) |
 | :-- | --: | --: |
 | Instrument | 8 keyword features via Random Forest | 6-dimension LLM rubric |
-| First-stage F | 1,765 | 2,926 |
+| First-stage F | 1,765 | 3,002 |
 | Partial R-squared | 0.531 | 0.462 |
-| Hausman chi-squared | 108.5 | 24.5 |
+| Hausman chi-squared | 108.5 | 20.1 |
 | Kink threshold | 6.5 (cyclomatic units) | 8.0 (rubric composite) |
 | Below-kink pass rate | 40.4% | 48.9% |
 | Above-kink pass rate | 11.8% | 37.0% |
-| Bootstrap CI on threshold | not reported | [4.0, 10.77] |
+| Bootstrap CI on threshold | not reported | [4.0, 11.0] |
 | Sargan / Hansen J | not interpretable (non-monotone) | rejects (J = 154.3) |
 | Placebo p-value | < 0.001 | < 0.002 |
 | Sample | 35,499 generations, 5 languages, 1 model | 105,000 generations, Python, 21 models |
@@ -136,6 +136,10 @@ docker build -t kink-scorer -f docker/Dockerfile.scorer .
 python src/data_provenance/03_execute_and_score.py
 python src/analyze_kink.py
 ```
+
+For Stage D and future large panel runs, use provider batch APIs before
+realtime generation whenever the provider path supports it. The batch-first
+policy and commands are in `docs/stage_d_batch_generation.md`.
 
 API keys for the 21 panel models are loaded from environment variables. See `src/data_provenance/load_keys.py` for the expected names.
 

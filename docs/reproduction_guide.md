@@ -132,7 +132,7 @@ After running `extract_paper_numbers.py`, the key claims in the paper map to fie
 
 | Paper claim | JSON path |
 | :-- | :-- |
-| First-stage F = 2,926 | `iv.fstat` |
+| First-stage F = 3,002 | `iv.fstat` |
 | Partial R-squared = 0.462 | `iv.partial_r2` |
 | OLS coefficient on kappa = -0.00918 | `kappa_ols.coef` |
 | 2SLS coefficient on kappa = -0.01310 | `iv.coef` |

@@ -32,6 +32,9 @@ import sys
 import json
 import time
 import random
+import re
+import shutil
+import subprocess
 import httpx
 import uuid
 import argparse
@@ -52,6 +55,8 @@ try:
 except ImportError:
     load_keys = None
 
+_SECRET_CACHE = {}
+
 
 # ---------------------------------------------------------------------------
 # System prompt used for ALL models ,  identical to ensure fairness
@@ -62,6 +67,8 @@ SYSTEM_PROMPT = (
     "```python``` code block. Do not include any explanation, tests, or "
     "examples outside the code block."
 )
+EMPTY_CODE_ERROR = "EMPTY_CODE: model returned reasoning only, no extractable code block"
+EMPTY_CODE_RETRY_DELAY_SECONDS = 2
 
 
 def clean_code_from_response(text):
@@ -113,26 +120,44 @@ def generate_openai(prompt, model_id, api_key, base_url=None, **kwargs):
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_content},
         ],
-        "temperature": kwargs.get("temperature", 0.0),
-        "max_tokens": kwargs.get("max_tokens", 4096),
     }
+    if "max_completion_tokens" in kwargs:
+        create_kwargs["max_completion_tokens"] = kwargs["max_completion_tokens"]
+    else:
+        create_kwargs["max_tokens"] = kwargs.get("max_tokens", 4096)
+    if not kwargs.get("no_temperature", False):
+        create_kwargs["temperature"] = kwargs.get("temperature", 0.0)
     if "frequency_penalty" in kwargs:
         create_kwargs["frequency_penalty"] = kwargs["frequency_penalty"]
     if "presence_penalty" in kwargs:
         create_kwargs["presence_penalty"] = kwargs["presence_penalty"]
+    extra_body = {}
+    if "enable_thinking" in kwargs:
+        extra_body["enable_thinking"] = kwargs["enable_thinking"]
+    if "thinking_budget" in kwargs:
+        extra_body["thinking_budget"] = kwargs["thinking_budget"]
+    if extra_body:
+        create_kwargs["extra_body"] = extra_body
 
     if kwargs.get("stream"):
         create_kwargs["stream"] = True
         content_parts = []
         with client.chat.completions.create(**create_kwargs) as stream:
             for chunk in stream:
-                delta = chunk.choices[0].delta if chunk.choices else None
+                choices = getattr(chunk, "choices", None)
+                delta = choices[0].delta if choices else None
                 if delta and delta.content:
                     content_parts.append(delta.content)
         return "".join(content_parts)
 
     response = client.chat.completions.create(**create_kwargs)
-    return response.choices[0].message.content
+    choices = getattr(response, "choices", None)
+    if not choices:
+        raise RuntimeError("MALFORMED_RESPONSE: no choices returned")
+    message = getattr(choices[0], "message", None)
+    if message is None:
+        raise RuntimeError("MALFORMED_RESPONSE: no message returned")
+    return getattr(message, "content", None) or ""
 
 
 # ---------------------------------------------------------------------------
@@ -501,7 +526,6 @@ def generate_codex(prompt, model_id, api_key=None, **kwargs):
             capture_output=True,
             encoding="utf-8",
             env=env,
-            shell=True,
             timeout=240  # 4 minutes max per prompt
         )
         
@@ -579,10 +603,60 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
 
     # Resolve ALL env var references (values starting with $) in the model config
     def resolve_env(val):
+        if isinstance(val, str) and val in _SECRET_CACHE:
+            return _SECRET_CACHE[val]
         if isinstance(val, str) and val.startswith("$"):
             resolved = os.environ.get(val[1:], "")
             if not resolved:
                 print(f"  WARNING: Env var {val} not set!")
+            else:
+                _SECRET_CACHE[val] = resolved
+            return resolved
+        if isinstance(val, str) and val.startswith("azkey:"):
+            target = val[len("azkey:"):]
+            try:
+                resource_group, account_name = target.split("/", 1)
+            except ValueError:
+                print("  WARNING: Azure key reference must be azkey:<resource_group>/<account_name>")
+                return ""
+
+            normalized_account = re.sub(r"[^A-Za-z0-9]+", "_", account_name).upper()
+            fallback_envs = [
+                f"AZURE_KEY_{normalized_account}",
+                f"AZURE_COGSERVICES_KEY_{normalized_account}",
+            ]
+            if account_name.lower() == "datapipeline0":
+                fallback_envs.append("AZURE_OPENAI_API_KEY")
+            for env_name in fallback_envs:
+                resolved = os.environ.get(env_name)
+                if resolved:
+                    _SECRET_CACHE[val] = resolved
+                    return resolved
+
+            az_exe = shutil.which("az") or shutil.which("az.cmd") or "az.cmd"
+            try:
+                result = subprocess.run(
+                    [
+                        az_exe, "cognitiveservices", "account", "keys", "list",
+                        "-g", resource_group,
+                        "-n", account_name,
+                        "--query", "key1",
+                        "-o", "tsv",
+                    ],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            except subprocess.CalledProcessError as exc:
+                detail = (exc.stderr or str(exc)).strip().splitlines()[0]
+                print(
+                    f"  WARNING: Azure CLI key lookup failed for {target}; "
+                    f"refresh az login or set one of {fallback_envs}. "
+                    f"First error line: {detail}"
+                )
+                return ""
+            resolved = result.stdout.strip()
+            _SECRET_CACHE[val] = resolved
             return resolved
         return val
 
@@ -615,6 +689,7 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
     # Resume: load already-completed prompt_ids
     # Only count a prompt as done if it has real, non-empty code.
     # Blank/error records are automatically re-queued on the next run.
+    target_ids = {p["prompt_id"] for p in prompts}
     done_ids = set()
     blank_ids = set()
     if resume and os.path.exists(outpath):
@@ -628,6 +703,8 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
                 except json.JSONDecodeError:
                     continue
                 pid = rec.get("prompt_id")
+                if pid not in target_ids:
+                    continue
                 code = rec.get("code_cleaned") or ""
                 if code.strip() and rec.get("error") is None:
                     done_ids.add(pid)
@@ -682,6 +759,7 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
 
         raw_response = None
         error_msg = None
+        code_cleaned = None
         is_quota_error = False
         
         for attempt in range(max_retries):
@@ -692,12 +770,18 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
                     "max_tokens": model_config.get("max_tokens", 4096),
                     "temperature": model_config.get("temperature", 0.0),
                 }
+                if "max_completion_tokens" in model_config:
+                    call_kwargs["max_completion_tokens"] = model_config["max_completion_tokens"]
                 if model_config.get("no_think"):
                     call_kwargs["no_think"] = True
                 if model_config.get("no_temperature"):
                     call_kwargs["no_temperature"] = True
                 if model_config.get("stream"):
                     call_kwargs["stream"] = True
+                if "enable_thinking" in model_config:
+                    call_kwargs["enable_thinking"] = model_config["enable_thinking"]
+                if "thinking_budget" in model_config:
+                    call_kwargs["thinking_budget"] = model_config["thinking_budget"]
                 # Some APIs (e.g. Grok) don't accept penalty params at all
                 if not model_config.get("no_penalties", False):
                     call_kwargs["frequency_penalty"] = model_config.get("frequency_penalty", 0.0)
@@ -720,6 +804,17 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
                     api_key,
                     **call_kwargs
                 )
+                code_cleaned = clean_code_from_response(raw_response or "")
+                if not code_cleaned or not code_cleaned.strip():
+                    error_msg = EMPTY_CODE_ERROR
+                    if attempt < max_retries - 1:
+                        print(
+                            f"      [!] {model_id} empty/code-less response; "
+                            f"retrying ({attempt + 1}/{max_retries})"
+                        )
+                        time.sleep(EMPTY_CODE_RETRY_DELAY_SECONDS)
+                        continue
+                    break
                 error_msg = None
                 is_quota_error = False
                 with lock:
@@ -742,12 +837,7 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
                 elif attempt < max_retries - 1:
                     time.sleep(2 ** attempt)
 
-        code_cleaned = clean_code_from_response(raw_response or "") if error_msg is None else None
-
-        # Treat reasoning-only responses (no extractable code) as errors so
-        # they get retried / counted correctly rather than silently passing.
-        if error_msg is None and (not code_cleaned or not code_cleaned.strip()):
-            error_msg = "EMPTY_CODE: model returned reasoning only, no extractable code block"
+        if error_msg is not None:
             code_cleaned = None
 
         record = {

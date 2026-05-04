@@ -1,0 +1,41 @@
+{
+  "_comment": "Copy to scorers.json and configure out-of-panel rubric judges. Keep every scorer out of the evaluated generation panel.",
+  "scorers": [
+    {
+      "scorer_id": "openai_o4_mini",
+      "backend": "azure",
+      "api_key": "$AZURE_OPENAI_API_KEY",
+      "azure_endpoint": "$AZURE_OPENAI_ENDPOINT",
+      "azure_deployment": "o4-mini",
+      "api_version": "2025-01-01-preview",
+      "max_completion_tokens": 2000,
+      "rpm": 60
+    },
+    {
+      "scorer_id": "openai_gpt5_mini",
+      "backend": "openai",
+      "api_key": "$OPENAI_API_KEY",
+      "api_model": "gpt-5-mini",
+      "max_completion_tokens": 2000,
+      "rpm": 60
+    },
+    {
+      "scorer_id": "anthropic_sonnet_holdout",
+      "backend": "anthropic",
+      "api_key": "$ANTHROPIC_API_KEY",
+      "api_model": "claude-sonnet-4-6",
+      "max_tokens": 2000,
+      "rpm": 20
+    },
+    {
+      "_comment": "Azure AI Foundry serverless /models endpoint for non-OpenAI MaaS deployments.",
+      "scorer_id": "azure_phi4_reasoning",
+      "backend": "azure_inference",
+      "api_key": "$AZURE_OPENAI_API_KEY",
+      "azure_endpoint": "$AZURE_OPENAI_ENDPOINT",
+      "azure_deployment": "Phi-4-reasoning",
+      "max_tokens": 2000,
+      "rpm": 120
+    }
+  ]
+}

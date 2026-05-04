@@ -115,3 +115,11 @@ CONSERVATIVE_IV_COLS = [
 # (pre-generation) or from fixed task metadata (language, source dataset).
 # If you add controls here, document WHY they are exogenous to generation.
 CONTROL_COLS: list[str] = []
+
+# --- Stage C evaluated panel ---
+# AuroraGPT-IT-v4 was generated during the experiment but is not part of the
+# reported 21-model Stage C panel. Keep the exclusion centralized so every
+# analysis/reporting script uses the same model set.
+STAGE_C_EXCLUDED_MODELS = {
+    "auroragpt-it-v4",
+}

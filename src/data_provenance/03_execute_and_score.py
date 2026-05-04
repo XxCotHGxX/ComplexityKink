@@ -39,6 +39,7 @@ import lizard
 
 
 EXECUTION_TIMEOUT = 5  # seconds per test case
+MAX_LIZARD_SOURCE_CHARS = 12_000
 
 # On Windows, subprocess.run(timeout=...) can leave orphaned grandchildren
 # alive if the generated code spawns them. We create a new process group so
@@ -48,9 +49,32 @@ if os.name == "nt":
     _CREATIONFLAGS = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
 
 
+def kill_process_tree(proc):
+    """Terminate a generated-code subprocess and any children it spawned."""
+    if proc is None or proc.poll() is not None:
+        return
+    if os.name == "nt":
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=5,
+            )
+            return
+        except Exception:
+            pass
+    try:
+        proc.kill()
+    except Exception:
+        pass
+
+
 def compute_cc(code):
     """Compute cyclomatic complexity of Python code using lizard."""
     if not code or not isinstance(code, str) or len(code.strip()) < 10:
+        return None
+    if len(code) > MAX_LIZARD_SOURCE_CHARS:
         return None
     try:
         analysis = lizard.analyze_file.analyze_source_code("snippet.py", code)
@@ -105,18 +129,14 @@ def execute_test(code, test_assertion):
             _out, _err = proc.communicate(timeout=EXECUTION_TIMEOUT)
             return "pass" if proc.returncode == 0 else "fail"
         except subprocess.TimeoutExpired:
-            proc.kill()
+            kill_process_tree(proc)
             try:
                 proc.communicate(timeout=2)
             except subprocess.TimeoutExpired:
                 pass
             return "fail"
     except Exception:
-        if proc is not None:
-            try:
-                proc.kill()
-            except Exception:
-                pass
+        kill_process_tree(proc)
         return "fail"
 
 
@@ -253,7 +273,9 @@ def process_model(prompts_by_id, gen_file, output_file):
             if pass_rate == 1.0 and len(status) > 0:
                 perfect += 1
 
-            # Compute CC
+            # Compute output-side CC from the generated solution itself.
+            # Do not copy reference_cc from the prompt record: that is source
+            # / reference-solution metadata used only for sampling diagnostics.
             cc = compute_cc(code) if code else None
 
             # Extract IV features from the instruction
@@ -272,6 +294,8 @@ def process_model(prompts_by_id, gen_file, output_file):
                 "status": status,
                 "pass_rate": pass_rate,
                 "kappa_cyclomatic": cc,
+                "kappa_cyclomatic_source": "lizard_on_generated_output",
+                "reference_cc": prompt_rec.get("reference_cc"),
                 "coupling_depth": 0,
                 "iv_features": iv_features,
                 "generation_timestamp": gen.get("timestamp"),
