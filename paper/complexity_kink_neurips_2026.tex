@@ -309,7 +309,7 @@ Applying the full analysis pipeline to each of the 21 evaluated models individua
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{heatmap_E_per_model_kink.png}
-\caption{Per model Hansen sup Wald surface. Rows are the 21 panel models, columns are candidate $\gamma$ values. Cell color indicates $W(\gamma)$ for that model. Each row's maximum is annotated with a marker. The strongest models (Grok-3, Kimi K2.5) locate their individual $\hat{\gamma}$ at the right of the grid near 10, while the bulk of models cluster near $\hat{\gamma}=6$.}
+\caption{Per-model threshold-search diagnostic, not a pass-rate plot. Rows are the 21 panel models and columns are candidate complexity thresholds $\gamma$. Each cell reports the Hansen Wald statistic $W(\gamma)$ for placing the structural break at that candidate threshold; larger values mean stronger evidence for a kink at that $\gamma$. The marker identifies each row's maximum, which is that model's estimated threshold $\hat{\gamma}$.}
 \label{fig:heatmap}
 \end{figure}
 
