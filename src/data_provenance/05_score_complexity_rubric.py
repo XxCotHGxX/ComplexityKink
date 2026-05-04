@@ -32,8 +32,8 @@ except ImportError:
 
 SCORING_MODEL = "o4-mini"  # Azure deployment name
 
-# Azure config
-AZURE_ENDPOINT = "https://datapipeline0.cognitiveservices.azure.com/"
+# Azure config. Keep endpoint in the environment for double-blind artifacts.
+AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
 AZURE_API_VERSION = "2025-01-01-preview"
 
 SYSTEM_PROMPT = """You are a code complexity analyst. Given a coding task description, score the STRUCTURAL COMPLEXITY that a correct solution requires.
@@ -184,6 +184,8 @@ def main():
     # shim; public users must have AZURE_OPENAI_API_KEY set directly.
     if load_keys is not None:
         load_keys.load()
+    if not AZURE_ENDPOINT:
+        raise RuntimeError("Set AZURE_OPENAI_ENDPOINT in the environment.")
     from openai import AzureOpenAI
     client = AzureOpenAI(
         api_key=os.environ["AZURE_OPENAI_API_KEY"],

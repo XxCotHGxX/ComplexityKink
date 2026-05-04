@@ -43,7 +43,7 @@ except ImportError:
     load_keys = None
 
 JUDGE_MODEL = "o4-mini"
-AZURE_ENDPOINT = "https://datapipeline0.cognitiveservices.azure.com/"
+AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
 AZURE_API_VERSION = "2025-01-01-preview"
 
 SYSTEM_PROMPT = """You are auditing an automated test harness that runs generated Python code against unit tests.
@@ -204,6 +204,8 @@ def main():
         from openai import OpenAI
         client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     else:
+        if not AZURE_ENDPOINT:
+            raise RuntimeError("Set AZURE_OPENAI_ENDPOINT in the environment.")
         from openai import AzureOpenAI
         client = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],

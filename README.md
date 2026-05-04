@@ -2,7 +2,7 @@
 
 **Identifying a Hard Reliability Threshold in LLM Code Generation via Instrumental Variables**
 
-Michael Hernandez, University of Wisconsin-Milwaukee
+Anonymous authors. This repository is prepared for double-blind review.
 
 This repository contains the full analysis pipeline, data provenance scripts, and paper source for the Complexity Kink program: a study of how the reliability of frontier code-generating language models breaks down past a specific level of structural task complexity, and how that breakdown is hidden by the standard practice of measuring complexity from model output.
 
@@ -16,22 +16,22 @@ The headline finding is a structural break (the "Complexity Kink") at rubric com
 
 ## Background and the three-stage progression
 
-The methodology developed in three stages, each correcting a weakness of the prior. The repository in its current state implements **Stage C**. Earlier stages remain available in the source tree and in the git history as `stage-b-final`.
+The methodology developed through internal pilot stages, each correcting a weakness of the prior design. The repository in its current state implements the prompt-side rubric and Stage D artifact workflow used for the current submission. Earlier unpublished pilot drafts are intentionally omitted from this double-blind artifact.
 
 **Stage A (baseline, not the contribution).** Compute cyclomatic complexity from generated code with a static analysis tool. This is the standard approach in code-generation benchmarks. It is biased by construction: when a model fails on a complex task, the broken or stub output has near-trivial cyclomatic complexity, regardless of the task's actual difficulty. Failed hard tasks are recorded as easy tasks, the complexity-performance relationship is flattened, and any structural break is hidden.
 
-**Stage B (preprint).** Two-stage least squares with eight keyword-derived instruments fit through a Random Forest. The instrument vector counts branching keywords, loop keywords, class keywords, function keywords, and structural keywords in the prompt text, plus token count and average word length. Stage B identified the kink at predicted cyclomatic complexity 6.5 with a Hausman chi-squared of 108.5 and a first-stage F of 1,765. The Stage B preprint and its analysis code are preserved in `paper/stage_b_preprint/` and `src/run_stage2_iv.py`.
+**Keyword pilot (internal, not the contribution).** Two-stage least squares with eight keyword-derived instruments fit through a Random Forest. The instrument vector counts branching keywords, loop keywords, class keywords, function keywords, and structural keywords in the prompt text, plus token count and average word length. The pilot identified a kink at predicted cyclomatic complexity 6.5 with a Hausman chi-squared of 108.5 and a first-stage F of 1,765. This pilot was never peer reviewed and is included only as methodological context.
 
-**Stage C (this repository).** Replace the keyword-based instrument with a rigid six-dimension rubric scored by a frontier reasoning model (o4-mini) that is excluded from the evaluated panel. Each prompt is scored 0 to 4 on six structural dimensions of the correct solution: branching, iteration, state management, data structures, edge cases, and algorithmic composition. The rubric design eliminates four weaknesses of the Stage B instrument:
+**Prompt-side rubric design.** Replace the keyword-based instrument with a rigid six-dimension rubric scored by out-of-panel LLM judges that are excluded from the evaluated panel. Each prompt is scored 0 to 4 on six structural dimensions of the correct solution: branching, iteration, state management, data structures, edge cases, and algorithmic composition. The rubric design eliminates four weaknesses of the keyword pilot:
 
-1. *Survivorship bias:* the Stage B Random Forest was trained only on rows where the model passed (the only rows where observed cyclomatic complexity equals true target complexity). Stage C scores prompts directly and never trains on output.
-2. *The generated regressor problem:* Stage B's predicted complexity was an estimate, requiring re-fitting of Stage 1 in every bootstrap iteration. Stage C's rubric scores are deterministic constants.
-3. *Low-end discrimination:* Stage B's keyword features could not statistically separate cyclomatic complexity 1 from 2. The rubric separates them at p less than 1e-6.
-4. *Non-monotonic instruments:* two of the eight Stage B instruments (token count, average word length) violate the IV monotonicity condition. All six Stage C dimensions are monotone in true complexity by construction.
+1. *Survivorship bias:* the keyword Random Forest was trained only on rows where the model passed (the only rows where observed cyclomatic complexity equals true target complexity). The rubric scores prompts directly and never trains on output.
+2. *The generated regressor problem:* predicted keyword complexity was an estimate, requiring re-fitting of Stage 1 in every bootstrap iteration. The rubric scores are fixed before generation.
+3. *Low-end discrimination:* keyword features could not statistically separate cyclomatic complexity 1 from 2. The rubric separates them at p less than 1e-6.
+4. *Non-monotonic instruments:* two of the eight keyword instruments (token count, average word length) violate the IV monotonicity condition. All six rubric dimensions are monotone in true complexity by construction.
 
 ## Headline results
 
-| Quantity | Stage B (preprint) | Stage C (this repo) |
+| Quantity | Keyword pilot | Prompt rubric |
 | :-- | --: | --: |
 | Instrument | 8 keyword features via Random Forest | 6-dimension LLM rubric |
 | First-stage F | 1,765 | 3,002 |
@@ -57,10 +57,8 @@ LICENSE
 README.md                            (this file)
 requirements.txt                     pinned dependencies
 paper/
-  complexity_kink_stage_c.tex        Stage C paper draft (current)
-  stage_b_preprint/
-    complexity_kink_2026.tex         Stage B paper LaTeX source
-    Complexity_Kink_stage_b.pdf      Stage B preprint as published
+  Scratch-NeurIps.tex                Current NeurIPS-format working draft
+  complexity_kink_neurips_2026.tex   Clean copy of the current draft
 src/
   analyze_kink.py                    Stage C primary analysis (per-model + combined 2SLS, Hansen, placebo)
   extract_paper_numbers.py           Reproduces the exact numbers cited in the paper
@@ -100,8 +98,9 @@ results/
 docs/
   METHODOLOGY_NOTES.md               Detailed three-stage progression with rationale for each design choice
   model_reference.md                 Profile of every model in the evaluated panel
-  predictions_and_rewrite_notes.md   Pre-registered predictions for the Stage C analysis
   reproduction_guide.md              How to reproduce every number in the paper from raw data
+  stage_d_batch_generation.md        Batch-first generation policy
+  stage_d_plan.md                    Stage D construction workflow
 docker/
   Dockerfile.scorer                  Sandboxed unit-test execution environment
 ```
@@ -184,28 +183,6 @@ Stage C carries four open limitations, all explicitly discussed in the paper.
 **Cross-sectional only.** We demonstrate the kink exists. We do not track its location across model generations. Whether frontier progress moves the threshold rightward over time is open.
 
 Stage D, planned and scoped in the paper, has four components: rubric-stratified resampling, ensemble scoring, errors-in-variables correction using measured between-scorer variance, and a 500-prompt human-scored calibration subsample.
-
-## Recognition
-
-Second place, undergraduate research division, University of Wisconsin-Milwaukee College of Engineering and Applied Science Student Research Poster Competition, April 2026.
-
-## Citation
-
-```bibtex
-@unpublished{hernandez2026complexitykink_c,
-  title  = {The Complexity Kink, Revisited: LLM Rubric Instruments for Causal Inference on Code Generation Reliability},
-  author = {Hernandez, Michael},
-  year   = {2026},
-  note   = {Working draft. See paper/complexity_kink_stage_c.tex.}
-}
-
-@unpublished{hernandez2026complexitykink_b,
-  title  = {The Complexity Kink: Identifying a Hard Reliability Threshold in LLM Code Generation via Instrumental Variables},
-  author = {Hernandez, Michael},
-  year   = {2026},
-  note   = {Stage B preprint. See paper/stage_b_preprint/.}
-}
-```
 
 ## License
 

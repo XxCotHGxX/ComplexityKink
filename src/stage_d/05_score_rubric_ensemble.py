@@ -91,9 +91,8 @@ def resolve_env(value):
         fallback_envs = [
             f"AZURE_KEY_{normalized_account}",
             f"AZURE_COGSERVICES_KEY_{normalized_account}",
+            "AZURE_OPENAI_API_KEY",
         ]
-        if account_name.lower() == "datapipeline0":
-            fallback_envs.append("AZURE_OPENAI_API_KEY")
         for env_name in fallback_envs:
             key = os.environ.get(env_name)
             if key:

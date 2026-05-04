@@ -122,7 +122,7 @@
 #### GPT-OSS-20B - OpenAI (Open-Source)
 - **Parameters:** 20 billion
 - **Context Window:** 32,768 tokens
-- **Hosting:** Local via LM Studio (192.168.1.218:1234)
+- **Hosting:** Local or self-hosted OpenAI-compatible endpoint
 - **Role in Experiment:** Small open-weight OpenAI model. Tests whether the complexity kink exists even in compact architectures with no API quota constraints.
 
 #### Qwen3-14B - Alibaba Cloud (Qwen Team)

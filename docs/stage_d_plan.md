@@ -141,9 +141,9 @@ For exact per-model top-up, use the manifests in
 `data/stage_d/generation_delta/per_model_missing/`. The current quality-gated
 delta is 4,364 new prompts.
 
-The Stage D model config uses `azkey:` for Azure-backed panel models, so it can
-resolve DataPipeline0 keys through Azure CLI after `az login`, or through
-`AZURE_KEY_DATAPIPELINE0` / `AZURE_OPENAI_API_KEY`.
+The Stage D model config uses environment-variable placeholders for Azure-backed
+panel models. Set the relevant `AZURE_*` endpoint and key variables locally
+before running generation or rubric scoring.
 
 6. Execute unit tests for newly generated rows:
 
@@ -191,9 +191,9 @@ python src/stage_d/06_aggregate_ensemble_scores.py \
 
 The configured judges are o4-mini, GPT-5.5, Llama-4-Maverick, and Cohere
 Command A. Phi-4-reasoning is deployed but disabled after smoke-test timeouts.
-Azure CLI auth must be fresh if the config uses `azkey:` key references. As a
-fallback, set `AZURE_KEY_<ACCOUNT_NAME>` (for example
-`AZURE_KEY_DATAPIPELINE0`) or `AZURE_OPENAI_API_KEY` for DataPipeline0.
+Azure CLI auth must be fresh if a private copy of the config uses `azkey:` key
+references. In the anonymized artifact, prefer endpoint/key environment
+variables so cloud resource names do not appear in the repository.
 
 Completed ensemble run:
 
