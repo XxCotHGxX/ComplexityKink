@@ -1,11 +1,11 @@
 {
-  "_comment": "Stage D Azure holdout judges. These deployments are outside the evaluated Stage C panel. Keys are resolved at runtime through Azure CLI with azkey:<resource_group>/<account>.",
+  "_comment": "Stage D Azure holdout judges. These deployments are outside the evaluated panel. Set endpoint/key values through local environment variables.",
   "scorers": [
     {
       "scorer_id": "azure_o4_mini",
       "backend": "azure",
-      "api_key": "azkey:ComplexityKinkResearch/DataPipeline0",
-      "azure_endpoint": "https://datapipeline0.cognitiveservices.azure.com/",
+      "api_key": "$AZURE_SCORER_OPENAI_API_KEY",
+      "azure_endpoint": "$AZURE_SCORER_OPENAI_ENDPOINT",
       "azure_deployment": "o4-mini",
       "api_version": "2025-01-01-preview",
       "max_completion_tokens": 2000,
@@ -15,8 +15,8 @@
     {
       "scorer_id": "azure_gpt_5_5",
       "backend": "azure",
-      "api_key": "azkey:complexitykinkresearch/herna-mn98z78z-eastus2",
-      "azure_endpoint": "https://herna-mn98z78z-eastus2.cognitiveservices.azure.com/",
+      "api_key": "$AZURE_SCORER_OPENAI_API_KEY",
+      "azure_endpoint": "$AZURE_SCORER_OPENAI_ENDPOINT",
       "azure_deployment": "gpt-5.5",
       "api_version": "2025-01-01-preview",
       "max_completion_tokens": 2000,
@@ -28,8 +28,8 @@
       "disabled": true,
       "_comment": "Deployed but disabled by default after smoke-test timeouts through /models/.",
       "backend": "azure_inference",
-      "api_key": "azkey:ComplexityKinkResearch/DataPipeline0",
-      "azure_endpoint": "https://datapipeline0.cognitiveservices.azure.com/",
+      "api_key": "$AZURE_SCORER_INFERENCE_API_KEY",
+      "azure_endpoint": "$AZURE_SCORER_INFERENCE_ENDPOINT",
       "azure_deployment": "Phi-4-reasoning",
       "max_tokens": 2000,
       "rpm": 1,
@@ -38,8 +38,8 @@
     {
       "scorer_id": "azure_llama_4_maverick",
       "backend": "azure_inference",
-      "api_key": "azkey:ComplexityKinkResearch/DataPipeline0",
-      "azure_endpoint": "https://datapipeline0.cognitiveservices.azure.com/",
+      "api_key": "$AZURE_SCORER_INFERENCE_API_KEY",
+      "azure_endpoint": "$AZURE_SCORER_INFERENCE_ENDPOINT",
       "azure_deployment": "Llama-4-Maverick",
       "max_tokens": 2000,
       "rpm": 100
@@ -47,8 +47,8 @@
     {
       "scorer_id": "azure_cohere_command_a",
       "backend": "azure_inference",
-      "api_key": "azkey:ComplexityKinkResearch/DataPipeline0",
-      "azure_endpoint": "https://datapipeline0.cognitiveservices.azure.com/",
+      "api_key": "$AZURE_SCORER_INFERENCE_API_KEY",
+      "azure_endpoint": "$AZURE_SCORER_INFERENCE_ENDPOINT",
       "azure_deployment": "cohere-command-a",
       "max_tokens": 2000,
       "rpm": 100

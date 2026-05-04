@@ -161,4 +161,4 @@ it exists only to characterize the sampling frame.
 - Rubric scoring script: `src/data_provenance/05_score_complexity_rubric.py`
 - Rubric output: `data/complexity_rubric_scores.jsonl`
 - IV pipeline: `src/train_stage1_iv.py`, `src/run_stage2_iv.py`
-- Pre-registered predictions and planned rewrite: `docs/predictions_and_rewrite_notes.md`
+- Paper-ready results extraction: `src/extract_paper_numbers.py`

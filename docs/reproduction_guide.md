@@ -15,7 +15,7 @@ If you do not need to regenerate the model panel and only want to verify the ana
 ## Environment setup
 
 ```
-git clone https://github.com/XxCotHGxX/ComplexityKink.git
+git clone <anonymous-artifact-repository-url>
 cd ComplexityKink
 python -m venv .venv
 .venv/Scripts/activate          # Windows
@@ -106,9 +106,11 @@ python src/extract_paper_numbers.py
 
 This is the fastest path to verify the paper's reported values against the underlying data.
 
-## Stage B reproduction
+## Keyword-pilot reproduction
 
-The Stage B preprint is reproducible from the same raw data. The Stage B pipeline uses keyword features in place of the rubric and a Random Forest in place of the LLM scorer.
+The unpublished keyword-pilot pipeline is reproducible from the same raw data.
+It uses keyword features in place of the rubric and a Random Forest in place of
+the LLM scorer.
 
 ```
 python src/feature_extractor_iv.py
@@ -116,7 +118,8 @@ python src/train_stage1_iv.py
 python src/run_stage2_iv.py
 ```
 
-Output: keyword features, trained Random Forest weights, and the Stage B threshold estimates. The Stage B paper is preserved at `paper/stage_b_preprint/`.
+Output: keyword features, trained Random Forest weights, and keyword-pilot
+threshold estimates.
 
 ## Smoke test
 
@@ -124,7 +127,7 @@ Output: keyword features, trained Random Forest weights, and the Stage B thresho
 python src/verify_pipeline.py
 ```
 
-Runs the Stage B pipeline on a 2,000-sample subset with assertion-based output checks. Useful for catching regressions in shared infrastructure (data loader, parsers, configuration).
+Runs the keyword-pilot pipeline on a 2,000-sample subset with assertion-based output checks. Useful for catching regressions in shared infrastructure (data loader, parsers, configuration).
 
 ## Verifying the headline numbers
 

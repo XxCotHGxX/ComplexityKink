@@ -624,9 +624,8 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
             fallback_envs = [
                 f"AZURE_KEY_{normalized_account}",
                 f"AZURE_COGSERVICES_KEY_{normalized_account}",
+                "AZURE_OPENAI_API_KEY",
             ]
-            if account_name.lower() == "datapipeline0":
-                fallback_envs.append("AZURE_OPENAI_API_KEY")
             for env_name in fallback_envs:
                 resolved = os.environ.get(env_name)
                 if resolved:
@@ -661,6 +660,7 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
         return val
 
     api_key = resolve_env(api_key)
+    base_url = resolve_env(base_url)
     # Local and Copilot backends don't strictly require an 'api_key' in the config
     if not api_key and backend not in ["local", "copilot", "antigravity", "gemini_cloudcode"]:
         print(f"  WARNING: API key env var {model_config.get('api_key')} not set, skipping.")
