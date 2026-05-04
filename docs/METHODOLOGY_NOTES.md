@@ -18,7 +18,7 @@ artificially low CC. A function that should have nested loops, conditionals, and
 error handling instead produces a stub or syntactically invalid code that registers
 as CC=1. This creates simultaneity bias: Cov(kappa_obs, epsilon) != 0.
 
-- Failed code registers as "simple" regardless of true task complexity
+- Failed code registers as "simple" regardless of intended prompt-side complexity
 - Hard tasks appear easy because their outputs are broken
 - The complexity-performance curve is systematically flatter than reality
 - The structural break (kink) is hidden entirely

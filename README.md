@@ -10,7 +10,7 @@ This repository contains the full analysis pipeline, data provenance scripts, an
 
 ## What this repository implements
 
-A two-stage least squares (2SLS) analysis on 21 frontier 2025 and 2026 language models, evaluated against 5,000 stratified Python coding tasks from NVIDIA's OpenCodeInstruct, using a six-dimension rubric scored by an out-of-panel LLM as the instrument for true task complexity.
+A two-stage least squares (2SLS) analysis on 21 frontier 2025 and 2026 language models, evaluated against 5,000 stratified Python coding tasks from NVIDIA's OpenCodeInstruct, using a fixed six-dimension prompt-side complexity rubric scored by an out-of-panel ensemble of LLM judges as the instrument for prompt-side structural complexity.
 
 The headline finding is a structural break (the "Complexity Kink") at rubric composite 8 on a 0 to 24 scale, beyond which mean pass rate drops from 48.9% to 37.0% across the 21-model panel. The break replicates at the 5% level in 19 of the 21 individual models, with per-model thresholds in the range 4 to 10.
 
