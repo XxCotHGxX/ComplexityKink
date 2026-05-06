@@ -25,6 +25,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 warnings.filterwarnings("ignore", category=FutureWarning)
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+except AttributeError:
+    pass
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -89,11 +93,12 @@ def load_rubric_scores(path):
                 continue
             rec = json.loads(line)
             pid = rec.get("prompt_id")
-            composite = rec.get("composite")
+            composite = rec.get("composite", rec.get("composite_mean"))
+            scores = rec.get("scores") or rec.get("scores_mean") or {}
             if pid and composite is not None:
                 rubric[pid] = {
                     "composite": composite,
-                    **rec.get("scores", {}),
+                    **scores,
                 }
     return rubric
 
@@ -1017,20 +1022,51 @@ def main():
                         help="Path to rubric scores JSONL")
     parser.add_argument("--prompts", default=None,
                         help="Path to experiment prompts JSONL")
+    parser.add_argument("--outdir", default=None,
+                        help="Directory for analysis outputs")
+    parser.add_argument("--exclude-model", nargs="*", default=[],
+                        help="Model IDs to exclude from this analysis run")
+    parser.add_argument("--include-model", nargs="*", default=[],
+                        help="If set, analyze only these model IDs")
+    parser.add_argument("--min-rows", type=int, default=200,
+                        help="Minimum valid scored rows required per model")
+    parser.add_argument("--combined-only", action="store_true",
+                        help="Run the full statistical battery only on the combined prompt-level panel")
+    parser.add_argument("--skip-combined", action="store_true",
+                        help="Skip the combined prompt-level analysis")
+    parser.add_argument("--skip-visualizations", action="store_true",
+                        help="Write analysis_summary.json without Plotly HTML outputs")
+    parser.add_argument("--n-boot", type=int, default=None,
+                        help="Override Hansen wild bootstrap iterations")
+    parser.add_argument("--n-ci-boot", type=int, default=None,
+                        help="Override threshold CI pairs bootstrap iterations")
+    parser.add_argument("--n-placebo", type=int, default=None,
+                        help="Override placebo threshold iterations")
     args = parser.parse_args()
 
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     scored_dir = args.scored_dir or os.path.join(base, "data", "scored")
     rubric_path = args.rubric or os.path.join(base, "data", "complexity_rubric_scores.jsonl")
     prompts_path = args.prompts or os.path.join(base, "data", "experiment_prompts.jsonl")
-    outdir = os.path.join(base, "results")
+    outdir = args.outdir or os.path.join(base, "results")
     os.makedirs(outdir, exist_ok=True)
+    excluded_models = set(args.exclude_model)
+    included_models = set(args.include_model)
 
-    n_boot = 100 if args.fast else HANSEN_BOOTSTRAP_ITERATIONS
-    n_ci_boot = 50 if args.fast else THRESHOLD_CI_BOOTSTRAP
-    n_placebo = 100 if args.fast else PLACEBO_ITERATIONS
+    n_boot = args.n_boot if args.n_boot is not None else (
+        100 if args.fast else HANSEN_BOOTSTRAP_ITERATIONS
+    )
+    n_ci_boot = args.n_ci_boot if args.n_ci_boot is not None else (
+        50 if args.fast else THRESHOLD_CI_BOOTSTRAP
+    )
+    n_placebo = args.n_placebo if args.n_placebo is not None else (
+        100 if args.fast else PLACEBO_ITERATIONS
+    )
 
-    print(f"Bootstrap iterations: {n_boot} (--fast={'yes' if args.fast else 'no'})")
+    print(
+        f"Bootstrap iterations: Hansen={n_boot}, CI={n_ci_boot}, "
+        f"placebo={n_placebo} (--fast={'yes' if args.fast else 'no'})"
+    )
 
     # Load data
     print("Loading rubric scores...")
@@ -1054,9 +1090,18 @@ def main():
         if name in STAGE_C_EXCLUDED_MODELS:
             print(f"  Skipping {name}: excluded from Stage C panel")
             continue
+        if name in excluded_models:
+            print(f"  Skipping {name}: excluded by --exclude-model")
+            continue
+        if included_models and name not in included_models:
+            print(f"  Skipping {name}: not in --include-model")
+            continue
         df = load_scored_model(path, rubric)
-        if len(df) < 200:
-            print(f"  Skipping {name}: only {len(df)} valid rows (need 200+)")
+        if len(df) < args.min_rows:
+            print(
+                f"  Skipping {name}: only {len(df)} valid rows "
+                f"(need {args.min_rows}+)"
+            )
             continue
         model_dfs[name] = df
         print(f"  {name}: {len(df)} rows")
@@ -1071,29 +1116,40 @@ def main():
     print("=" * 60)
 
     all_results = {}
-    for name, df in model_dfs.items():
-        all_results[name] = analyze_model(name, df, n_boot, n_ci_boot, n_placebo)
+    if args.combined_only:
+        print("Skipping per-model resampling because --combined-only was set.")
+    else:
+        for name, df in model_dfs.items():
+            all_results[name] = analyze_model(name, df, n_boot, n_ci_boot, n_placebo)
 
     # Combined analysis
-    print("\n--- Combined Analysis (Option D: average across models) ---")
-    combined_df = build_combined_df(model_dfs)
-    if not combined_df.empty:
-        all_results["_combined"] = analyze_model(
-            "Combined", combined_df, n_boot, n_ci_boot, n_placebo,
-        )
+    combined_df = pd.DataFrame()
+    if args.skip_combined:
+        print("\nSkipping combined analysis because --skip-combined was set.")
+    else:
+        print("\n--- Combined Analysis (Option D: average across models) ---")
+        combined_df = build_combined_df(model_dfs)
+        if not combined_df.empty:
+            all_results["_combined"] = analyze_model(
+                "Combined", combined_df, n_boot, n_ci_boot, n_placebo,
+            )
 
     # Generate visualizations
-    print("\n" + "=" * 60)
-    print("GENERATING VISUALIZATIONS")
-    print("=" * 60)
+    if args.skip_visualizations:
+        print("\nSkipping visualizations because --skip-visualizations was set.")
+    else:
+        print("\n" + "=" * 60)
+        print("GENERATING VISUALIZATIONS")
+        print("=" * 60)
 
-    viz_per_model_curves(all_results, model_dfs, outdir)
-    viz_forest_plot(all_results, outdir)
-    if "_combined" in all_results:
-        viz_combined_kink(combined_df, all_results["_combined"], outdir)
-        viz_wald_curve(all_results["_combined"], outdir)
-    viz_three_measures(combined_df, ref_cc, outdir)
-    viz_summary_table(all_results, outdir)
+        viz_per_model_curves(all_results, model_dfs, outdir)
+        viz_forest_plot(all_results, outdir)
+        if "_combined" in all_results:
+            viz_combined_kink(combined_df, all_results["_combined"], outdir)
+            viz_wald_curve(all_results["_combined"], outdir)
+        if not combined_df.empty:
+            viz_three_measures(combined_df, ref_cc, outdir)
+        viz_summary_table(all_results, outdir)
 
     # Save JSON summary (strip internal arrays)
     summary = {}
