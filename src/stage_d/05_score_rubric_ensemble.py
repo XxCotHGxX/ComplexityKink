@@ -173,6 +173,8 @@ def parse_scores(raw: str) -> dict[str, int]:
     scores = {}
     for dim in RUBRIC_DIMS:
         val = parsed.get(dim)
+        if isinstance(val, str) and val.strip().isdigit():
+            val = int(val.strip())
         if isinstance(val, bool) or not isinstance(val, int) or val < 0 or val > 4:
             raise ValueError(f"Invalid score for {dim}: {val!r}")
         scores[dim] = val
