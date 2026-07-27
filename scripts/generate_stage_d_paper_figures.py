@@ -139,21 +139,25 @@ def style_matplotlib() -> None:
 
 def save_pipeline() -> None:
     stages = [
-        ("Prompt sample", "5,000 Python tasks\nsampling strata"),
-        ("Prompt index", "4 judges; 6 dimensions\nfixed first"),
-        ("Model outcomes", "21-model panel\nunit tests; output CC"),
-        ("Analysis", "Index breakpoints\nsensitivity; IV checks"),
+        (0.11, 0.19, "Prompt sample", "5,000 Python tasks\nsampling strata"),
+        (
+            0.365,
+            0.23,
+            "Prompt-side index",
+            "4 judges\n6 dimensions\nfixed before generation",
+        ),
+        (0.63, 0.19, "Model outcomes", "21-model panel\nunit-test pass/fail"),
+        (0.89, 0.19, "Analysis", "Index breakpoints\ntask and pooling\nsensitivity"),
     ]
-    fig, ax = plt.subplots(figsize=(5.5, 1.75))
+    fig, ax = plt.subplots(figsize=(5.5, 2.2))
     ax.axis("off")
-    y = 0.57
-    box_w = 0.205
-    xs = np.linspace(0.115, 0.885, len(stages))
-    for i, (x, (title, body)) in enumerate(zip(xs, stages)):
+    main_y = 0.69
+    box_h = 0.39
+    for i, (x, box_w, title, body) in enumerate(stages):
         rect = plt.Rectangle(
-            (x - box_w / 2, y - 0.24),
+            (x - box_w / 2, main_y - box_h / 2),
             box_w,
-            0.48,
+            box_h,
             facecolor="#f7f9fb",
             edgecolor=BLUE,
             linewidth=1.1,
@@ -162,35 +166,88 @@ def save_pipeline() -> None:
         ax.add_patch(rect)
         ax.text(
             x,
-            y + 0.075,
+            main_y + 0.105,
             title,
             ha="center",
             va="center",
             weight="bold",
             color="#1f2937",
-            fontsize=7.8,
+            fontsize=7.6,
         )
         ax.text(
             x,
-            y - 0.09,
+            main_y - 0.065,
             body,
             ha="center",
             va="center",
             color="#374151",
-            linespacing=1.2,
-            fontsize=7.0,
+            linespacing=1.15,
+            fontsize=6.8,
         )
         if i < len(stages) - 1:
+            next_x, next_w, _, _ = stages[i + 1]
             ax.annotate(
                 "",
-                xy=(xs[i + 1] - box_w / 2 - 0.006, y),
-                xytext=(x + box_w / 2 + 0.006, y),
+                xy=(next_x - next_w / 2 - 0.007, main_y),
+                xytext=(x + box_w / 2 + 0.007, main_y),
                 arrowprops=dict(arrowstyle="->", color=GRAY, lw=1.0),
             )
+
+    diagnostic_x = 0.63
+    diagnostic_y = 0.245
+    diagnostic_w = 0.27
+    diagnostic_h = 0.215
+    diagnostic = plt.Rectangle(
+        (
+            diagnostic_x - diagnostic_w / 2,
+            diagnostic_y - diagnostic_h / 2,
+        ),
+        diagnostic_w,
+        diagnostic_h,
+        facecolor="#fff9f2",
+        edgecolor=ORANGE,
+        linewidth=1.0,
+        linestyle=(0, (3, 2)),
+    )
+    ax.add_patch(diagnostic)
+    ax.text(
+        diagnostic_x,
+        diagnostic_y + 0.045,
+        "Secondary diagnostics",
+        ha="center",
+        va="center",
+        weight="bold",
+        color="#7c4515",
+        fontsize=7.1,
+    )
+    ax.text(
+        diagnostic_x,
+        diagnostic_y - 0.045,
+        "generated-output CC\ncandidate-IV checks",
+        ha="center",
+        va="center",
+        color="#7c4515",
+        fontsize=6.5,
+        linespacing=1.1,
+    )
+    ax.annotate(
+        "",
+        xy=(
+            diagnostic_x,
+            diagnostic_y + diagnostic_h / 2 + 0.006,
+        ),
+        xytext=(diagnostic_x, main_y - box_h / 2 - 0.006),
+        arrowprops=dict(
+            arrowstyle="->",
+            color=ORANGE,
+            lw=0.9,
+            linestyle=(0, (3, 2)),
+        ),
+    )
     ax.text(
         0.5,
-        0.11,
-        "The prompt index is fixed before any evaluated model generates code.",
+        0.035,
+        "Primary complexity measure: the prompt-side index fixed before generation.",
         ha="center",
         va="center",
         color=GRAY,
