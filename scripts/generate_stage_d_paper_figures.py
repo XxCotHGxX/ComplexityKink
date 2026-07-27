@@ -31,6 +31,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from analyze_kink import RUBRIC_DIMS, build_combined_df, load_rubric_scores, load_scored_model  # noqa: E402
+from display_bins import half_open_integer_bin  # noqa: E402
 
 STAGE_D_DIR = ROOT / "data" / "stage_d"
 SCORED_DIR = STAGE_D_DIR / "scored_combined"
@@ -66,8 +67,9 @@ RUBRIC_BASIC_STRUCTURE_MAX = 8.0
 RUBRIC_LOW_BAND_MAX = 6.0
 RUBRIC_MID_BAND_MAX = 10.0
 ZERO_PASS_MAX = 0.0
-# Dense-support display range for binned pass-rate figures. Rounded bin 0 has
-# only 8 prompts, while bins 17, 18, and 19 have only 25, 8, and 3 prompts.
+# Dense-support display range for binned pass-rate figures. Under the explicit
+# half-open display rule, bin 0 has 3 prompts, while bins 17, 18, and 19 have
+# 45, 6, and 5 prompts.
 # Sparse bins are retained in all statistical estimates and reported aggregate
 # pass rates, even when omitted from visual summaries.
 DENSE_MIN_COMPOSITE_BIN = 1
@@ -360,7 +362,7 @@ def save_tail_extension() -> None:
     ax_curve.set_xlim(8.7, 18.35)
     ax_curve.set_ylim(0.0, 1.0)
     ax_curve.set_xticks(range(9, 19))
-    ax_curve.set_xlabel("Rounded prompt rubric composite")
+    ax_curve.set_xlabel("Prompt-composite display bin")
     ax_curve.set_ylabel("Mean pass rate over five matched models")
     ax_curve.set_title("(a) Matched-frame reliability curve", loc="left")
     ax_curve.grid(True, alpha=0.22)
@@ -405,7 +407,7 @@ def save_tail_extension() -> None:
                 weight="bold",
             )
     ax_count.set_xticks(support_bins)
-    ax_count.set_xlabel("Rounded prompt rubric composite")
+    ax_count.set_xlabel("Prompt-composite display bin")
     ax_count.set_ylabel("Prompt count")
     ax_count.set_title("(b) Support in the high bins", loc="left")
     ax_count.grid(True, axis="y", alpha=0.22)
@@ -543,7 +545,7 @@ def save_complexity_kink(combined: pd.DataFrame, summary: dict) -> None:
     ci_low = float(summary["kink_ci_lower"])
     ci_high = float(summary["kink_ci_upper"])
     binned = (
-        combined.assign(composite_bin=combined["composite"].round().astype(int))
+        combined.assign(composite_bin=half_open_integer_bin(combined["composite"]))
         .groupby("composite_bin", observed=True)
         .agg(
             n=("pass_rate", "size"),
@@ -587,7 +589,7 @@ def save_complexity_kink(combined: pd.DataFrame, summary: dict) -> None:
         transform=ax.transAxes,
         bbox=dict(boxstyle="round,pad=0.35", facecolor="white", edgecolor=LIGHT_GRAY),
     )
-    ax.set_xlabel("Rubric composite score")
+    ax.set_xlabel("Prompt-composite display bin")
     ax.set_ylabel("Mean pass rate across 21 models")
     ax.set_ylim(0.45, 0.98)
     ax.set_xlim(DENSE_MIN_COMPOSITE_BIN - 0.5, MEAN_KINK_XMAX)
@@ -614,7 +616,7 @@ def save_heatmap(model_frames: dict[str, pd.DataFrame], per_model: pd.DataFrame,
     for model_id in ordered_models:
         df = model_frames[model_id]
         working = df[["pass_rate", "composite"]].dropna().copy()
-        working["composite_bin"] = working["composite"].round().astype(int)
+        working["composite_bin"] = half_open_integer_bin(working["composite"])
         means = working.groupby("composite_bin", observed=True)["pass_rate"].mean().reindex(bins)
         rows.append(pd.Series(means, index=bins, name=model_id))
         labels.append(DISPLAY_NAMES.get(model_id, model_id))
@@ -627,7 +629,7 @@ def save_heatmap(model_frames: dict[str, pd.DataFrame], per_model: pd.DataFrame,
     ax.set_yticklabels(heat.index)
     ax.set_xticks(np.arange(len(heat.columns)))
     ax.set_xticklabels([str(col) for col in heat.columns])
-    ax.set_xlabel("Rounded ensemble rubric composite (prompt complexity)")
+    ax.set_xlabel("Prompt-composite display bin")
     ax.set_title("Each model's own kink (diamond) by prompt complexity", fontsize=18, weight="bold", pad=10)
 
     for y in range(arr.shape[0]):
@@ -645,7 +647,7 @@ def save_heatmap(model_frames: dict[str, pd.DataFrame], per_model: pd.DataFrame,
 
     for y, model_id in enumerate(ordered_models):
         gamma = threshold_by_model[model_id]
-        marker_x = int(round(gamma)) - DENSE_MIN_COMPOSITE_BIN
+        marker_x = int(half_open_integer_bin([gamma])[0]) - DENSE_MIN_COMPOSITE_BIN
         if 0 <= marker_x < len(bins):
             ax.scatter(
                 marker_x,

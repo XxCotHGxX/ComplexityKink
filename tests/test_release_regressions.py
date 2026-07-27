@@ -42,6 +42,9 @@ class ReleaseRegressionTests(unittest.TestCase):
             "execute_and_score_release_test",
             "src/data_provenance/03_execute_and_score.py",
         )
+        cls.display_bins = load_module(
+            "display_bins_release_test", "src/display_bins.py"
+        )
 
     def test_anthropic_submit_requires_explicit_approval(self):
         with self.assertRaisesRegex(SystemExit, "explicit prior approval"):
@@ -208,6 +211,11 @@ class ReleaseRegressionTests(unittest.TestCase):
             config["thinking_config"],
             {"thinking_budget": 0, "include_thoughts": False},
         )
+
+    def test_display_bins_use_explicit_half_open_intervals(self):
+        values = [8.49, 8.5, 9.49, 9.5, 10.5, 13.5]
+        bins = self.display_bins.half_open_integer_bin(values)
+        self.assertEqual(bins.tolist(), [8, 9, 9, 10, 11, 14])
 
 
 if __name__ == "__main__":

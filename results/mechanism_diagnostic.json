@@ -1,0 +1,125 @@
+{
+  "display_bin_rule": "bin b is [b - 0.5, b + 0.5); exact half-points go upward",
+  "diagnostic_bins": [
+    13,
+    17
+  ],
+  "n_prompts": 459,
+  "n_models_in_prompt_mean": 21,
+  "source_counts": [
+    {
+      "bin": 13,
+      "source": "current_stage_d_5000",
+      "n": 228
+    },
+    {
+      "bin": 13,
+      "source": "opencodeinstruct_mined_scored_pool",
+      "n": 21
+    },
+    {
+      "bin": 17,
+      "source": "current_stage_d_5000",
+      "n": 39
+    },
+    {
+      "bin": 17,
+      "source": "opencodeinstruct_mined_scored_pool",
+      "n": 171
+    }
+  ],
+  "library_tag": {
+    "definition": "case-insensitive whole-word match against LIBRARY_TERMS",
+    "terms": [
+      "numpy",
+      "pandas",
+      "scipy",
+      "sklearn",
+      "scikit",
+      "torch",
+      "tensorflow",
+      "keras",
+      "matplotlib",
+      "seaborn",
+      "django",
+      "flask",
+      "fastapi",
+      "sqlalchemy",
+      "requests",
+      "beautifulsoup",
+      "bs4",
+      "pytest",
+      "asyncio",
+      "aiohttp",
+      "networkx",
+      "sympy",
+      "pillow",
+      "PIL",
+      "boto3",
+      "pydantic",
+      "regex",
+      "itertools",
+      "collections",
+      "heapq",
+      "bisect",
+      "functools",
+      "dataclasses"
+    ]
+  },
+  "regression": {
+    "outcome": "prompt-level mean pass rate",
+    "covariance": "HC1",
+    "regressors": [
+      "mined",
+      "prompt_chars",
+      "prompt_words",
+      "n_unit_tests",
+      "test_chars",
+      "reference_cc",
+      "composite_std",
+      "mentions_library",
+      "composite"
+    ],
+    "external_library_coefficient": -0.05010345682074289,
+    "external_library_robust_standard_error": 0.09776309415207798,
+    "external_library_p_value": 0.6083020430717365,
+    "r_squared": 0.4039354827866526,
+    "coefficients": {
+      "const": 0.6918416894093978,
+      "mined": -0.39268683232576707,
+      "prompt_chars": 2.4954531917068892e-05,
+      "prompt_words": -0.0006872012485435296,
+      "n_unit_tests": 0.034658343063416884,
+      "test_chars": -6.664445348064306e-05,
+      "reference_cc": 0.0028727442249159483,
+      "composite_std": -0.04445106574438563,
+      "mentions_library": -0.05010345682074289,
+      "composite": -0.008695097163440508
+    },
+    "robust_standard_errors": {
+      "const": 0.3029908814173779,
+      "mined": 0.04104637981370238,
+      "prompt_chars": 0.0001053550393286342,
+      "prompt_words": 0.0006864922726722449,
+      "n_unit_tests": 0.02494734686505691,
+      "test_chars": 2.2695095242278964e-05,
+      "reference_cc": 0.0019273557551338987,
+      "composite_std": 0.01483768232506472,
+      "mentions_library": 0.09776309415207798,
+      "composite": 0.011199188153443005
+    },
+    "p_values": {
+      "const": 0.022408310814343007,
+      "mined": 1.1015343063718418e-21,
+      "prompt_chars": 0.8127643913316969,
+      "prompt_words": 0.3168109747229103,
+      "n_unit_tests": 0.1647538005200362,
+      "test_chars": 0.0033192437649627927,
+      "reference_cc": 0.1360900257219217,
+      "composite_std": 0.002737055119757122,
+      "mentions_library": 0.6083020430717365,
+      "composite": 0.43751034213432405
+    }
+  },
+  "interpretation": "This scoped diagnostic provides no support for an external-library explanation; it does not identify the cause of the pooled nonmonotonicity."
+}
