@@ -39,7 +39,7 @@ def _round_half(x):
     """Round to the nearest 0.5 for nicer bin edges while staying data-driven."""
     return round(x * 2) / 2
 
-# ── Data Loading ──────────────────────────────────────────────────────
+# -- Data Loading ------------------------------------------------------
 def load_data():
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     data_path = os.path.join(base, 'data', 'iv_enriched_oof.jsonl')
@@ -60,7 +60,7 @@ def load_data():
 
     return df
 
-# ── Color Palette ─────────────────────────────────────────────────────
+# -- Color Palette -----------------------------------------------------
 COLORS = {
     'bg': '#0d1117',
     'card': '#161b22',
@@ -86,11 +86,11 @@ def style_axes(fig):
     fig.update_yaxes(gridcolor=COLORS['grid'], zerolinecolor=COLORS['grid'], linecolor=COLORS['grid'])
     return fig
 
-# ── Figure 1: Imposter Violin Plot ───────────────────────────────────
+# -- Figure 1: Imposter Violin Plot -----------------------------------
 def fig_imposter_violins(df, outdir):
     """Show predicted kappa distributions per observed kappa bin - exposes imposters."""
     subset = df[df['kappa_actual'].between(1, 8)].copy()
-    subset['kappa_obs_label'] = 'κ_obs = ' + subset['kappa_actual'].astype(str)
+    subset['kappa_obs_label'] = 'kappa_obs = ' + subset['kappa_actual'].astype(str)
 
     fig = go.Figure()
 
@@ -99,7 +99,7 @@ def fig_imposter_violins(df, outdir):
         color = COLORS['red'] if k == 1 else COLORS['accent']
         fig.add_trace(go.Violin(
             y=bin_data,
-            name=f'κ={k}',
+            name=f'kappa={k}',
             box_visible=True,
             meanline_visible=True,
             fillcolor=color if k == 1 else None,
@@ -110,7 +110,7 @@ def fig_imposter_violins(df, outdir):
 
     gamma = _kink(df)
     fig.add_hline(y=gamma, line_dash='dash', line_color=COLORS['orange'],
-                  annotation_text=f'Complexity Kink (κ={gamma:.1f})',
+                  annotation_text=f'Complexity Kink (kappa={gamma:.1f})',
                   annotation_position='top right',
                   annotation_font_color=COLORS['orange'])
 
@@ -119,7 +119,7 @@ def fig_imposter_violins(df, outdir):
         title=dict(text='Where Do Tasks Really Belong?<br><sup style="color:#7d8590">Predicted complexity distribution per observed complexity bin</sup>',
                    font_size=18),
         xaxis_title='Observed Complexity Bin',
-        yaxis_title='Predicted Target Complexity (κ̂)',
+        yaxis_title='Predicted Target Complexity (kappa_hat)',
         showlegend=False,
         height=550,
         width=900,
@@ -130,19 +130,19 @@ def fig_imposter_violins(df, outdir):
     fig.write_image(os.path.join(outdir, 'imposter_violins.png'), scale=2)
     print(f'  Saved imposter_violins')
 
-# ── Figure 2: Sankey Flow Diagram ────────────────────────────────────
+# -- Figure 2: Sankey Flow Diagram ------------------------------------
 def fig_sankey_flow(df, outdir):
     """Shows how tasks flow from predicted bins to observed bins (misclassification)."""
     df_copy = df.copy()
     gamma = _round_half(_kink(df))
     df_copy['pred_bin'] = pd.cut(df_copy['kappa_predicted'],
                                   bins=[0, 3, gamma, 10, 15, 50],
-                                  labels=['κ̂ 0-3', f'κ̂ 3-{gamma:g}',
-                                          f'κ̂ {gamma:g}-10', 'κ̂ 10-15', 'κ̂ 15+'])
+                                  labels=['kappa_hat 0-3', f'kappa_hat 3-{gamma:g}',
+                                          f'kappa_hat {gamma:g}-10', 'kappa_hat 10-15', 'kappa_hat 15+'])
     df_copy['obs_bin'] = pd.cut(df_copy['kappa_actual'],
                                  bins=[0, 1, 3, gamma, 10, 50],
-                                 labels=['κ=1', 'κ 2-3', f'κ 4-{int(np.ceil(gamma))}',
-                                         f'κ {int(np.ceil(gamma))+1}-10', 'κ 11+'])
+                                 labels=['kappa=1', 'kappa 2-3', f'kappa 4-{int(np.ceil(gamma))}',
+                                         f'kappa {int(np.ceil(gamma))+1}-10', 'kappa 11+'])
 
     flow = df_copy.groupby(['pred_bin', 'obs_bin']).size().reset_index(name='count')
     flow = flow[flow['count'] > 50]  # filter noise
@@ -159,8 +159,8 @@ def fig_sankey_flow(df, outdir):
     for _, row in flow.iterrows():
         pred = str(row['pred_bin'])
         obs = str(row['obs_bin'])
-        # Misclassified = predicted high but observed at κ=1
-        if obs == 'κ=1' and pred not in ['κ̂ 0-3']:
+        # Misclassified = predicted high but observed at kappa=1
+        if obs == 'kappa=1' and pred not in ['kappa_hat 0-3']:
             link_colors.append('rgba(248, 81, 73, 0.4)')  # red
         else:
             link_colors.append('rgba(88, 166, 255, 0.25)')  # blue
@@ -189,7 +189,7 @@ def fig_sankey_flow(df, outdir):
 
     fig.update_layout(
         **LAYOUT_DEFAULTS,
-        title=dict(text='Task Misclassification Flow<br><sup style="color:#7d8590">Predicted complexity (left) to Observed output complexity (right). Red = misclassified to κ=1</sup>',
+        title=dict(text='Task Misclassification Flow<br><sup style="color:#7d8590">Predicted complexity (left) to Observed output complexity (right). Red = misclassified to kappa=1</sup>',
                    font_size=18),
         height=500,
         width=900,
@@ -199,7 +199,7 @@ def fig_sankey_flow(df, outdir):
     fig.write_image(os.path.join(outdir, 'sankey_misclassification.png'), scale=2)
     print(f'  Saved sankey_misclassification')
 
-# ── Figure 3: The Kink (Modern Scatter + Trend) ──────────────────────
+# -- Figure 3: The Kink (Modern Scatter + Trend) ----------------------
 def fig_kink_scatter(df, outdir):
     """Modern scatter plot showing pass rate vs predicted complexity with the kink."""
     # Bin for smoothing
@@ -234,28 +234,28 @@ def fig_kink_scatter(df, outdir):
         line=dict(color=COLORS['accent'], width=3),
         marker=dict(size=6, color=COLORS['accent']),
         name='Mean Pass Rate',
-        hovertemplate='κ̂ = %{x:.1f}<br>Pass Rate = %{y:.1%}<br><extra></extra>',
+        hovertemplate='kappa_hat = %{x:.1f}<br>Pass Rate = %{y:.1%}<br><extra></extra>',
     ))
 
     # Kink line (data-driven; matches run_stage2_iv.py estimator)
     gamma = _kink(df)
     fig.add_vline(x=gamma, line_dash='dash', line_color=COLORS['red'], line_width=2)
-    fig.add_annotation(x=gamma, y=0.52, text=f'Complexity Kink<br>κ̂ = {gamma:.1f}',
+    fig.add_annotation(x=gamma, y=0.52, text=f'Complexity Kink<br>kappa_hat = {gamma:.1f}',
                        showarrow=True, arrowhead=2, arrowcolor=COLORS['red'],
                        font=dict(color=COLORS['red'], size=14),
                        ax=60, ay=-40)
 
     # Regime annotations
-    fig.add_annotation(x=3.5, y=0.48, text='<b>Reliable Zone</b><br>Pass Rate ≈ 40%',
+    fig.add_annotation(x=3.5, y=0.48, text='<b>Reliable Zone</b><br>Pass Rate ~ 40%',
                        showarrow=False, font=dict(color=COLORS['green'], size=13))
-    fig.add_annotation(x=12, y=0.20, text='<b>Collapse Zone</b><br>Pass Rate ≈ 12%',
+    fig.add_annotation(x=12, y=0.20, text='<b>Collapse Zone</b><br>Pass Rate ~ 12%',
                        showarrow=False, font=dict(color=COLORS['red'], size=13))
 
     fig.update_layout(
         **LAYOUT_DEFAULTS,
         title=dict(text='The Complexity Kink<br><sup style="color:#7d8590">LLM pass rate vs predicted target complexity (2SLS-corrected)</sup>',
                    font_size=18),
-        xaxis_title='Predicted Target Complexity (κ̂)',
+        xaxis_title='Predicted Target Complexity (kappa_hat)',
         yaxis_title='Pass Rate',
         yaxis_tickformat='.0%',
         height=500,
@@ -268,7 +268,7 @@ def fig_kink_scatter(df, outdir):
     fig.write_image(os.path.join(outdir, 'complexity_kink.png'), scale=2)
     print(f'  Saved complexity_kink')
 
-# ── Figure 4: Phase Heatmap ──────────────────────────────────────────
+# -- Figure 4: Phase Heatmap ------------------------------------------
 def fig_phase_heatmap(df, outdir):
     """Interactive heatmap: complexity x instruction length to pass rate."""
     df_copy = df.copy()
@@ -300,7 +300,7 @@ def fig_phase_heatmap(df, outdir):
         title=dict(text='Performance Phase Diagram<br><sup style="color:#7d8590">Pass rate by predicted complexity x instruction length</sup>',
                    font_size=18),
         xaxis_title='Instruction Length (tokens)',
-        yaxis_title='Predicted Complexity (κ̂)',
+        yaxis_title='Predicted Complexity (kappa_hat)',
         height=550,
         width=900,
     )
@@ -309,7 +309,7 @@ def fig_phase_heatmap(df, outdir):
     fig.write_image(os.path.join(outdir, 'phase_heatmap.png'), scale=2)
     print(f'  Saved phase_heatmap')
 
-# ── Figure 5: Before/After Comparison ────────────────────────────────
+# -- Figure 5: Before/After Comparison --------------------------------
 def fig_before_after(df, outdir):
     """Side-by-side bar chart: naive vs corrected view."""
     # Naive: group by observed kappa
@@ -321,21 +321,21 @@ def fig_before_after(df, outdir):
     corrected = df_copy.groupby('pred_int')['pass_rate'].mean()
 
     fig = make_subplots(rows=1, cols=2, subplot_titles=[
-        '<span style="color:#f85149">Naive View (Output κ) ,  BIASED</span>',
-        '<span style="color:#3fb950">Corrected View (Predicted κ̂) ,  2SLS</span>',
+        '<span style="color:#f85149">Naive View (Output kappa) ,  BIASED</span>',
+        '<span style="color:#3fb950">Corrected View (Predicted kappa_hat) ,  2SLS</span>',
     ], horizontal_spacing=0.12)
 
     fig.add_trace(go.Bar(
         x=naive.index, y=naive.values,
         marker_color=[COLORS['red'] if k == 1 else COLORS['muted'] for k in naive.index],
-        hovertemplate='κ_obs=%{x}<br>Pass Rate=%{y:.1%}<extra></extra>',
+        hovertemplate='kappa_obs=%{x}<br>Pass Rate=%{y:.1%}<extra></extra>',
         showlegend=False,
     ), row=1, col=1)
 
     fig.add_trace(go.Bar(
         x=corrected.index, y=corrected.values,
         marker_color=[COLORS['red'] if k > _kink(df) else COLORS['green'] for k in corrected.index],
-        hovertemplate='κ̂=%{x}<br>Pass Rate=%{y:.1%}<extra></extra>',
+        hovertemplate='kappa_hat=%{x}<br>Pass Rate=%{y:.1%}<extra></extra>',
         showlegend=False,
     ), row=1, col=2)
 
@@ -352,8 +352,8 @@ def fig_before_after(df, outdir):
     )
     fig.update_yaxes(title_text='Pass Rate', tickformat='.0%', row=1, col=1)
     fig.update_yaxes(tickformat='.0%', row=1, col=2)
-    fig.update_xaxes(title_text='Observed κ', row=1, col=1)
-    fig.update_xaxes(title_text='Predicted κ̂', row=1, col=2)
+    fig.update_xaxes(title_text='Observed kappa', row=1, col=1)
+    fig.update_xaxes(title_text='Predicted kappa_hat', row=1, col=2)
     style_axes(fig)
 
     fig.write_html(os.path.join(outdir, 'before_after.html'))
@@ -361,7 +361,7 @@ def fig_before_after(df, outdir):
     print(f'  Saved before_after')
 
 
-# ── Main ─────────────────────────────────────────────────────────────
+# -- Main -------------------------------------------------------------
 if __name__ == '__main__':
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     outdir = os.path.join(base, 'output', 'plotly')

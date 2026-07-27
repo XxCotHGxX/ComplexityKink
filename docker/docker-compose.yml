@@ -1,4 +1,4 @@
-# docker-compose.yml — local testing before Azure push
+# docker-compose.yml - local testing before Azure push
 # Run: docker compose up
 #
 # NOTE: Requires NVIDIA Docker runtime (nvidia-container-toolkit)
@@ -13,7 +13,7 @@ services:
         HF_TOKEN: "${HF_TOKEN}"   # Set in shell or .env file
     image: qwen-vllm:latest
     ports:
-      - "1234:8000"   # Maps container port 8000 → local port 1234
+      - "1234:8000"   # Maps container port 8000 -> local port 1234
                       # (matches models.json base_url: http://localhost:1234/v1)
     environment:
       HF_TOKEN: "${HF_TOKEN}"

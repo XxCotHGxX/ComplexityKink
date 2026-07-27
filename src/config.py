@@ -44,7 +44,7 @@ PLACEBO_ITERATIONS = 500
 # Threshold CI bootstrap count. 200 leaves ~5 draws in each tail of a 95% CI
 # which gives a percentile estimate with >10% Monte-Carlo noise on the endpoint;
 # 1000 is the minimum defensible number for a percentile CI reported as a
-# paper result (Davidson & MacKinnon 2004, §9.5).
+# paper result (Davidson & MacKinnon 2004, Sec.9.5).
 THRESHOLD_CI_BOOTSTRAP = 1000
 
 # Smallest regime the sup-Wald search is allowed to consider. With ~10
@@ -107,7 +107,7 @@ CONSERVATIVE_IV_COLS = [
 # Both are computed from the LLM output, which makes them post-treatment
 # variables: they are caused by the same latent "did the model handle this
 # correctly?" that drives pass_rate. Conditioning on them is the classic
-# "bad controls" problem (Angrist & Pischke 2009, §3.2.3) ,  it blocks part
+# "bad controls" problem (Angrist & Pischke 2009, Sec.3.2.3) ,  it blocks part
 # of the causal path we are trying to estimate and re-introduces the
 # endogeneity the IV strategy was designed to eliminate.
 #

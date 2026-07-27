@@ -56,7 +56,7 @@ try:
 except ImportError:
     HAS_HF = False
 
-# ── Configuration ────────────────────────────────────────────────────────
+# -- Configuration --------------------------------------------------------
 DATASET_NAME = "nvidia/OpenCodeInstruct"
 NUM_SHARDS = 50
 LANGUAGES = ['python', 'java', 'javascript', 'cpp', 'go']

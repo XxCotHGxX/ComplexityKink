@@ -2,7 +2,7 @@
 Representativeness check for the locked 5,000-prompt experimental set.
 
 The experimental sample was drawn with --scan-limit 200000 (a prefix scan
-over source-ordered shards); see docs/METHODOLOGY_NOTES.md. This script
+over source-ordered shards); see docs/reproduction_guide.md. This script
 draws an independent full-pool reference sample and tests whether the two
 draws differ on the sampling-frame axes that could bias downstream analysis.
 

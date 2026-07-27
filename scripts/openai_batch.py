@@ -106,7 +106,7 @@ def _user_content(p):
     return f"Task:\n{p['input']}\n\nWrite a complete Python solution."
 
 
-# ── submit ─────────────────────────────────────────────────────────
+# -- submit ---------------------------------------------------------
 
 def cmd_submit(args):
     prompts_path = Path(args.prompts)
@@ -183,7 +183,7 @@ def cmd_submit(args):
     print(f"State: {state_path}")
 
 
-# ── status ─────────────────────────────────────────────────────────
+# -- status ---------------------------------------------------------
 
 def cmd_status(args):
     state_path = _state_path(args.model, Path(args.state_dir))
@@ -213,7 +213,7 @@ def cmd_status(args):
         sys.exit(1)
 
 
-# ── retrieve ───────────────────────────────────────────────────────
+# -- retrieve -------------------------------------------------------
 
 def _clean_code(text):
     if not text:
@@ -319,7 +319,7 @@ def cmd_retrieve(args):
     print(f"Appended to {gen_path}: written={written} errors={errors} empty={empty}")
 
 
-# ── main ───────────────────────────────────────────────────────────
+# -- main -----------------------------------------------------------
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__,

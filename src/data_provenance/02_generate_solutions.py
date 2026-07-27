@@ -131,6 +131,10 @@ def generate_openai(prompt, model_id, api_key, base_url=None, **kwargs):
         create_kwargs["frequency_penalty"] = kwargs["frequency_penalty"]
     if "presence_penalty" in kwargs:
         create_kwargs["presence_penalty"] = kwargs["presence_penalty"]
+    if "reasoning_effort" in kwargs:
+        create_kwargs["reasoning_effort"] = kwargs["reasoning_effort"]
+    if "verbosity" in kwargs:
+        create_kwargs["verbosity"] = kwargs["verbosity"]
     extra_body = {}
     if "enable_thinking" in kwargs:
         extra_body["enable_thinking"] = kwargs["enable_thinking"]
@@ -290,19 +294,29 @@ def generate_azure(prompt, model_id, api_key, azure_endpoint, azure_deployment, 
 
     client = AzureOpenAI(
         api_key=api_key,
-        api_version=kwargs.get("api_version", "2024-05-01-preview"),
+        api_version=kwargs.get("api_version") or "2024-05-01-preview",
         azure_endpoint=azure_endpoint
     )
 
-    response = client.chat.completions.create(
-        model=azure_deployment,
-        messages=[
+    create_kwargs = {
+        "model": azure_deployment,
+        "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ],
-        temperature=kwargs.get("temperature", 0.0),
-        max_tokens=kwargs.get("max_tokens", 4096),
-    )
+    }
+    if "max_completion_tokens" in kwargs:
+        create_kwargs["max_completion_tokens"] = kwargs["max_completion_tokens"]
+    else:
+        create_kwargs["max_tokens"] = kwargs.get("max_tokens", 4096)
+    if not kwargs.get("no_temperature", False):
+        create_kwargs["temperature"] = kwargs.get("temperature", 0.0)
+    if "reasoning_effort" in kwargs:
+        create_kwargs["reasoning_effort"] = kwargs["reasoning_effort"]
+    if "verbosity" in kwargs:
+        create_kwargs["verbosity"] = kwargs["verbosity"]
+
+    response = client.chat.completions.create(**create_kwargs)
     return response.choices[0].message.content
 
 
@@ -339,15 +353,25 @@ def generate_azure_inference(prompt, model_id, api_key, azure_endpoint, azure_de
         default_headers={"api-key": api_key},  # Azure Foundry uses api-key header
     )
 
-    response = client.chat.completions.create(
-        model=azure_deployment,
-        messages=[
+    create_kwargs = {
+        "model": azure_deployment,
+        "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ],
-        temperature=kwargs.get("temperature", 0.0),
-        max_tokens=kwargs.get("max_tokens", 4096),
-    )
+    }
+    if "max_completion_tokens" in kwargs:
+        create_kwargs["max_completion_tokens"] = kwargs["max_completion_tokens"]
+    else:
+        create_kwargs["max_tokens"] = kwargs.get("max_tokens", 4096)
+    if not kwargs.get("no_temperature", False):
+        create_kwargs["temperature"] = kwargs.get("temperature", 0.0)
+    if "reasoning_effort" in kwargs:
+        create_kwargs["reasoning_effort"] = kwargs["reasoning_effort"]
+    if "verbosity" in kwargs:
+        create_kwargs["verbosity"] = kwargs["verbosity"]
+
+    response = client.chat.completions.create(**create_kwargs)
     msg = response.choices[0].message
     # Reasoning models (e.g. Kimi-K2.5) return content in reasoning_content
     content = msg.content
@@ -782,6 +806,10 @@ def generate_for_model(prompts, model_config, output_dir, resume=True, max_worke
                     call_kwargs["enable_thinking"] = model_config["enable_thinking"]
                 if "thinking_budget" in model_config:
                     call_kwargs["thinking_budget"] = model_config["thinking_budget"]
+                if "reasoning_effort" in model_config:
+                    call_kwargs["reasoning_effort"] = model_config["reasoning_effort"]
+                if "verbosity" in model_config:
+                    call_kwargs["verbosity"] = model_config["verbosity"]
                 # Some APIs (e.g. Grok) don't accept penalty params at all
                 if not model_config.get("no_penalties", False):
                     call_kwargs["frequency_penalty"] = model_config.get("frequency_penalty", 0.0)
@@ -944,11 +972,13 @@ def main():
     args = parser.parse_args()
 
     # Public users rely on standard environment variables. The author-only
-    # CLI-auth shim is optional; skip silently if it is absent.
+    # CLI-auth shim is optional; skip silently if it is absent. In unattended
+    # generation runs, avoid the verbose status path because it refreshes
+    # optional interactive auth sources that are not needed for every backend.
     if load_keys is not None:
-        print("Loading API keys...")
-        load_keys.status()
-        print()
+        loaded = load_keys.load()
+        if not os.environ.get("CK_QUIET_AUTH_LOAD"):
+            print(f"Loaded optional auth sources: {', '.join(sorted(loaded)) or 'none'}")
 
     # Load prompts
     prompts = []

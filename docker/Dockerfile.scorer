@@ -1,4 +1,4 @@
-# Sandboxed scoring container — executes LLM-generated code safely
+# Sandboxed scoring container - executes LLM-generated code safely
 # No GUI, no network, minimal attack surface
 FROM python:3.11-slim
 

@@ -1,0 +1,181 @@
+{
+  "artifact_status": "post_submission_robustness",
+  "submitted_baseline": {
+    "n_prompts": 5000,
+    "n_models": 21,
+    "n_scored_generations": 105000,
+    "composite_icc": 0.8719,
+    "threshold": 13.75,
+    "threshold_ci_95": [
+      7.75,
+      14.0
+    ],
+    "sup_wald": 121.69946916445008,
+    "mean_pass_below": 0.7993088194636438,
+    "mean_pass_at_or_above": 0.8757222050063699
+  },
+  "overidentification": {
+    "n": 5000,
+    "j_statistic": 411.3241471925899,
+    "degrees_of_freedom": 5,
+    "j_per_observation": 0.08226482943851798,
+    "subsample_draws_per_n": 200,
+    "smallest_subsample_n": 250,
+    "j_per_observation_at_n_250": 0.102,
+    "rejection_share_at_n_250": 0.975,
+    "interpretation": "The six-dimension composite is treated primarily as a prompt-side complexity index. Overidentified IV fits are limited diagnostics."
+  },
+  "task_type_controls": {
+    "n_prompts": 5000,
+    "n_categories": 9,
+    "reliability_subsample_n": 500,
+    "krippendorff_alpha": 0.787,
+    "uncontrolled": {
+      "threshold": 13.75,
+      "sup_wald": 121.69946916445008,
+      "regime_gap_percentage_points": 7.6
+    },
+    "fixed_effects": {
+      "threshold": 10.75,
+      "sup_wald": 19.55686173579877,
+      "regime_gap_percentage_points": 2.1,
+      "wild_bootstrap_p_lt": 0.01
+    },
+    "large_task_types_tested_for_overidentification": 5,
+    "large_task_types_rejecting": 4
+  },
+  "high_complexity_extension": {
+    "n_audit_clean_prompts": 365,
+    "all_reference_solutions_pass_all_tests": true,
+    "bin_counts": {
+      "15": 218,
+      "16": 140,
+      "17": 4,
+      "18": 3
+    },
+    "matched_five_model": {
+      "bin_15": {
+        "extension_pass_rate": 0.88,
+        "original_pass_rate": 0.89,
+        "difference": -0.01,
+        "welch_p": 0.53
+      },
+      "bin_16": {
+        "extension_pass_rate": 0.8,
+        "original_pass_rate": 0.81,
+        "difference": -0.01,
+        "welch_p": 0.73
+      },
+      "combined_threshold": 14.0,
+      "combined_pass_below": 0.783310829057521,
+      "combined_pass_above": 0.8585439229843562,
+      "combined_bin_15_support": 878,
+      "combined_bin_16_support": 417
+    },
+    "exact_version_frontier": {
+      "models": [
+        "Claude Opus 4.6",
+        "GPT-5.4",
+        "Gemini 3.1 Pro Preview"
+      ],
+      "generation_successes_per_model": 801,
+      "generation_targets_per_model": 801,
+      "bin_15_pass_rates": [
+        0.94,
+        0.94,
+        0.94
+      ],
+      "bin_16_pass_rates": [
+        0.88,
+        0.85,
+        0.85
+      ]
+    },
+    "limitation": "Only seven audit-clean additions are above bin 16, so the extreme tail remains underpowered."
+  },
+  "human_calibration": {
+    "first_grader_n": 200,
+    "second_grader_overlap_n": 50,
+    "sample_is_disagreement_enriched": true,
+    "full_200": {
+      "human_llm_pearson": 0.41,
+      "human_llm_spearman": 0.3728183100591818,
+      "human_llm_icc_2_1": 0.395057734816509,
+      "weighted_kappa_range": [
+        0.22,
+        0.44
+      ],
+      "human_minus_llm_mean_offset": -1.1791666666666667
+    },
+    "shared_50": {
+      "first_grader_llm_pearson": 0.61,
+      "second_grader_llm_pearson": 0.92,
+      "human_human_correlation": 0.56,
+      "second_grader_minus_llm_mean_offset": -1.35
+    }
+  },
+  "pass_at_k": {
+    "n_prompts": 359,
+    "n_models": 4,
+    "draws_per_prompt_model": 5,
+    "n_scored_generations": 7180,
+    "mean_within_prompt_model_sd": 0.0641328451714896,
+    "first_draw_vs_five_draw_mean_pearson": 0.9600741912467502,
+    "first_draw_threshold": 14.25,
+    "five_draw_mean_threshold": 14.25
+  },
+  "paraphrase_stability": {
+    "n_pairs": 150,
+    "median_paraphrase_length_share": 0.46,
+    "pearson": 0.9873327665170818,
+    "spearman": 0.9626410188376949,
+    "mean_composite_shift": -0.115,
+    "share_within_one_point": 0.9133333333333333,
+    "share_within_two_points": 0.9933333333333333
+  },
+  "language_transfer": {
+    "n_prompts_per_language": 117,
+    "python_inter_judge_icc": 0.9118309743091534,
+    "java": {
+      "pearson_with_python": 0.9917186425480699,
+      "inter_judge_icc": 0.9126240726504304
+    },
+    "cpp": {
+      "pearson_with_python": 0.9690901278309085,
+      "inter_judge_icc": 0.8823604087150272
+    },
+    "scope": "Measurement transfer only; no full non-Python execution rerun."
+  },
+  "reverse_threshold": {
+    "n_scored_generations": 103948,
+    "prompt_composite_gt": 8.0,
+    "output_cyclomatic_complexity_lte": 10.0,
+    "shares": {
+      "pass_rate_eq_0": 0.2853275582024905,
+      "pass_rate_lte_0_25": 0.2677348413446434,
+      "pass_rate_lte_0_50": 0.24884556182657774,
+      "pass_rate_lte_0_65": 0.24075989331010833
+    },
+    "passing_generation_mapping_at_prompt_threshold": {
+      "prompt_threshold": 13.75,
+      "estimated_output_cyclomatic_complexity": 22.9
+    }
+  },
+  "mechanism_diagnostic": {
+    "n_prompts": 404,
+    "bins": [
+      13,
+      17
+    ],
+    "external_library_coefficient": -0.045,
+    "p_value": 0.67,
+    "interpretation": "The scoped diagnostic does not support the earlier library/framework explanation."
+  },
+  "pooling_robustness": {
+    "leave_one_model_out_fits": 21,
+    "leave_one_model_out_threshold": 13.75,
+    "median_pool_threshold": 10.75,
+    "models_with_upward_regime_change": 16,
+    "models_with_downward_regime_change": 5
+  }
+}

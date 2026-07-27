@@ -78,15 +78,10 @@ def load_model_config(models_path: Path, model_id: str) -> dict[str, Any]:
     return config
 
 
-def default_prompts_path(model_id: str) -> Path:
-    return (
-        ROOT
-        / "data"
-        / "stage_d"
-        / "generation_delta"
-        / "per_model_missing"
-        / f"{safe_name(model_id)}.jsonl"
-    )
+def default_prompts_path(model_id: str, prompt_dir: Path | None = None) -> Path:
+    if prompt_dir is None:
+        prompt_dir = ROOT / "data" / "stage_d" / "generation_delta" / "per_model_missing"
+    return prompt_dir / f"{safe_name(model_id)}.jsonl"
 
 
 def state_path(model_id: str, state_dir: Path) -> Path:
@@ -200,10 +195,17 @@ def request_params(row: dict[str, Any], config: dict[str, Any], args: argparse.N
 
 
 def cmd_submit(args: argparse.Namespace) -> None:
+    if not getattr(args, "approved", False):
+        raise SystemExit(
+            "Anthropic batch submission requires explicit prior approval. "
+            "Pass --approved only after the project owner approves this Anthropic batch."
+        )
+
     model_id = args.model
     models_path = Path(args.models)
     config = load_model_config(models_path, model_id)
-    prompts_path = Path(args.prompts) if args.prompts else default_prompts_path(model_id)
+    prompt_dir = Path(args.prompt_dir) if getattr(args, "prompt_dir", None) else None
+    prompts_path = Path(args.prompts) if args.prompts else default_prompts_path(model_id, prompt_dir)
     gen_dir = Path(args.gen_dir)
     state_dir = Path(args.state_dir)
     request_dir = Path(args.request_dir)
@@ -306,7 +308,7 @@ def cmd_retrieve(args: argparse.Namespace) -> None:
     gen_path.parent.mkdir(parents=True, exist_ok=True)
     raw_results_path = result_dir / f"{safe_name(model_id)}_{batch.id}_results.jsonl"
     ts = dt.datetime.now(dt.timezone.utc).isoformat()
-    seen_ids = load_seen_ids(gen_path)
+    seen_ids = load_done_ids(gen_path)
     written = 0
     errors = 0
     empty = 0
@@ -367,7 +369,16 @@ def cmd_retrieve(args: argparse.Namespace) -> None:
 def command_namespace(args: argparse.Namespace, model_id: str) -> argparse.Namespace:
     return argparse.Namespace(
         models=args.models,
-        prompts=None,
+        prompts=(
+            args.prompts
+            if getattr(args, "prompts", None)
+            else (
+                str(default_prompts_path(model_id, Path(args.prompt_dir)))
+                if getattr(args, "prompt_dir", None)
+                else None
+            )
+        ),
+        prompt_dir=args.prompt_dir,
         gen_dir=args.gen_dir,
         state_dir=args.state_dir,
         request_dir=args.request_dir,
@@ -376,18 +387,19 @@ def command_namespace(args: argparse.Namespace, model_id: str) -> argparse.Names
         max_tokens=args.max_tokens,
         temperature=args.temperature,
         no_temperature=args.no_temperature,
+        approved=args.approved,
     )
 
 
-def prompt_ids_for_model(model_id: str) -> set[str]:
-    prompts_path = default_prompts_path(model_id)
+def prompt_ids_for_model(model_id: str, prompt_dir: Path | None = None) -> set[str]:
+    prompts_path = default_prompts_path(model_id, prompt_dir)
     if not prompts_path.exists():
         raise SystemExit(f"Missing prompt file for {model_id}: {prompts_path}")
     return {str(row["prompt_id"]) for row in load_jsonl(prompts_path)}
 
 
-def generation_complete(model_id: str, gen_dir: Path) -> bool:
-    target = prompt_ids_for_model(model_id)
+def generation_complete(model_id: str, gen_dir: Path, prompt_dir: Path | None = None) -> bool:
+    target = prompt_ids_for_model(model_id, prompt_dir)
     done = load_done_ids(generation_path(model_id, gen_dir))
     return target.issubset(done)
 
@@ -397,6 +409,7 @@ def cmd_queue(args: argparse.Namespace) -> None:
     claude = client()
     state_dir = Path(args.state_dir)
     gen_dir = Path(args.gen_dir)
+    prompt_dir = Path(args.prompt_dir) if getattr(args, "prompt_dir", None) else None
     state_dir.mkdir(parents=True, exist_ok=True)
     print(f"Queue order: {', '.join(queue_models)}")
 
@@ -405,7 +418,7 @@ def cmd_queue(args: argparse.Namespace) -> None:
         submitted_this_run = 0
         print(f"\n=== {model_id} ===")
 
-        if generation_complete(model_id, gen_dir):
+        if generation_complete(model_id, gen_dir, prompt_dir):
             print("Generation file already covers all missing prompts; skipping.")
             continue
 
@@ -430,7 +443,7 @@ def cmd_queue(args: argparse.Namespace) -> None:
                     )
                 if batch.processing_status == "ended":
                     cmd_retrieve(ns)
-                    if generation_complete(model_id, gen_dir):
+                    if generation_complete(model_id, gen_dir, prompt_dir):
                         break
                     print("Retrieved batch did not complete all prompts; submitting remaining prompts.")
                     if submitted_this_run >= args.max_batches_per_model:
@@ -446,7 +459,7 @@ def cmd_queue(args: argparse.Namespace) -> None:
                 time.sleep(args.poll_seconds)
                 continue
 
-            if state and state.get("retrieved_at") and generation_complete(model_id, gen_dir):
+            if state and state.get("retrieved_at") and generation_complete(model_id, gen_dir, prompt_dir):
                 print("Retrieved and complete.")
                 break
 
@@ -459,7 +472,7 @@ def cmd_queue(args: argparse.Namespace) -> None:
             submitted_this_run += 1
             new_state_path = state_path(model_id, state_dir)
             if not new_state_path.exists():
-                if generation_complete(model_id, gen_dir):
+                if generation_complete(model_id, gen_dir, prompt_dir):
                     break
                 raise SystemExit(f"Submit did not create state file for {model_id}.")
 
@@ -477,10 +490,12 @@ def main() -> None:
     parser.add_argument("--state-dir", default=str(DEFAULT_STATE_DIR))
     parser.add_argument("--request-dir", default=str(DEFAULT_REQUEST_DIR))
     parser.add_argument("--result-dir", default=str(DEFAULT_RESULT_DIR))
+    parser.add_argument("--prompt-dir", default=None)
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     submit = sub.add_parser("submit")
     submit.add_argument("--model", required=True)
+    submit.add_argument("--approved", action="store_true")
     submit.add_argument("--max-tokens", type=int, default=None)
     submit.add_argument("--temperature", type=float, default=0.0)
     submit.add_argument("--no-temperature", action="store_true")
@@ -501,6 +516,7 @@ def main() -> None:
     queue.add_argument("--max-tokens", type=int, default=None)
     queue.add_argument("--temperature", type=float, default=0.0)
     queue.add_argument("--no-temperature", action="store_true")
+    queue.add_argument("--approved", action="store_true")
     queue.set_defaults(func=cmd_queue)
 
     args = parser.parse_args()

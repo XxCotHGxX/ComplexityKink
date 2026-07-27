@@ -7,7 +7,7 @@ Output: final_results_scored.jsonl    (35,499 records + status field)
 Execution:
   - Python:     subprocess python3 -c (code + tests)
   - JavaScript: subprocess node -e (code + tests)
-  - Go/Java/C++: ⚠ NOT EXECUTED ,  fabricated based on kappa_cyclomatic
+  - Go/Java/C++: WARNING NOT EXECUTED ,  fabricated based on kappa_cyclomatic
 
 CRITICAL KNOWN ISSUE (see data_provenance/README.md):
   For Go, Java, and C++ (lines 57-59), test results are FABRICATED:
@@ -71,7 +71,7 @@ def process_sample(line):
         elif lang == 'javascript':
             result = execute_javascript(code, test_block)
         else:
-            # ⚠ CRITICAL: Go/Java/C++ tests are NOT executed.
+            # WARNING CRITICAL: Go/Java/C++ tests are NOT executed.
             # Pass/fail is fabricated from kappa_cyclomatic.
             result = "pass" if sample.get('kappa_cyclomatic', 0) < 5 else "fail"
             

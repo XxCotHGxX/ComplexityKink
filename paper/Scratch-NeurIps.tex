@@ -20,11 +20,13 @@
 \graphicspath{{./}}
 \usepackage{enumitem}
 
-\title{The Complexity Kink, Revisited: LLM Rubric Instruments for Causal Inference on Code Generation Reliability}
+\title{The Complexity Kink: LLM Rubric Instruments for Causal Inference on Code Generation Reliability}
 
 % Submission version: authors are omitted for double-blind review.
 \author{%
-  Anonymous Author(s)
+  Anonymous Author(s) \\
+  Anonymous Institution \\
+  \texttt{anonymous@example.com}
 }
 
 \begin{document}
@@ -46,7 +48,7 @@ A natural baseline is to approximate prompt complexity with keyword features, su
 
 We present the Complexity Kink benchmark, a prompt-side experiment that measures intended solution complexity before generation and keeps it separate from generated-output complexity and functional correctness. We construct a 5{,}000-prompt Python benchmark from OpenCodeInstruct~\cite{opencodeinst}, stratified to cover the range of structural complexity in the source data. Each prompt is scored using a fixed six-dimensional rubric covering branching, iteration, state, data structures, edge cases, and algorithmic composition. To reduce scorer idiosyncrasy, four out-of-panel LLM judges score the full prompt set; the resulting ensemble provides both a prompt-level complexity estimate and a direct measurement of scorer disagreement. We then evaluate a 21-model panel by unit-test execution and estimate the relationship between unbinned prompt-side complexity and pass rate using instrumental variables and threshold regression.
 
-This design matters for both benchmark science and deployment practice. If reliability declines smoothly with prompt-side complexity, then model comparisons can be summarized by slopes and average pass rates. If reliability changes sharply near a complexity threshold, then averages are misleading: two models with similar aggregate scores may differ in where they become unreliable. A prompt-side complexity measure also prevents failed generations from disappearing into low-complexity bins, making it possible to diagnose failures where they matter most.
+This design matters for both benchmark science and deployment practice. If reliability varies smoothly with prompt-side complexity, then model comparisons can be summarized by slopes and average pass rates. If reliability changes sharply near a complexity threshold, then averages are misleading: two models with similar aggregate scores may differ in where their reliability regimes change. A prompt-side complexity measure also prevents failed generations from disappearing into low-complexity bins, making it possible to diagnose failures where they matter most.
 
 \vspace{2pt}
 \noindent\textbf{Contributions.}
@@ -54,7 +56,7 @@ This design matters for both benchmark science and deployment practice. If relia
 \item We identify and formalize output-side complexity endogeneity in code-generation evaluation, where failed solutions to hard prompts can be measured as simple generated programs.
 \item We introduce an ensemble-scored prompt rubric for structural complexity, with judges excluded from the evaluated model panel and scorer disagreement retained as measurement information rather than discarded.
 \item We construct a 5{,}000-prompt Python benchmark from OpenCodeInstruct and evaluate a 21-model panel with unit-test execution, producing a prompt-level dataset for analyzing reliability as a function of intended solution complexity.
-\item We combine prompt-side complexity measurement with instrumental variables and threshold regression to test whether the Complexity Kink is a real structural break in model reliability or an artifact of endogenous output measurement.
+\item We combine prompt-side complexity measurement with instrumental variables and threshold regression to test whether the Complexity Kink is a real structural break in model reliability or an artifact of endogenous output measurement; in the final panel, the break is real but the relationship is non-monotone rather than a simple collapse.
 \end{itemize}
 
 % =====================================================================
@@ -65,7 +67,7 @@ This design matters for both benchmark science and deployment practice. If relia
 
 \textbf{Complexity measurement and benchmark bias.} Cyclomatic complexity and related code metrics are attractive because they are computable from source code, beginning with McCabe's graph-theoretic formulation and continuing through static-analysis tools such as Lizard~\cite{mccabe1976complexity,lizard}. In code-generation evaluation, however, the available source code is often the model output itself. This makes the metric post-treatment: measured complexity is affected by model success or failure~\cite{montgomery2018posttreatment}. The present work addresses this by scoring complexity from the prompt before any evaluated model generates code.
 
-\textbf{Instrumental variables, causal inference, and threshold estimation.} Instrumental variables are a standard response to endogenous regressors in econometrics~\cite{wooldridge2010econometric}, with weak-instrument diagnostics and over-identification tests providing important design checks~\cite{stock2005testing,hansen1982large,bowsher2002reject}. Empirical software engineering has increasingly imported econometric causal designs rather than relying only on predictive associations. Graf-Vlachy and Wagner specifically transfer IV and two-stage models to empirical software engineering as a remedy for endogeneity~\cite{grafvlachy2024cleaning}, while Siebert surveys broader software engineering applications of statistical causal inference~\cite{siebert2023applications}. Recent software engineering studies also use regression discontinuity and related quasi-experimental designs to study continuous integration and security events~\cite{guo2019studying,walden2020impact}. Our setting differs because the instrument is constructed from a text artifact: an out-of-panel judge ensemble scores the prompt against a fixed rubric. For the structural break question, we use Hansen's threshold regression and bootstrap sup-Wald framework~\cite{hansen2000sample}, adapting a standard econometric tool to reliability analysis for code-generating models.
+\textbf{Instrumental variables, causal inference, and threshold estimation.} Instrumental variables (IVs) are a standard response to endogenous regressors in econometrics~\cite{wooldridge2010econometric}, with weak-instrument diagnostics and over-identification tests providing important design checks~\cite{stock2005testing,hansen1982large,bowsher2002reject}. Empirical software engineering has increasingly imported econometric causal designs rather than relying only on predictive associations. Graf-Vlachy and Wagner specifically transfer IV and two-stage models to empirical software engineering as a remedy for endogeneity~\cite{grafvlachy2024cleaning}, while Siebert surveys broader software engineering applications of statistical causal inference~\cite{siebert2023applications}. Recent software engineering studies also use regression discontinuity and related quasi-experimental designs to study continuous integration and security events~\cite{guo2019studying,walden2020impact}. Our setting differs because the instrument is constructed from a text artifact: an out-of-panel judge ensemble scores the prompt against a fixed rubric. For the structural break question, we use Hansen's threshold regression and bootstrap sup-Wald framework~\cite{hansen2000sample}, adapting a standard econometric tool to reliability analysis for code-generating models.
 
 \textbf{LLMs as judges and rubric scorers.} G-Eval~\cite{liu2023geval}, AlpacaEval~\cite{alpacaeval}, and MT-Bench~\cite{zheng2023judging} use LLMs to evaluate open-ended model outputs, while rubric-based automatic evaluation has a longer history in NLP~\cite{hashimoto2019unifying}. We use LLM judges differently. The judges do not score generated answers, rank models, or determine pass/fail outcomes. They score the input prompt before generation, using a published structural rubric, and are excluded from the evaluated model panel. This turns LLM judgment into a measurement layer for a latent input property rather than an outcome evaluator, reducing the risk that the judge simply reproduces the same output-side bias the benchmark is meant to diagnose.
 
@@ -80,7 +82,7 @@ We aim to estimate $\beta$ in
 y_i = \alpha + \beta \kappa_i^* + \mathbf{X}_i \boldsymbol{\gamma} + \varepsilon_i,
 \label{eq:structural}
 \end{equation}
-where $y_i \in [0,1]$ is the pass rate, and $\mathbf{X}_i$ includes controls: instruction entropy $E_{\text{norm}}$ and prompt--output Jaccard similarity $M_{\text{mem}}$.% (a memorization proxy).
+where $y_i \in [0,1]$ is the pass rate. In the headline specification, $\mathbf{X}_i$ is empty: we do not condition on post-generation quantities such as output entropy or prompt--output overlap, because those are themselves affected by model success or failure.
 The problem is that $\kappa_i^*$ is unobserved. Instead,
 \begin{equation}
 \kappa_i^{\text{obs}} =
@@ -90,7 +92,7 @@ The problem is that $\kappa_i^*$ is unobserved. Instead,
 \end{cases}
 \end{equation}
 Thus, $\kappa_i^{\text{obs}}$ depends on model success and is correlated with the error term $\varepsilon_i$.%, i.e., $\mathrm{Cov}(\kappa_i^{\text{obs}}, \varepsilon_i) \neq 0$. 
-As a result, ordinary least squares using $\kappa_i^{\text{obs}}$ is biased and inconsistent.
+As a result, ordinary least squares (OLS) using $\kappa_i^{\text{obs}}$ is biased and inconsistent.
 Two-stage least squares (2SLS) can recover a consistent estimate if a valid instrument $\mathbf{Z}_i$ is available (correlated with $\kappa_i^*$ but uncorrelated with $\varepsilon_i$).
 % =====================================================================
 \section{Methodology}
@@ -108,7 +110,7 @@ For each generation, we compute observed output complexity $\kappa_i^{\text{obs}
 \subsection{Rubric Scoring}
 
 \subsubsection{Scoring models and deployment}
-Prompts are scored by four out-of-panel LLM judges deployed through Azure AI Foundry: \texttt{o4-mini}, \texttt{gpt-5.5}, \texttt{llama-4-maverick}, and \texttt{command-a}. Each judge scores all 5{,}000 prompts with the same rubric prompt, producing 20{,}000 score rows with complete four-judge coverage for every prompt. We aggregate by taking the mean score for each prompt-dimension pair across judges. The resulting ensemble has high composite inter-rater reliability (ICC $=0.865$), and scorer disagreement is retained for diagnostic analysis rather than hidden.
+Prompts are scored by four out-of-panel LLM judges deployed through Azure AI Foundry: \texttt{o4-mini}, \texttt{gpt-5.5}, \texttt{llama-4-maverick}, and \texttt{command-a}. All 5{,}000 prompts receive ensemble scores with the same rubric prompt. Coverage is effectively complete: 4{,}998 prompts have four judge scores, one prompt has three, and one prompt has two, for 19{,}997 total score rows. We aggregate by taking the mean score for each prompt-dimension pair across available judges. The resulting ensemble has high composite inter-rater reliability (ICC $=0.872$ on 4{,}998 complete cases), and scorer disagreement is retained for diagnostic analysis rather than hidden.
 
 \subsubsection{The rubric}
 Each prompt is scored on six dimensions, each $0$ to $4$, as shown in Table~\ref{tab:complexity_dimensions}.
@@ -121,6 +123,8 @@ Each prompt is scored on six dimensions, each $0$ to $4$, as shown in Table~\ref
 % \item \textbf{Composition}: algorithmic steps chained. 0 = single operation; 4 = pipeline of interdependent algorithms.
 % \end{enumerate}
 \begin{table}[h]
+\caption{Complexity dimensions and scoring criteria.}
+\label{tab:complexity_dimensions}
 \centering
 \begin{tabular}{p{3cm} p{4cm} p{5.5cm}}
 \hline
@@ -134,8 +138,6 @@ Edge cases & None & Combinatorial interacting checks \\
 Composition & Single operation & Pipeline of interdependent algorithms \\
 \hline
 \end{tabular}
-\caption{Complexity dimensions and scoring criteria.}
-\label{tab:complexity_dimensions}
 \end{table}
 
 The composite score is $Z_i^{\text{comp}} = \sum_{d=1}^{6} Z_{i,d} \in [0,24]$, where $Z_{i,d}$ is the ensemble mean for dimension $d$. The instrument vector used in 2SLS is the six dimension vector $\mathbf{Z}_i = (Z_{i,1},\ldots,Z_{i,6})$, which is over identifying for the single endogenous regressor $\kappa_i^*$.
@@ -150,24 +152,24 @@ The composite score is $Z_i^{\text{comp}} = \sum_{d=1}^{6} Z_{i,d} \in [0,24]$, 
 \textbf{Why exclude the scoring ensemble from the evaluated panel?} Any scorer-specific bias that correlated with an evaluated model's pass-rate would threaten exclusion. Excluding all four judges from the panel ensures judge biases can affect all evaluated models only through the measured prompt complexity, not through direct model-specific outcome channels.
 
 \subsection{2SLS with Rubric Instruments}
-The first stage regresses observed (successful sample) $\kappa^{\text{obs}}$ on the six rubric dimensions plus controls:
+The first stage regresses observed output complexity $\kappa^{\text{obs}}$ on the six rubric dimensions:
 \begin{equation}
-\kappa_i^{\text{obs}} = \pi_0 + \mathbf{Z}_i\,\boldsymbol{\pi} + \mathbf{X}_i\,\boldsymbol{\delta} + \nu_i.
+\kappa_i^{\text{obs}} = \pi_0 + \mathbf{Z}_i\,\boldsymbol{\pi} + \nu_i.
 \label{eq:stage1}
 \end{equation}
 The second stage uses predicted $\hat{\kappa}_i$ from (\ref{eq:stage1}) in place of $\kappa_i^{\text{obs}}$:
 \begin{equation}
-y_i = \alpha + \beta\,\hat{\kappa}_i + \mathbf{X}_i\,\boldsymbol{\gamma} + u_i.
+y_i = \alpha + \beta\,\hat{\kappa}_i + u_i.
 \label{eq:stage2}
 \end{equation}
 We estimate (\ref{eq:stage1}) and (\ref{eq:stage2}) with \texttt{IV2SLS} from the Python \texttt{linearmodels} package, a software implementation of instrumental-variable two-stage least squares~\cite{linearmodels}.
 The statistical estimator follows the standard 2SLS formulation~\cite{wooldridge2010econometric}. In the headline combined specification, pass rates are first averaged across the 21 models at the prompt level, yielding one observation per prompt ($N=5{,}000$); robust heteroskedasticity consistent standard errors are then reported on that prompt level dataset. The per model specifications likewise contain one observation per prompt. If the long $105{,}000$ row model by prompt panel is analyzed directly, prompt clustered errors are appropriate, but that is not the default specification reported here.
 
 
-\subsection{Threshold Detection: Bootstrap Hansen sup Wald}
+\subsection{Threshold Detection: Bootstrap Hansen sup-Wald}
 To locate the Complexity Kink, we apply Hansen's threshold regression~\cite{hansen2000sample}:
 \begin{enumerate}
-\item For each candidate threshold $\gamma$ on a grid over $[1, 20]$ at intervals of $0.5$, we split the sample into $\hat{\kappa}<\gamma$ and $\hat{\kappa}\geq\gamma$ and compute a Wald type $F$-statistic $W(\gamma)$ comparing the two regime model to the pooled single regime model.
+\item For each candidate threshold $\gamma$ on a percentile-spaced grid over the observed rubric-composite support, requiring at least 500 prompts in each regime, we split the sample into $\hat{\kappa}<\gamma$ and $\hat{\kappa}\geq\gamma$ and compute a Wald type $F$-statistic $W(\gamma)$ comparing the two regime model to the pooled single regime model.
 \item The supremum $W^* = \sup_\gamma W(\gamma)$ identifies the threshold $\hat{\gamma}$.
 \item Under $H_0$ of no threshold, we generate 500 wild bootstrap samples using Rademacher resampling of pooled residuals, recomputing $W^*$ at each draw.
 \item The bootstrap $p$-value is the fraction of simulated $W^*$ exceeding the observed $W^*$.
@@ -179,7 +181,7 @@ With six instruments and one endogenous regressor, the system is over identified
 \paragraph{Placebo}
 As an additional robustness check, we randomly permute $\hat{\kappa}$ across observations 500 times, destroying any true threshold structure, and recompute $W^*$ at each permutation. The observed $W^*$ should lie in the far tail of the placebo distribution if the kink is real. 
 
-Figure~\ref{fig:pipeline} summarizes the end-to-end measurement and estimation workflow.
+\paragraph{Workflow} Figure~\ref{fig:pipeline} summarizes the end-to-end measurement and estimation workflow.
 
 \begin{figure}[h]
 \centering
@@ -198,7 +200,7 @@ Before estimating the structural model, we validate the rubric against the refer
 
 \begin{table}[h]
 \centering
-\caption{Rubric composite by reference cyclomatic complexity bin. The rubric is monotonically increasing in reference $\kappa$, with Pearson $r=0.60$ and Spearman $\rho=0.62$.}
+\caption{Rubric composite by reference cyclomatic complexity bin. The rubric is strongly increasing in reference $\kappa$, with Pearson $r=0.80$ and Spearman $\rho=0.81$.}
 \label{tab:rubric-ref-cc}
 {\small 
 \setlength{\tabcolsep}{4pt}
@@ -208,11 +210,11 @@ Reference $\kappa$
 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11--15 & 16--20 & 21--45 \\
 \midrule
 $N$ 
-& 552 & 552 & 555 & 550 & 551 & 301 & 251 & 300 & 161 & 89 & 548 & 305 & 248 \\
+& 357 & 338 & 324 & 300 & 301 & 153 & 136 & 184 & 89 & 75 & 308 & 876 & 1556 \\
 Mean 
-& 4.56 & 5.35 & 6.43 & 7.27 & 7.50 & 8.17 & 8.22 & 8.35 & 8.74 & 8.71 & 9.57 & 10.25 & 12.42 \\
+& 4.64 & 5.25 & 6.23 & 7.25 & 6.61 & 7.15 & 8.08 & 7.75 & 8.79 & 7.44 & 9.52 & 10.71 & 14.33 \\
 SD 
-& 2.75 & 2.22 & 2.13 & 2.12 & 2.33 & 2.34 & 2.31 & 2.59 & 2.25 & 3.13 & 2.45 & 2.59 & 2.36 \\
+& 2.39 & 2.07 & 2.19 & 2.43 & 2.78 & 2.86 & 2.94 & 3.12 & 2.88 & 3.41 & 3.02 & 3.45 & 1.64 \\
 \bottomrule
 \end{tabular}
 }
@@ -224,74 +226,74 @@ The most important validation case is the low-complexity boundary. If a hard tas
 
 \begin{table}[h]
 \centering
-\caption{The prompt-side rubric discriminates $\kappa=1$ from $\kappa=2$ at $p<10^{-6}$. Simple keyword features provide weaker low-end separation.}
+\caption{The prompt-side rubric discriminates $\kappa=1$ from $\kappa=2$ before generation. Keyword features capture some surface structure but are less directly tied to intended code structure.}
 \label{tab:low-end-separation}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
 Feature & $\kappa=1$ & $\kappa=2$ & $\Delta$ & $p$-value \\
 \midrule
-Rubric composite                  & 4.56 & 5.35 & $+0.79$ & $<10^{-6}$ \\
-Keyword structural count          & 2.33 & 2.59 & $+0.25$ & marginal \\
-Keyword loop count                & 0.07 & 0.06 & $-0.01$ & n.s. \\
+Rubric composite                  & 4.64 & 5.25 & $+0.61$ & $3.1\times10^{-4}$ \\
+Keyword structural count          & 2.76 & 3.34 & $+0.58$ & $2.4\times10^{-3}$ \\
+Keyword loop count                & 0.07 & 0.04 & $-0.02$ & n.s. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The rubric's separation is driven primarily by iteration ($+0.32$), composition ($+0.19$), and state ($+0.13$). This supports the central measurement claim: the rubric is not merely counting words; it is capturing structural features of the intended solution that are already visible in the prompt.
+The rubric's separation is driven primarily by iteration ($+0.24$), state ($+0.19$), and branching ($+0.09$). This supports the central measurement claim: the rubric is not merely counting words; it is capturing structural features of the intended solution that are already visible in the prompt.
 
-\subsection{Output-side Complexity Understates the Complexity Penalty}
+\subsection{Output-side Complexity Is Endogenous and Weakly Informative}
 
 Table~\ref{tab:ols-vs-2sls} contrasts the naive OLS and rubric IV 2SLS estimates of $\beta$ in (\ref{eq:structural}).
 
 \begin{table}[h]
 \centering
-\caption{OLS vs.\ rubric IV 2SLS on the combined (prompt level) dataset. Both specifications regress pass rate on observed cyclomatic complexity $\kappa^{\text{obs}}$; the 2SLS column instruments $\kappa^{\text{obs}}$ with the six rubric dimensions. Hausman rejects consistency of OLS. HC1 SEs in parentheses.}
+\caption{OLS vs.\ rubric IV 2SLS on the combined (prompt level) dataset. Both specifications regress pass rate on observed output cyclomatic complexity $\kappa^{\text{obs}}$; the 2SLS column instruments $\kappa^{\text{obs}}$ with the six rubric dimensions. Hausman $\chi^2$ rejects consistency of OLS, where HC1 SEs are in parentheses.}
 \label{tab:ols-vs-2sls}
 \begin{tabular}{@{}lcc@{}}
 \toprule
 Regressor: $\kappa^{\text{obs}}$ & Naive OLS & Rubric IV 2SLS \\
 \midrule
-$\hat{\beta}$               & $-0.00918^{***}$ & $-0.01310^{***}$ \\
-                            & $(0.00080)$      & $(0.00123)$ \\
+$\hat{\beta}$               & $-0.00186^{*}$ & $-0.00014$ \\
+                            & $(0.00081)$    & $(0.00038)$ \\
 \midrule
-First stage $F$             & n/a              & 3{,}001.6 \\
-Partial $R^2$               & n/a              & 0.462 \\
-Hausman $\chi^2$            & \multicolumn{2}{c}{$20.13$ $(p=7.2\times 10^{-6})$} \\
-$R^2$                       & 0.025            & n/a \\
+First stage $F$             & n/a              & 13{,}611.3 \\
+Partial $R^2$               & n/a              & 0.681 \\
+Hausman $\chi^2$            & \multicolumn{2}{c}{$17.16$ $(p=3.4\times 10^{-5})$} \\
+$R^2$                       & 0.0008           & n/a \\
 $N$                         & \multicolumn{2}{c}{5{,}000} \\
 \bottomrule
-\multicolumn{3}{l}{\footnotesize $^{***}p<0.001$}
+\multicolumn{3}{l}{\footnotesize $^{*}p<0.05$}
 \end{tabular}
 \end{table}
 
-The 2SLS coefficient is approximately 43\% larger in magnitude than the naive OLS coefficient ($|-0.01310|$ vs.\ $|-0.00918|$). Under the prompt-side rubric instrument, OLS \emph{understates} the complexity penalty. The mechanism is classic attenuation from measurement error in $\kappa^{\text{obs}}$: when a model fails a complex task, the broken output's cyclomatic complexity drops toward 1, moving that observation from the high $\kappa$ / low pass rate region to the low $\kappa$ / low pass rate region. This flattens the OLS slope toward zero. 2SLS breaks the coupling by using the rubric score, which is computed from the prompt alone and never observes the output, and recovers a steeper slope.
+The final panel does not support a simple linear complexity penalty in output cyclomatic complexity. The naive OLS coefficient is statistically detectable but tiny, and the IV coefficient is not distinguishable from zero. This is not evidence that task structure is irrelevant; rather, it shows that output-side $\kappa^{\text{obs}}$ is a weak summary of the prompt-side relationship. The Hausman test still rejects OLS consistency, confirming that output complexity is endogenous, but the important signal in this dataset is nonlinear and threshold-like rather than a single negative slope.
 
-The first stage is strong (reduced-form $F=3{,}001.6$, partial $R^2=0.462$), so the IV result is not driven by weak instruments. Detailed first-stage coefficients, over-identification diagnostics, and additional robustness specifications are reported in Appendix~\ref{app:econ-diagnostics}.
+The first stage is strong (reduced-form $F=13{,}611.3$, partial $R^2=0.681$), so the weak linear IV coefficient is not driven by weak instruments. Detailed first-stage coefficients, over-identification diagnostics, and additional robustness specifications are reported in Appendix~\ref{app:econ-diagnostics}.
 
 \subsection{The Complexity Kink}
 
-On the combined dataset, the Hansen sup Wald threshold search locates the kink at $\hat{\gamma}=8.0$ on the composite rubric scale, with sup Wald $=11.56$ and wild bootstrap $p<0.001$. Below $\hat{\gamma}$, $n=3{,}091$ prompts (61.8\%) have mean pass rate 48.9\%. Above, $n=1{,}909$ prompts (38.2\%) have mean pass rate 37.0\%, a drop of 11.9 percentage points. Figure~\ref{fig:kink} shows the corresponding pass-rate curve. A model comparison on the combined data selects the cubic form over the linear form by AIC (linear 4{,}561, cubic 4{,}540, piecewise 4{,}542), indicating that the complexity to pass rate relationship has curvature plus a break rather than a pure linear slope.
+On the combined dataset, the Hansen sup-Wald threshold search locates the kink at $\hat{\gamma}=13.75$ on the composite rubric scale, with sup-Wald $=121.70$ and wild bootstrap $p<0.001$. Below $\hat{\gamma}$, $n=3{,}617$ prompts (72.3\%) have mean pass rate 79.9\%. Above, $n=1{,}383$ prompts (27.7\%) have mean pass rate 87.6\%. Figure~\ref{fig:kink} shows the corresponding pass-rate curve over the dense support. The relationship is not a monotone collapse: pass rate declines through the mid-complexity range, reaches a trough near composite 10, and then rebounds in the denser high-complexity range. A model comparison on the combined data selects the piecewise form over both linear and cubic specifications by BIC (linear 1{,}464, cubic 1{,}305, piecewise 1{,}243), indicating that the complexity-to-pass-rate relationship has curvature plus a break rather than a pure linear slope.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{complexity_kink.png}
-\caption{The Complexity Kink under rubric instrumentation. Pass rate against rubric composite $\hat{\kappa}$. Vertical dashed line at $\hat{\gamma}\approx 8.0$ marks the threshold estimated by the Hansen test. Shaded bands show bin level 95\% intervals.}
+\caption{The Complexity Kink under prompt-side rubric measurement. Pass rate is averaged across the 21-model panel for each prompt and then binned by rounded rubric composite over the dense support (bins 1--17). The dashed line marks the Hansen threshold at $\hat{\gamma}=13.75$; the shaded vertical band is the 95\% bootstrap interval. Sparse bins 0, 18, and 19 are omitted from the plot but retained in the statistical estimates.}
 \label{fig:kink}
 \end{figure}
 
-The 95\% bootstrap confidence interval on $\hat{\gamma}$ is $[4.0, 11.0]$. The interval is wide because the rubric composite is integer valued over a relatively short support, and the Hansen grid search quantizes candidate thresholds at 0.5 increments. The point estimate is stable at $\hat{\gamma}=8.0$ under tested grid and minimum-regime-size settings.
+The 95\% bootstrap confidence interval on $\hat{\gamma}$ is $[7.75, 14.0]$. The point estimate is stable at $\hat{\gamma}=13.75$ under tested grid and minimum-regime-size settings. The wide lower endpoint reflects the broad mid-complexity trough visible in Figure~\ref{fig:kink}; the threshold test detects a real regime change, but the sign of the pass-rate change is not the old monotone ``harder means worse'' pattern.
 
 \subsection{Cross Model Replication}
 
-Applying the full analysis pipeline to each of the 21 evaluated models individually, the structural break is detected in 19 of 21 at the 5\% level under both the bootstrap Hansen test and the 500 iteration placebo. All 21 models show the qualitative pattern of declining pass rate with rubric complexity. Per-model thresholds range from 4 to 10 on the composite scale, with a modal value of 6. The two marginal cases are DeepSeek V3.2 (Hansen $p=0.10$, placebo $p=0.13$) and Llama 3.3-70B (Hansen $p=0.05$, placebo $p=0.08$); in both, the point estimate of $\hat{\gamma}$ is in range but the sup Wald peak is less sharp. The full per-model table and heatmap are reported in Appendix~\ref{app:per-model}.
+Applying the full analysis pipeline to each of the 21 evaluated models individually, the structural break is detected in all 21 models under both the bootstrap Hansen test and the 500 iteration placebo ($p<0.001$ in every case). Per-model thresholds range from 7.75 to 14.25 on the composite scale, with median 11.25. The direction of the regime change is heterogeneous: 16 models have higher mean pass rate above their individual threshold, while five models (Grok-3, Kimi K2.5, Gemini 3.1 Pro, GPT-5.4, and Qwen 3.6 Plus) have lower mean pass rate above threshold. The full per-model table and heatmap are reported in Appendix~\ref{app:per-model}.
 
 \subsection{Model Group Heterogeneity}
 
-The performance gap between frontier and open-weight models widens as rubric complexity increases. Easy tasks compress the gap, and hard tasks separate models. Dimension-level analysis shows the largest frontier advantage on branching and iteration, the two dimensions anchored most directly to control flow. These secondary patterns support the interpretation that the Complexity Kink is the point at which model capability differences begin to matter for deployment, but the visualizations are omitted from the main paper because they are not needed for the central identification argument.
+The per-model results show that the kink is not merely a pooled artifact. However, the final panel also cautions against interpreting the kink as a universal failure threshold. Some models lose reliability after the break, while others improve because the high-complexity tail contains many structured, library- or framework-oriented prompts that strong code models handle well. These secondary patterns support the interpretation that the Complexity Kink marks a change in the task regime at which model capability differences begin to matter for deployment, not a single universal collapse point.
 
 \subsection{Reverse Threshold Mechanism and Robustness}
 
-The reverse-threshold mechanism is visible in the output-complexity flow: approximately 2\% of tasks are complex by prompt-side rubric but register as $\kappa^{\text{obs}}=1$ after generation, exactly the failure mode that contaminates low-complexity output bins. The threshold result is also robust to placebo tests. Across 500 shuffled-complexity placebo iterations, the observed sup Wald statistic exceeds every placebo draw ($p<0.002$). Additional diagnostics, including the Sankey visualization, full placebo distribution, and sparse-tail caveat, are reported in Appendix~\ref{app:robustness}.
+The reverse-threshold mechanism is most visible after conditioning on failed generations. Among zero-pass model-prompt generations, 28.5\% have prompt-side rubric composite above 8 but Lizard output complexity $\kappa^{\text{obs}}\leq 10$; these are cases where a structurally nontrivial prompt would be placed into a low or moderate output-complexity bin because the generated answer failed. The threshold result is robust to placebo tests: across 500 shuffled-complexity placebo iterations, the observed sup-Wald statistic exceeds every placebo draw ($p<0.001$). Additional diagnostics, including the failure-conditioned Sankey visualization, full placebo distribution, and sparse-tail caveat, are reported in Appendix~\ref{app:robustness}.
 
 % =====================================================================
 \section{Discussion}
@@ -305,7 +307,7 @@ The identifying assumption is that each rubric dimension $Z_{i,d}$ affects $y_i$
 
 \textbf{Scorer exclusion.} None of the four judges is in the evaluated panel. A scorer specific bias such as systematic over scoring of edge case dimensions would affect all 21 panel models through the same measured prompt complexity, not through a model-specific pass-rate channel.
 
-\textbf{Over identification test.} The Sargan and Hansen $J$ rejects the joint null of valid exclusion ($p\approx 0$ on the combined dataset; see \S\ref{sec:hansen-j}). The honest reading is that at least one of the six dimensions has a residual direct correlation with the error term. The size of the $p$-value is consistent with a pattern common to very large samples in over identified IV~\cite{bowsher2002reject}, where even small violations produce strong rejections. We do not treat the $p$-value as dispositive, but we also do not claim it provides positive support for exclusion; it does not. The consequence is that the 2SLS point estimate of $\beta$ should be read with appropriate caution. The multi-judge design helps decompose scorer specific noise from structural signal, but it cannot prove the exclusion restriction.
+\textbf{Over identification test.} The Sargan-Hansen $J$ test rejects the joint null of valid exclusion ($p\approx 0$ on the combined dataset; see \S\ref{sec:hansen-j}). The honest reading is that at least one of the six dimensions has a residual direct correlation with the error term. The size of the $p$-value is consistent with a pattern common to very large samples in over identified IV~\cite{bowsher2002reject}, where even small violations produce strong rejections. We do not treat the $p$-value as dispositive, but we also do not claim it provides positive support for exclusion; it does not. The consequence is that the 2SLS point estimate of $\beta$ should be read with appropriate caution. The multi-judge design helps decompose scorer specific noise from structural signal, but it cannot prove the exclusion restriction.
 
 \textbf{Acknowledgment of untestability.} As with every IV design, the exclusion restriction cannot be proven by test alone; the $J$ statistic detects disagreement across instruments, not common mode violations. We flag scorer idiosyncrasy as a remaining vulnerability and use a multi-judge ensemble as a direct mitigation.
 
@@ -318,22 +320,21 @@ The keyword-feature baseline is useful precisely because it is simple: it asks w
 IV estimation in empirical economics, epidemiology, and the social sciences is frequently constrained by instrument availability. Finding a variable that predicts the endogenous regressor without opening a direct channel to the outcome is often the binding constraint on causal identification. This paper introduces a new class of instruments: LLM scored rubric dimensions over text artifacts, with scorers excluded from the evaluated population. The construction generalizes naturally beyond code generation. Any setting in which the endogenous covariate is latent inside a text artifact (clinical notes predicting diagnostic severity, legal filings predicting outcomes, review text predicting customer behavior) admits a rubric scoring approach. We expect this approach will prove practically useful for IV work in domains where traditional instruments have been hard to find.
 
 \subsection{Implications for Benchmark Design}
-If these results generalize, current LLM code generation benchmarks, which report aggregate pass rates over output derived complexity bins, may overstate reliability on structurally complex tasks. We recommend that benchmark designers (a) report pass rates stratified by input derived complexity (rubric or equivalent), (b) publish the scoring rubric and scorer identity for reproducibility, and (c) test for structural breaks in the relationship between complexity and pass rate rather than fitting smooth parametric curves.
+If these results generalize, current LLM code generation benchmarks, which report aggregate pass rates over output derived complexity bins, can misstate reliability across task regimes. They may overstate reliability in some regions, understate it in others, and obscure mid-complexity failure pockets. We recommend that benchmark designers (a) report pass rates stratified by input derived complexity (rubric or equivalent), (b) publish the scoring rubric and scorer identity for reproducibility, and (c) test for structural breaks in the relationship between complexity and pass rate rather than fitting smooth parametric curves.
 
 % =====================================================================
 \section{Limitations}
 \label{sec:limitations}
 % =====================================================================
-
-\subsection{Current limitations}
+% \subsection{Current limitations}
 
 \textbf{Scorer dependence.} The instrument is constructed from LLM rubric scores. Any systematic scorer bias, such as over or under scoring a specific dimension, can propagate into the instrument. The four-judge ensemble reduces this risk and makes disagreement observable, but it does not prove that all common-mode scorer biases have been removed.
 
-\textbf{Sparse high-complexity tail.} The source dataset contains relatively few prompts at the extreme high end of the rubric scale. The sample is stratified to improve coverage, but very high scores still have limited support. We therefore estimate the main threshold in the dense mid-range and treat extreme-tail behavior as descriptive.
+\textbf{Sparse high-complexity tail.} The source dataset contains relatively few prompts at the extreme high end of the rubric scale. The sample is stratified to improve coverage, but very high scores still have limited support. The rebound above the final threshold should therefore be read as a regime-specific empirical pattern in this prompt set, not as proof that harder tasks are generally easier.
 
 \textbf{Python only.} This experiment restricts to Python for tractable scoring and consistent unit test execution. Cross-language replication with the same prompt-side rubric design is the most direct generalization.
 
-\textbf{Exclusion restriction untestable in isolation.} The Sargan and Hansen $J$ test can detect disagreement across instruments but cannot detect a \emph{common mode} violation in which every rubric dimension equally picks up a direct channel to $y_i$. The argument against common mode violations is therefore a claim about design rather than a test.
+\textbf{Exclusion restriction untestable in isolation.} The Sargan-Hansen $J$ test can detect disagreement across instruments but cannot detect a \emph{common mode} violation in which every rubric dimension equally picks up a direct channel to $y_i$. The argument against common mode violations is therefore a claim about design rather than a test.
 
 \textbf{Cross sectional only.} We demonstrate the kink exists, but we do not track $\hat{\gamma}$ across model generations. Whether frontier progress moves $\hat{\gamma}$ rightward over time is an open question.
 
@@ -343,9 +344,9 @@ If these results generalize, current LLM code generation benchmarks, which repor
 \section{Conclusion}
 % =====================================================================
 
-The Complexity Kink is a property of the code generation task distribution, not an artifact of any specific model. Under a prompt-side identification strategy, the structural break appears at $\hat{\gamma}=8.0$ on the composite rubric scale, with below-kink pass rate 48.9\% and above-kink pass rate 37.0\%. The kink is detected at the 5\% level in 19 of 21 frontier models from 2025 and 2026, with the qualitative decline present in all 21. The Sargan and Hansen $J$ test rejects joint exclusion, which we read as an honest warning about instrument validity rather than as positive validation; the ensemble scoring design is intended to reduce, measure, and expose scorer-specific noise.
+The Complexity Kink is a property of the code generation task distribution, not an artifact of any specific model. Under a prompt-side identification strategy, the structural break appears at $\hat{\gamma}=13.75$ on the composite rubric scale, with below-kink pass rate 79.9\% and above-kink pass rate 87.6\%. The kink is detected at the 5\% level in all 21 frontier models from 2025 and 2026, but the sign of the regime change varies by model. The Sargan-Hansen $J$ test rejects joint exclusion, which we read as an honest warning about instrument validity rather than as positive validation; the ensemble scoring design is intended to reduce, measure, and expose scorer-specific noise.
 
-For practitioners: deploying LLM generated code near or above rubric composite 8 warrants additional human review. Reliability above this threshold is substantially below the headline pass rates reported on output based benchmarks.
+For practitioners: the relevant deployment warning is not a single universal complexity cutoff. Code generation reliability has regimes, and the mid-complexity region can be worse than both simpler prompts and some highly structured prompts. Prompt-side complexity scoring can identify these regions before generation and can support model-specific routing or review policies.
 
 For benchmark designers: input derived complexity scoring should replace or supplement output derived metrics in future LLM code generation benchmarks.
 
@@ -431,38 +432,38 @@ C.~G.~Bowsher, ``On testing overidentifying restrictions in dynamic panel data m
 
 \subsection{First-stage instrument strength}
 
-The first stage regression (\ref{eq:stage1}) on the combined dataset yields an IV2SLS reduced form $F=3{,}001.6$ and a classical joint $F$ on the six rubric dimensions of $F=499.6$ (both well above the Stock and Yogo 10\% critical value for six instruments and one endogenous regressor). Partial $R^2$ on $\kappa^{\text{obs}}$ is $0.462$. Per model IV2SLS reduced form $F$ ranges from 1{,}283 (Qwen 3.6 Plus) to 2{,}467 (Grok-3 and Trinity-large); all 21 panel models exceed the weak instrument threshold by more than two orders of magnitude. The instrument set is not weak.
+The first stage regression (\ref{eq:stage1}) on the combined dataset yields an IV2SLS reduced form $F=13{,}611.3$ and a classical joint $F$ on the six rubric dimensions of $F=2{,}265.4$ (both well above the Stock and Yogo 10\% critical value for six instruments and one endogenous regressor). Partial $R^2$ on $\kappa^{\text{obs}}$ is $0.681$. Per model IV2SLS reduced form $F$ ranges from 6{,}053.7 (GPT-5-mini) to 14{,}693.2 (Mistral Small 2412); all 21 panel models exceed the weak instrument threshold by more than two orders of magnitude. The instrument set is not weak.
 
 \begin{table}[h]
 \centering
 \caption{First stage OLS coefficients (rubric dimensions predicting $\kappa^{\text{obs}}$). Heteroscedasticity consistent (HC1) SEs in parentheses. $N=5{,}000$ on the combined dataset.}
 \label{tab:stage1}
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}llc@{}}
 \toprule
 Dimension & $\hat{\pi}$ & SE \\
 \midrule
-Branching        & $2.489^{***}$  & $(0.112)$ \\
-Iteration        & $0.541^{***}$  & $(0.121)$ \\
-State            & $0.160$        & $(0.171)$ \\
-Data structures  & $1.305^{***}$  & $(0.125)$ \\
-Edge cases       & $2.311^{***}$  & $(0.140)$ \\
-Composition      & $0.491^{***}$  & $(0.134)$ \\
-Constant         & $-1.511^{***}$ & $(0.216)$ \\
+Branching        & $1.090^{***}$  & $(0.238)$ \\
+Iteration        & $0.634^{***}$  & $(0.172)$ \\
+State            & $2.091^{***}$  & $(0.292)$ \\
+Data structures  & $2.851^{***}$  & $(0.138)$ \\
+Edge cases       & $6.024^{***}$  & $(0.279)$ \\
+Composition      & $-0.766^{**}$  & $(0.291)$ \\
+Constant         & $-4.924^{***}$ & $(0.311)$ \\
 \midrule
-Partial $R^2$                & \multicolumn{2}{c}{0.462} \\
-Classical joint $F$          & \multicolumn{2}{c}{499.6} \\
-IV2SLS reduced form $F$      & \multicolumn{2}{c}{2{,}926.1} \\
+Partial $R^2$                & \multicolumn{2}{c}{0.681} \\
+Classical joint $F$          & \multicolumn{2}{c}{2{,}265.4} \\
+IV2SLS reduced form $F$      & \multicolumn{2}{c}{13{,}611.3} \\
 $N$                          & \multicolumn{2}{c}{5{,}000} \\
 \bottomrule
-\multicolumn{3}{l}{\footnotesize $^{***}p<0.001$}
+\multicolumn{3}{l}{\footnotesize $^{**}p<0.01$, $^{***}p<0.001$}
 \end{tabular}
 \end{table}
 
-Five of the six rubric dimensions are individually significant predictors of $\kappa^{\text{obs}}$ at $p<0.001$; the exception is \emph{state}, which is not individually significant after partialling out the other five dimensions ($p=0.35$). \emph{Branching} and \emph{edge cases} carry the largest marginal associations, followed by \emph{data structures}, with \emph{iteration} and \emph{composition} at roughly half that magnitude.
+All six rubric dimensions are individually significant predictors of $\kappa^{\text{obs}}$. \emph{Edge cases} and \emph{data structures} carry the largest marginal associations, followed by \emph{state}, \emph{branching}, and \emph{iteration}; \emph{composition} is negative after conditioning on the other five dimensions, indicating shared variance among the rubric components rather than a weak first stage.
 
 \subsection{Over-identification diagnostics}
 
-The Sargan $J$-statistic on the combined dataset is $154.30$ on $\chi^2(5)$, far in the rejection region ($p\approx 0$). The same pattern holds in the per model analyses: 20 of 21 reject at $p<10^{-8}$; GPT-4.1 rejects more narrowly at $p\approx 10^{-16}$. Taken literally, this rejects the joint null that all six rubric dimensions are validly excluded from the structural equation.
+The Sargan $J$-statistic on the combined dataset is $411.32$ on $\chi^2(5)$, far in the rejection region ($p\approx 0$). The same pattern holds in the per model analyses: all 21 reject at machine precision. Taken literally, this rejects the joint null that all six rubric dimensions are validly excluded from the structural equation.
 
 Two interpretations are consistent with this rejection. The first is that the null is literally violated: at least one rubric dimension has a direct channel to pass rate. The second is that the test has excessive power in large samples. With $N=5{,}000$ and six instruments, even a small residual correlation between any one dimension and $u_i$ will drive the $J$-statistic into the tail; this is a well known feature of large sample over-identification tests~\cite{bowsher2002reject}. We therefore do not treat the $p$-value as dispositive. The cautionary reading is that our exclusion argument rests on design rather than on test, and the ensemble design is intended to mitigate this risk by averaging across out-of-panel judges and exposing scorer disagreement directly.
 
@@ -470,7 +471,7 @@ Two interpretations are consistent with this rejection. The first is that the nu
 
 The Hausman statistic remains significant but moderate relative to the scale of the sample. This is expected if prompt-side rubric measurement removes a substantial share of output-side endogeneity before 2SLS runs. A moderate Hausman $\chi^2$ on a large sample with a strong instrument is consistent with a calibrated IV design, not a weak one.
 
-As an additional robustness check, a fractional probit specification of the rubric-composite-on-pass-rate relationship yields a marginal effect at the mean of $-0.0256$ (SE $0.0059$, $p<10^{-28}$). The linear OLS of pass rate on rubric composite for comparison is $\hat{\beta}=-0.0252$ ($R^2=0.042$). These regressions use the exogenous rubric composite directly as the regressor (no IV), and their magnitudes differ from the $\kappa$ column in Table~\ref{tab:ols-vs-2sls} because they are slopes on a differently scaled variable.
+As an additional robustness check, a fractional probit specification of the rubric-composite-on-pass-rate relationship yields a marginal effect at the mean of $-0.00193$ (SE $=0.00480$, $p=0.124$). The linear OLS of pass rate on rubric composite for comparison is $\hat{\beta}=-0.00186$ ($R^2=0.0008$, $p=0.022$). These regressions use the exogenous rubric composite directly as the regressor (no IV), and their small magnitudes reinforce the main conclusion that the final panel is governed by nonlinear regime structure rather than a single linear slope.
 
 \subsection{Keyword-feature baseline}
 
@@ -490,8 +491,8 @@ $\kappa=1$ vs $\kappa=2$  & n.s.    & $p<10^{-6}$ \\
 Monotone dimensions       & 6 of 8  & \textbf{6 of 6} \\
 Number of features        & 8       & 6 \\
 $J$ test available        & No      & Yes (rejects) \\
-First stage $F$           & 1{,}765 & 3{,}002 \\
-Hausman $\chi^2$          & 108.5   & 20.1 \\
+First stage strength      & weaker  & \textbf{strong} \\
+Scorer disagreement       & n/a     & observable \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -502,42 +503,42 @@ Hausman $\chi^2$          & 108.5   & 20.1 \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{heatmap_E_per_model_kink.png}
-\caption{Per-model threshold-search diagnostic, not a pass-rate plot. Rows are the 21 panel models and columns are candidate complexity thresholds $\gamma$. Each cell reports the Hansen Wald statistic $W(\gamma)$ for placing the structural break at that candidate threshold; larger values mean stronger evidence for a kink at that $\gamma$. The marker identifies each row's maximum, which is that model's estimated threshold $\hat{\gamma}$.}
+\caption{Per model pass rate by prompt-side complexity bin. Rows are the 21 panel models and columns are rounded ensemble rubric-composite values from 1 to 16. Each cell reports that model's mean unit-test pass rate within the bin; the diamond marks the model's estimated kink threshold $\hat{\gamma}$, rounded to the nearest displayed bin. Sparse bins 0 and 17--19 are omitted from the heatmap because they contain only 8, 25, 8, and 3 prompts, respectively, and are discussed separately as a sparse-tail caveat. Table~\ref{tab:per-model} aggregates these curves into below-threshold and above-threshold pass rates.}
 \label{fig:heatmap}
 \end{figure}
 
 \begin{table}[h]
 \centering
-\caption{Per model threshold estimates. Pass rates split at each model's individual $\hat{\gamma}$. Hansen $p$ and placebo $p$ are the bootstrap threshold test and 500 iteration shuffled $\hat{\kappa}$ test, respectively.}
+\caption{Per model threshold estimates. Pass rates split at each model's individual $\hat{\gamma}$. $\Delta$ is Pass$_{\geq\hat{\gamma}}-$Pass$_{<\hat{\gamma}}$ in percentage points. Hansen $p$ and placebo $p$ are the bootstrap threshold test and 500 iteration shuffled $\hat{\kappa}$ test, respectively.}
 \label{tab:per-model}
 \small
-\begin{tabular}{@{}lrrrrr@{}}
+\begin{tabular}{@{}lrrrrrr@{}}
 \toprule
-Model & $\hat{\gamma}$ & Pass $<\hat{\gamma}$ & Pass $\geq\hat{\gamma}$ & Hans $p$ & Plcb $p$ \\
+Model & $\hat{\gamma}$ & Pass $<\hat{\gamma}$ & Pass $\geq\hat{\gamma}$ & $\Delta$ & Hans $p$ & Plcb $p$ \\
 \midrule
-Claude Opus 4.6          & 6.0  & 52.0\% & 38.2\% & $<$.001 & $<$.001 \\
-Claude Opus 4.7          & 6.0  & 53.9\% & 40.8\% & $<$.001 & $<$.001 \\
-Claude Sonnet 4.6        & 7.0  & 48.1\% & 36.9\% & $<$.001 & $<$.001 \\
-Trinity-large            & 6.0  & 58.4\% & 44.5\% & $<$.001 & $<$.001 \\
-DeepSeek V3.2            & 4.0  & 52.4\% & 36.0\% & 0.10    & 0.13 \\
-GPT-OSS-120B             & 9.0  & 46.2\% & 37.3\% & $<$.001 & $<$.001 \\
-Grok-3                   & 10.0 & 44.6\% & 33.5\% & $<$.001 & $<$.001 \\
-Kimi K2.5                & 10.0 & 41.7\% & 27.8\% & 0.01    & 0.02 \\
-Llama 3.3-70B            & 6.0  & 53.5\% & 40.3\% & 0.05    & 0.08 \\
-Mistral Large-3          & 6.0  & 56.0\% & 41.0\% & $<$.001 & 0.01 \\
-GLM 4.7-flash            & 8.0  & 48.3\% & 37.1\% & $<$.001 & $<$.001 \\
-Gemini 3 Flash           & 6.0  & 54.9\% & 39.1\% & $<$.001 & $<$.001 \\
-Gemini 3.1 Pro           & 8.0  & 50.8\% & 38.8\% & $<$.001 & $<$.001 \\
-GPT-4.1                  & 7.0  & 51.2\% & 40.3\% & $<$.001 & $<$.001 \\
-GPT-5-mini               & 8.0  & 52.2\% & 40.2\% & $<$.001 & $<$.001 \\
-GPT-OSS-20B              & 6.0  & 54.1\% & 39.0\% & $<$.001 & $<$.001 \\
-Ministral-3-14B-rsn      & 7.0  & 50.1\% & 36.5\% & $<$.001 & $<$.001 \\
-Mistral Small 2412       & 9.0  & 46.2\% & 34.2\% & $<$.001 & $<$.001 \\
-GPT-5.4                  & 6.0  & 56.6\% & 42.0\% & $<$.001 & $<$.001 \\
-Qwen 3.5-9B              & 6.0  & 54.1\% & 39.3\% & $<$.001 & $<$.001 \\
-Qwen 3.6 Plus            & 7.0  & 52.4\% & 38.3\% & $<$.001 & $<$.001 \\
+Claude Opus 4.6          & 10.50 & 82.7\% & 86.7\% & +3.9 & $<$.001 & $<$.001 \\
+Claude Opus 4.7          & 10.00 & 84.8\% & 86.7\% & +1.9 & $<$.001 & $<$.001 \\
+Claude Sonnet 4.6        & 10.00 & 84.0\% & 85.3\% & +1.3 & $<$.001 & $<$.001 \\
+Trinity-large            & 10.50 & 82.6\% & 85.0\% & +2.4 & $<$.001 & $<$.001 \\
+DeepSeek V3.2            & 10.50 & 78.4\% & 82.3\% & +3.9 & $<$.001 & $<$.001 \\
+GPT-OSS-120B             & 13.75 & 81.4\% & 89.8\% & +8.4 & $<$.001 & $<$.001 \\
+Grok-3                   & 8.25  & 83.6\% & 80.8\% & -2.8 & $<$.001 & $<$.001 \\
+Kimi K2.5                & 14.25 & 77.1\% & 75.3\% & -1.8 & $<$.001 & $<$.001 \\
+Llama 3.3-70B            & 14.00 & 75.2\% & 86.2\% & +11.0 & $<$.001 & $<$.001 \\
+Mistral Large-3          & 13.75 & 80.5\% & 90.4\% & +9.9 & $<$.001 & $<$.001 \\
+GLM 4.7-flash            & 13.75 & 75.7\% & 85.9\% & +10.2 & $<$.001 & $<$.001 \\
+Gemini 3 Flash           & 13.75 & 80.3\% & 89.9\% & +9.6 & $<$.001 & $<$.001 \\
+Gemini 3.1 Pro           & 11.25 & 81.8\% & 74.8\% & -7.0 & $<$.001 & $<$.001 \\
+GPT-4.1                  & 11.25 & 82.8\% & 87.7\% & +4.8 & $<$.001 & $<$.001 \\
+GPT-5-mini               & 10.75 & 85.2\% & 88.4\% & +3.2 & $<$.001 & $<$.001 \\
+GPT-OSS-20B              & 13.75 & 80.4\% & 89.0\% & +8.6 & $<$.001 & $<$.001 \\
+Ministral-3-14B-rsn      & 14.00 & 76.7\% & 84.1\% & +7.4 & $<$.001 & $<$.001 \\
+Mistral Small 2412       & 13.75 & 77.9\% & 86.6\% & +8.6 & $<$.001 & $<$.001 \\
+GPT-5.4                  & 7.75  & 87.4\% & 84.3\% & -3.1 & $<$.001 & $<$.001 \\
+Qwen 3.5-9B              & 14.00 & 75.3\% & 84.5\% & +9.2 & $<$.001 & $<$.001 \\
+Qwen 3.6 Plus            & 7.75  & 85.9\% & 82.1\% & -3.8 & $<$.001 & $<$.001 \\
 \midrule
-Combined (21 models)     & 8.0  & 48.9\% & 37.0\% & $<$.001 & $<$.001 \\
+Combined (21 models)     & 13.75 & 79.9\% & 87.6\% & +7.6 & $<$.001 & $<$.001 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -545,18 +546,18 @@ Combined (21 models)     & 8.0  & 48.9\% & 37.0\% & $<$.001 & $<$.001 \\
 \section{Reverse-threshold and Robustness Details}
 \label{app:robustness}
 
-Figure~\ref{fig:sankey} visualizes the mechanism underlying the benchmark bias. Tasks flow from their true prompt-side rubric complexity on the right to their observed output cyclomatic-complexity bin on the left. Red flows are tasks that are complex by rubric but register as $\kappa^{\text{obs}}=1$ by output, which is the contamination that drives the Reverse Threshold Problem.
+Figure~\ref{fig:sankey} visualizes the mechanism underlying the benchmark bias among zero-pass generations. Model-prompt generations that pass no unit tests flow from their Lizard-measured output cyclomatic-complexity bin on the left to their ensemble prompt-rubric bin on the right. Highlighted flows mark cases where structurally nontrivial prompts register as low or moderate generated-output complexity, which is the contamination that drives the Reverse Threshold Problem.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{sankey.png}
-\caption{Reverse Threshold Problem visualized. Tasks flow from observed output cyclomatic complexity (left) to rubric complexity of the task (right). Red flows mark endogenously biased misclassifications: complex tasks whose failure produced output with $\kappa^{\text{obs}}=1$.}
+\caption{Reverse Threshold Problem visualized among zero-pass generations. Model-prompt generations that pass no unit tests flow from Lizard cyclomatic complexity measured on generated output code (left) to ensemble rubric composite measured on the prompt before generation (right). Highlighted flows mark structurally nontrivial prompts whose generated outputs fall in low or moderate output-complexity bins.}
 \label{fig:sankey}
 \end{figure}
 
-Across 500 placebo iterations (shuffled rubric composite) on the combined dataset, the mean placebo sup Wald is $2.22$ (SD $1.27$) with 95\% range $[0.51, 5.22]$ and maximum $9.04$. The observed $W^*=11.56$ at $\hat{\gamma}=8.0$ exceeds every single placebo draw ($p<0.002$); the observed value sits $7.3$ standard deviations above the placebo mean. In the per model placebo, 19 of 21 panel models similarly reject the null at the 5\% level, with the same two exceptions (DeepSeek V3.2, Llama 3.3-70B) that were marginal under the Hansen bootstrap.
+Across 500 placebo iterations (shuffled rubric composite) on the combined dataset, the observed $W^*=121.70$ at $\hat{\gamma}=13.75$ exceeds every single placebo draw ($p<0.001$). In the per model placebo, all 21 panel models similarly reject the null at the 5\% level.
 
-At rubric composite $\geq 15$, per bin sample sizes drop sharply: $n=1{,}047$ at composite 15, $476$ at 16, $152$ at 17, $38$ at 18 (pooled across the 21 panel models). Within this sparse tail, the combined pass rate curve exhibits a non-monotone bump from $\approx$31\% at composite~15 to $\approx$50\% at composite~16 before collapsing to $\approx$3\% at composite~18. Inspection of the prompts indicates that composite~$\geq$~16 prompts are disproportionately framework-requiring tasks (ML pipelines, parsers, compilers) whose correct solution often reduces to a library call (\texttt{transformers.pipeline}, \texttt{sklearn.Pipeline}). The main estimate of $\hat{\gamma}\approx 8$ is located in the dense mid range and is not sensitive to this tail.
+At rounded rubric composite 15 and above, per-bin prompt counts become uneven: $n=660$ at 15, $277$ at 16, $25$ at 17, $8$ at 18, and $3$ at 19. Within this sparse tail, the combined pass-rate curve is noisy: it rises around composite 15, falls sharply at 18, and rebounds at 19. We therefore interpret the high-tail rebound cautiously. The stable finding is the presence of a structural break and a mid-complexity trough, not a universal claim that very high-complexity prompts are easier.
 
 \section{Submission artifact and reproducibility details}
 

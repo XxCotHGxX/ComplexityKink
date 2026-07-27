@@ -151,6 +151,23 @@ def load_scored_model(path, rubric):
     df = pd.DataFrame(rows)
     # Drop rows missing rubric dimensions
     df.dropna(subset=["composite"] + RUBRIC_DIMS, inplace=True)
+
+    # Guard against silently analysing a subsample. If the scored panel and the
+    # rubric file disagree on prompt ids (e.g. a stale pre-replacement ensemble
+    # file paired with the current scored panel), the join drops rows without
+    # error and every downstream number is computed on a fraction of the data.
+    # A join that keeps <90% of scored rows is almost always a wrong-file bug,
+    # not legitimate missingness.
+    n_scored = sum(1 for _ in open(path, "r", encoding="utf-8"))
+    kept_frac = len(df) / n_scored if n_scored else 1.0
+    if kept_frac < 0.90:
+        print(
+            f"    WARNING: rubric join kept {len(df)}/{n_scored} "
+            f"({kept_frac:.0%}) of scored rows for {os.path.basename(path)}. "
+            f"This usually means the --rubric file does not match the scored "
+            f"panel (e.g. a stale ensemble file). Check the rubric path.",
+            file=sys.stderr,
+        )
     return df
 
 
@@ -1030,6 +1047,11 @@ def main():
                         help="If set, analyze only these model IDs")
     parser.add_argument("--min-rows", type=int, default=200,
                         help="Minimum valid scored rows required per model")
+    parser.add_argument("--restrict-prompts", default=None,
+                        help="Optional file of prompt_ids (one per line). When set, "
+                             "the analysis is restricted to those prompts. Used for "
+                             "subset robustness checks (e.g. organic-only prompts). "
+                             "Defaults to off so the primary run is unchanged.")
     parser.add_argument("--combined-only", action="store_true",
                         help="Run the full statistical battery only on the combined prompt-level panel")
     parser.add_argument("--skip-combined", action="store_true",
@@ -1072,6 +1094,14 @@ def main():
     print("Loading rubric scores...")
     rubric = load_rubric_scores(rubric_path)
     print(f"  {len(rubric)} prompts with rubric scores")
+
+    if args.restrict_prompts:
+        with open(args.restrict_prompts, "r", encoding="utf-8") as f:
+            keep = {line.strip() for line in f if line.strip()}
+        before = len(rubric)
+        rubric = {pid: v for pid, v in rubric.items() if pid in keep}
+        print(f"  Restricted to {len(rubric)} prompts "
+              f"(from {before}) via {args.restrict_prompts}")
 
     print("Loading reference CC...")
     ref_cc = load_reference_cc(prompts_path)

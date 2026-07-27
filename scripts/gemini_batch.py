@@ -111,7 +111,7 @@ def _user_content(prompt_rec):
     )
 
 
-# ── submit ─────────────────────────────────────────────────────────
+# -- submit ---------------------------------------------------------
 
 def cmd_submit(args):
     prompts_path = Path(args.prompts)
@@ -139,6 +139,16 @@ def cmd_submit(args):
 
     with open(batch_file, "w", encoding="utf-8") as f:
         for p in remaining:
+            generation_config = {
+                "temperature": args.temperature,
+                "max_output_tokens": args.max_tokens,
+            }
+            if args.thinking_budget is not None:
+                generation_config["thinking_config"] = {
+                    "thinking_budget": args.thinking_budget,
+                    "include_thoughts": args.include_thoughts,
+                }
+
             req = {
                 "key": str(p["prompt_id"]),
                 "request": {
@@ -146,10 +156,7 @@ def cmd_submit(args):
                         {"role": "user", "parts": [{"text": _user_content(p)}]}
                     ],
                     "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-                    "generation_config": {
-                        "temperature": 0.2,
-                        "max_output_tokens": args.max_tokens,
-                    },
+                    "generation_config": generation_config,
                 },
             }
             f.write(json.dumps(req) + "\n")
@@ -190,7 +197,7 @@ def cmd_submit(args):
     print(f"State: {state_path}")
 
 
-# ── status ─────────────────────────────────────────────────────────
+# -- status ---------------------------------------------------------
 
 def cmd_status(args):
     state_path = _state_path(args.model, Path(args.state_dir))
@@ -220,7 +227,7 @@ def cmd_status(args):
         sys.exit(1)  # still running
 
 
-# ── retrieve ───────────────────────────────────────────────────────
+# -- retrieve -------------------------------------------------------
 
 def _extract_code(response_obj):
     """Pull text out of a GenerateContentResponse-shaped dict/object."""
@@ -371,7 +378,7 @@ def cmd_retrieve(args):
     )
 
 
-# ── main ───────────────────────────────────────────────────────────
+# -- main -----------------------------------------------------------
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
@@ -389,6 +396,11 @@ def main():
     s.add_argument("--api-model", required=True,
                    help="Gemini model name (e.g. gemini-3-flash)")
     s.add_argument("--max-tokens", type=int, default=2048)
+    s.add_argument("--temperature", type=float, default=0.2)
+    s.add_argument("--thinking-budget", type=int, default=None,
+                   help="Optional Gemini thinking budget; use 0 to suppress thinking when supported.")
+    s.add_argument("--include-thoughts", action="store_true",
+                   help="Ask Gemini to include thought text when thinking_config is enabled.")
     s.set_defaults(func=cmd_submit)
 
     s = sub.add_parser("status", help="Check batch job state")

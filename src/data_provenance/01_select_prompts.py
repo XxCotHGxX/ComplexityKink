@@ -82,7 +82,7 @@ def main():
     # ordering structure by seed corpus and generator, so a partial scan can
     # silently bias the language mix and difficulty distribution. The
     # original 5,000-prompt draw used --scan-limit 200000; that decision is
-    # documented in docs/METHODOLOGY_NOTES.md and validated post-hoc.
+    # documented in docs/reproduction_guide.md and validated post-hoc.
     parser.add_argument("--scan-limit", type=int, default=0,
                         help="Records to scan (0 = full pool, recommended).")
     args = parser.parse_args()

@@ -151,7 +151,7 @@ def cmd_submit(args: argparse.Namespace) -> None:
     with batch_file.open("w", encoding="utf-8") as f:
         for row in remaining:
             body = {
-                "model": API_MODEL,
+                "model": args.api_model,
                 "messages": [
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_content(row)},
@@ -188,7 +188,7 @@ def cmd_submit(args: argparse.Namespace) -> None:
 
     state = {
         "model_id": MODEL_ID,
-        "api_model": API_MODEL,
+        "api_model": args.api_model,
         "base_url": BASE_URL,
         "endpoint": ENDPOINT,
         "batch_id": batch.id,
@@ -336,6 +336,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     submit = sub.add_parser("submit")
+    submit.add_argument("--api-model", default=API_MODEL)
     submit.add_argument("--max-tokens", type=int, default=4096)
     submit.add_argument("--temperature", type=float, default=0.0)
     submit.add_argument("--completion-window", default="24h")

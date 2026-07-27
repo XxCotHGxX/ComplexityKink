@@ -11,12 +11,17 @@ provider path has a working batch API unless the batch submission is rejected
 for that exact model or account. If that happens, record the rejection reason
 and use realtime generation only for the missing rows.
 
+Anthropic is stricter: Claude/Sonnet/Opus panel generation is batch-only, and
+Anthropic batches require explicit prior approval from the project owner before
+submission. Do not use realtime Anthropic generation as a fallback for Stage D
+or the 24-bin follow-up; retry with another Anthropic Message Batch instead.
+
 ## Batch-Capable Paths
 
 | Provider path | Panel models | Batch helper | Status |
 | --- | --- | --- | --- |
 | OpenAI first-party API | `openai/gpt-5.4` | `scripts/openai_batch.py` | Use batch |
-| Anthropic first-party API | `anthropic/claude-sonnet-4.6`, `anthropic/claude-opus-4.6`, `anthropic/claude-opus-4.7` | `scripts/anthropic_batch.py` | Use batch |
+| Anthropic first-party API | `anthropic/claude-sonnet-4.6`, `anthropic/claude-opus-4.6`, `anthropic/claude-opus-4.7` | `scripts/anthropic_batch.py` | Batch only; no realtime fallback |
 | Google Gemini first-party API | Gemini models when available through `GOOGLE_API_KEY` or `GEMINI_API_KEY` | `scripts/gemini_batch.py` | Use batch if the exact model is available first-party |
 | Alibaba DashScope / Qwen first-party API | `qwen/qwen3.6-plus` | `scripts/qwen_batch.py` | Try batch first; fallback only if DashScope rejects the model for batch |
 | Azure OpenAI global batch deployments | Any future Azure OpenAI deployment with `globalbatch` SKU | Not currently implemented for Stage D | Supported by provider, but not used by the current Azure MaaS panel |
@@ -44,10 +49,16 @@ python scripts/openai_batch.py `
   submit --model openai/gpt-5.4 --api-model gpt-5.4 --reasoning
 ```
 
-Anthropic:
+Anthropic 24-bin follow-up:
 
 ```powershell
-python scripts/anthropic_batch.py queue --poll-seconds 300
+python scripts/anthropic_batch.py `
+  --gen-dir data/stage_d_24bin_equal/generations `
+  --state-dir data/stage_d_24bin_equal/batch_state `
+  --request-dir data/stage_d_24bin_equal/batch_requests `
+  --result-dir data/stage_d_24bin_equal/batch_results `
+  queue --approved --poll-seconds 300 --queue-models `
+  anthropic/claude-opus-4.6 anthropic/claude-opus-4.7
 ```
 
 Gemini first-party:

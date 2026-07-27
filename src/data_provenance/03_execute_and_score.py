@@ -214,10 +214,8 @@ def process_model(prompts_by_id, gen_file, output_file):
     executed = 0
     perfect = 0
 
-    # Deduplicate by prompt_id, preferring a valid row over a failed one.
-    # A later "error" or empty-code row must never overwrite an earlier
-    # successful generation, which would silently zero out that prompt's
-    # pass rate.
+    # Deduplicate by prompt_id. Valid rows beat failed/empty rows; when both
+    # rows are valid, prefer the later retry.
     def _is_valid(rec):
         if rec.get("error"):
             return False
@@ -229,7 +227,7 @@ def process_model(prompts_by_id, gen_file, output_file):
             gen = json.loads(line)
             pid = gen.get("prompt_id")
             prev = all_gen_records.get(pid)
-            if prev is None or (_is_valid(gen) and not _is_valid(prev)):
+            if prev is None or _is_valid(gen):
                 all_gen_records[pid] = gen
 
     # Resume: load already-scored prompt_ids so a killed run can pick up

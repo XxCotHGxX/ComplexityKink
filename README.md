@@ -1,16 +1,20 @@
 # The Complexity Kink
 
-**Prompt-side complexity measurement for code-generation reliability**
+**Prompt-side structural complexity and code-generation reliability**
 
-Anonymous authors. This repository is prepared for double-blind review.
+Anonymous authors. This repository is the source snapshot for a double-blind
+review artifact. The private GitHub URL is not the reviewer-facing anonymous
+URL.
 
-This repository contains the code and artifact scaffolding for the Complexity Kink study. The project evaluates whether code-generation reliability changes regime as the intended structural complexity of a prompt increases, and whether output-derived complexity metrics hide that relationship when models fail.
+## What this project studies
 
-## Overview
+Code-generation benchmarks often measure complexity from the code a model
+produces. That creates a measurement problem: a failed answer to a difficult
+prompt can be a short stub or partial program, so an output-side metric can make
+the failure look artificially simple.
 
-The experiment evaluates 21 frontier language models on 5,000 stratified Python coding prompts drawn from NVIDIA OpenCodeInstruct. Each model produces one answer per prompt, yielding 105,000 model-prompt generations. Generated answers are scored by unit-test execution, and generated-output cyclomatic complexity is computed with Lizard on cleaned generated Python code.
-
-The key measurement change is prompt-side complexity scoring. Before any evaluated model generates code, each prompt is scored with a fixed six-dimension structural rubric:
+This project measures intended solution structure from the prompt before
+generation. Each prompt is scored on six fixed dimensions:
 
 - branching
 - iteration
@@ -19,11 +23,28 @@ The key measurement change is prompt-side complexity scoring. Before any evaluat
 - edge cases
 - algorithmic composition
 
-Four out-of-panel LLM judges score the prompt set. Coverage is effectively complete: 4,998 prompts have four judge scores, one prompt has three, and one prompt has two, for 19,997 total judge-score rows. The prompt-level instrument is the ensemble mean of the six rubric dimensions.
+Four out-of-panel LLM judges score the 5,000-prompt benchmark. The resulting
+prompt-side composite is compared with unit-test pass rate across 21 evaluated
+models.
 
-## Current Results
+## Artifact status
 
-The combined 21-model analysis detects a structural break in the prompt-side complexity relationship:
+This snapshot separates the submitted analysis from the checks added during
+review:
+
+- `paper/Scratch-NeurIps.tex` is the anonymous submitted manuscript source. It
+  is preserved as a submission snapshot rather than silently rewritten.
+- `results/analysis_summary.json` and
+  `results/per_model_bootstrap_summary.{csv,json}` contain the locked Stage D
+  analysis used for the submitted results.
+- `docs/robustness_results.md` and `results/robustness_summary.json` record the
+  post-submission checks requested during review.
+
+The old Stage C result JSON, duplicate Stage C manuscript, and stale derived
+figures were removed from this snapshot. They remain recoverable from Git
+history.
+
+## Submitted result
 
 | Quantity | Value |
 | :-- | --: |
@@ -32,73 +53,89 @@ The combined 21-model analysis detects a structural break in the prompt-side com
 | Model-prompt generations | 105,000 |
 | Rubric judges | 4 out-of-panel LLMs |
 | Composite inter-rater reliability | ICC = 0.872 |
-| Combined threshold | gamma = 13.75 |
-| 95% bootstrap CI | [7.75, 14.0] |
+| Combined threshold | $\hat{\gamma}=13.75$ |
+| 95% bootstrap interval | $[7.75,14.0]$ |
 | Sup-Wald statistic | 121.70 |
-| Placebo p-value | < 0.001 |
+| Placebo p-value | $p<0.001$ |
 | Mean pass rate below threshold | 79.9% |
-| Mean pass rate at/above threshold | 87.6% |
+| Mean pass rate at or above threshold | 87.6% |
 
-The final panel does not support a simple "harder means worse" linear story. Pass rates decline through a mid-complexity region and rebound in the high-complexity region. The stable result is the presence of a statistically strong nonlinear regime change, not a universal monotone collapse after one cutoff.
+The stable finding is a strong nonlinear regime change, not a universal
+"harder means worse" collapse. Pass rates fall through a mid-complexity region
+and rebound in the better-supported part of the high-complexity region. The
+direction and size of the change vary across models and task types.
 
-The reverse-threshold mechanism remains visible when conditioning on complete failures. Among zero-pass generations, 28.5% have prompt-side rubric composite above 8 while Lizard output cyclomatic complexity is at most 10. These are cases where an output-side metric would place a failed response into a low or moderate complexity bin even though the prompt was structurally nontrivial.
+## What changed after review
 
-## Econometric Diagnostics
+The additional checks make the interpretation narrower and more useful:
 
-The analysis uses the six rubric dimensions as instruments for observed generated-output cyclomatic complexity in a 2SLS diagnostic model. The first stage is strong:
+- The full six-dimension overidentification test rejects strongly. At
+  $n=5{,}000$, $J=411.3$ and $J/N=0.082$. Random subsamples still reject in
+  97.5% of draws at $n=250$, so this is not explained by sample size alone. We
+  treat the composite primarily as a pre-generation complexity index. The 2SLS
+  estimates are secondary diagnostics, not clean causal estimates.
+- Task-type fixed effects reduce the sup-Wald statistic from 121.7 to 19.6 and
+  the regime gap from 7.6 to 2.1 percentage points, while the break remains
+  significant. Task composition explains a substantial part of the pooled
+  shape, but not all of it.
+- A contract-audited extension adds 365 prompt-side-selected prompts, with
+  218/140/4/3 prompts in bins 15/16/17/18. At bins 15 and 16, matched-five-model
+  pass rates are 0.88 and 0.80, compared with 0.89 and 0.81 in the original
+  panel. The differences are both -0.010 and are not significant
+  ($p=0.53$ and $p=0.73$). Evidence above bin 16 remains too sparse for a strong
+  endpoint claim.
+- Human calibration shows meaningful signal and meaningful disagreement. On a
+  deliberately difficult 200-prompt sample, human-LLM Pearson correlation is
+  0.41 and ICC(2,1) is 0.40. On the 50-prompt overlap, the two human graders
+  correlate at 0.56.
+- A five-draw check on 359 prompts gives single-draw versus five-draw
+  correlation $r=0.960$, with the same estimated threshold of 14.25.
+- Prompt paraphrases preserve the ordering well
+  (Spearman $\rho=0.963$, 91% within one composite point).
+- Java and C++ ports preserve the prompt-side score ordering
+  ($r=0.992$ and $r=0.969$).
 
-| Diagnostic | Value |
-| :-- | --: |
-| First-stage reduced-form F | 13,611.3 |
-| Partial R-squared | 0.681 |
-| Hausman chi-squared | 17.16 |
-| Hausman p-value | 3.4e-5 |
-| Sargan-Hansen J | 411.3 |
-| Sargan-Hansen p-value | < machine precision |
+Full definitions, sample sizes, and limitations are in
+`docs/robustness_results.md`.
 
-The overidentification test rejects for the full six-instrument set. We treat this as a design caveat rather than as validation. Leave-one-out and leave-two-out checks do not isolate a single removable dimension that resolves the rejection, although data structures and composition account for the largest reductions in the J statistic. Smaller coherent subsets such as branching plus edge cases, and branching plus iteration plus edge cases, pass overidentification while retaining strong first stages; these are used as robustness diagnostics.
-
-## Repository Structure
+## Repository layout
 
 ```text
 .
-LICENSE
-README.md
-requirements.txt
-paper/
-  Scratch-NeurIps.tex
-  checklist.tex
-  neurips_2026.sty
-src/
-  analyze_kink.py
-  data_loader.py
-  extract_paper_numbers.py
-  feature_extractor_iv.py
-  generate_viz.py
-  generate_viz_plotly.py
-  run_stage2_iv.py
-  verify_pipeline.py
-  parsers/
-  data_provenance/
-docs/
-  model_reference.md
-  reproduction_guide.md
-docker/
-  Dockerfile.scorer
-scripts/
+|-- README.md
+|-- LICENSE
+|-- requirements.txt
+|-- docker/
+|-- docs/
+|   |-- reproduction_guide.md
+|   |-- robustness_results.md
+|   `-- model_reference.md
+|-- paper/
+|   |-- README.md
+|   |-- Scratch-NeurIps.tex
+|   `-- *.png
+|-- results/
+|   |-- analysis_summary.json
+|   |-- per_model_bootstrap_summary.csv
+|   |-- per_model_bootstrap_summary.json
+|   `-- robustness_summary.json
+|-- scripts/
+`-- src/
 ```
 
-Large generated datasets, API keys, provider logs, and intermediate result bundles are excluded from the repository.
+Large prompt bundles, generated model outputs, provider request logs, API keys,
+and local cloud-resource configurations are not committed here.
 
-## Reproducing the Analysis
+## Quick analysis check
 
-Install dependencies:
+Install the Python dependencies:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-Run the main analysis from scored model outputs and aggregated rubric scores. Replace the input paths with the packaged artifact paths for the scored generations, ensemble rubric scores, and prompt file:
+Run the combined analysis with the scored model directory, aggregated rubric
+scores, and prompt file from the packaged benchmark artifact:
 
 ```bash
 python src/analyze_kink.py \
@@ -108,7 +145,7 @@ python src/analyze_kink.py \
   --outdir results/analysis_current
 ```
 
-For a faster smoke run, reduce the bootstrap counts:
+For a faster smoke run, set smaller bootstrap counts:
 
 ```bash
 python src/analyze_kink.py \
@@ -121,17 +158,16 @@ python src/analyze_kink.py \
   --n-placebo 100
 ```
 
-For per-model bootstrap runs on a Windows workstation, use the parallel bootstrap helper under `scripts/`.
+See `docs/reproduction_guide.md` for the full pipeline and the input-to-output
+map.
 
-## Evaluated Model Panel
-
-The evaluated panel contains 21 models from major hosted and open-weight providers:
+## Evaluated panel
 
 | Provider | Models |
 | :-- | :-- |
 | Anthropic | Claude Opus 4.6, Claude Opus 4.7, Claude Sonnet 4.6 |
 | OpenAI | GPT-5.4, GPT-5-mini, GPT-4.1, GPT-OSS-20B, GPT-OSS-120B |
-| Google | Gemini 3.1 Pro, Gemini 3 Flash |
+| Google | Gemini 3.1 Pro Preview, Gemini 3 Flash |
 | xAI | Grok-3 |
 | DeepSeek | DeepSeek V3.2 |
 | Moonshot | Kimi K2.5 |
@@ -141,11 +177,7 @@ The evaluated panel contains 21 models from major hosted and open-weight provide
 | Zhipu | GLM 4.7-flash |
 | Arcee | Trinity-large |
 
-The rubric judges are excluded from the evaluated model panel.
-
-## Notes for Review
-
-This artifact is intended to support anonymous review. It contains code, prompt/rubric workflow definitions, and reproducibility scripts. Provider credentials, paid-generation logs, and large generated-output bundles are not committed.
+The four rubric judges are excluded from the evaluated model panel.
 
 ## License
 

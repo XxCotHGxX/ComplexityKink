@@ -1,5 +1,5 @@
 {
-  "_comment": "Stage D generation panel. This mirrors the 21-model Stage C analysis panel, excludes AuroraGPT, and removes duplicate fallback configs from src/data_provenance/models.json.",
+  "_comment": "Locked 21-model Stage D generation panel. Public entries use environment-variable placeholders and omit account-specific cloud resource names.",
   "models": [
     {
       "model_id": "gpt-4.1",

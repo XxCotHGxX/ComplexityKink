@@ -1,152 +1,198 @@
-# Reproduction Guide
+# Reproduction guide
 
-Step-by-step instructions for reproducing every numeric claim in the Stage C paper from raw OpenCodeInstruct.
+This guide covers the locked Stage D analysis. It does not reproduce the
+post-submission generation runs from API calls. Their final aggregate values
+are recorded separately in `results/robustness_summary.json`.
 
-## What you need
+## Requirements
 
-* Python 3.11 or newer
-* Docker (for sandboxed test execution)
-* About 22 GB of free disk space
-* API access to the 21 panel models (or a subset)
-* About $400 in expected API spend if running the full panel from scratch
+- Python 3.12 or newer
+- Docker for executing generated code
+- The packaged benchmark data bundle
+- Provider credentials only if regenerating model outputs or rubric scores
 
-If you do not need to regenerate the model panel and only want to verify the analysis numbers, skip to the "Analysis only" section. The packaged rubric scores and per-model scored generations are sufficient input for that path.
+Install dependencies from the repository root:
 
-## Environment setup
-
-```
-git clone <anonymous-artifact-repository-url>
-cd ComplexityKink
+```bash
 python -m venv .venv
-.venv/Scripts/activate          # Windows
-source .venv/bin/activate       # Unix
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-API keys are loaded from environment variables. The expected names are listed in `src/data_provenance/load_keys.py`. Set the keys for whichever providers you intend to query.
+Activate the virtual environment in the usual way for your shell.
 
-## Full pipeline from raw data
+## Expected Stage D inputs
 
-### Step 1: Extract from OpenCodeInstruct
+Place the benchmark bundle under `data/stage_d/` with this layout:
 
-```
-python src/data_provenance/00_extract_from_source.py
-```
-
-Pulls a filtered subset from `nvidia/OpenCodeInstruct` on Hugging Face. Filters out tasks with trivial test suites and tasks where the reference solver fails its own tests. Output: `data/final_results_scored.jsonl` (about 12 GB).
-
-### Step 2: Stratified prompt selection
-
-```
-python src/data_provenance/01_select_prompts.py
+```text
+data/stage_d/
+|-- stage_d_prompts.jsonl
+|-- ensemble_scores_current_aggregated.jsonl
+`-- scored_combined/
+    `-- one scored JSONL file per evaluated model
 ```
 
-Draws 5,000 prompts stratified across cyclomatic complexity bins computed on the Qwen2.5 reference solution. Output: `data/experiment_prompts.jsonl`. The seed is fixed at 42 for reproducibility.
+The important file-name distinction is deliberate:
 
-Note that this stratification carries an output-side endogeneity that the Stage C paper discusses as a limitation. Stage D restratifies on rubric composite to fix this.
+- `ensemble_scores_current_aggregated.jsonl` is the rubric aggregate paired
+  with the locked 5,000-prompt panel.
+- The older `ensemble_scores_aggregated.jsonl` came from a pre-replacement run
+  and must not be paired with `scored_combined/`.
 
-### Step 3: Rubric scoring
+`src/analyze_kink.py` now warns if a rubric join retains less than 90% of a
+scored model file, which usually signals a wrong-file pairing.
 
+## Reproduce the submitted combined analysis
+
+Run:
+
+```bash
+python src/analyze_kink.py \
+  --scored-dir data/stage_d/scored_combined \
+  --rubric data/stage_d/ensemble_scores_current_aggregated.jsonl \
+  --prompts data/stage_d/stage_d_prompts.jsonl \
+  --outdir results/reproduced_stage_d
 ```
-python src/data_provenance/05_score_complexity_rubric.py
+
+The main machine-readable output is:
+
+```text
+results/reproduced_stage_d/analysis_summary.json
 ```
 
-Scores every prompt on six structural dimensions using o4-mini through the Azure AI Foundry endpoint. The scorer is held out from the evaluated panel to preserve the IV exclusion restriction. Output: `data/complexity_rubric_scores.jsonl`.
+Compare its `_combined` object with `results/analysis_summary.json`. The key
+fields are:
 
-Three of 5,000 prompts trigger the Azure content filter on benign content. These are scored manually against the published rubric and patched into the output file.
+| Claim | JSON field |
+| :-- | :-- |
+| Number of prompts | `_combined.N` |
+| First-stage F | `_combined.iv_fstat` |
+| Sargan-Hansen p-value | `_combined.iv_j_pval` |
+| Hausman statistic | `_combined.hausman_stat` |
+| Threshold | `_combined.kink_threshold` |
+| Sup-Wald | `_combined.kink_sup_wald` |
+| Bootstrap interval | `_combined.kink_ci_lower`, `_combined.kink_ci_upper` |
+| Pass rate below threshold | `_combined.mean_pass_low` |
+| Pass rate at or above threshold | `_combined.mean_pass_high` |
 
-### Step 4: Multi-model generation
+For a fast pipeline check:
 
+```bash
+python src/analyze_kink.py \
+  --scored-dir data/stage_d/scored_combined \
+  --rubric data/stage_d/ensemble_scores_current_aggregated.jsonl \
+  --prompts data/stage_d/stage_d_prompts.jsonl \
+  --outdir results/smoke \
+  --combined-only \
+  --skip-visualizations \
+  --n-boot 100 \
+  --n-ci-boot 100 \
+  --n-placebo 100
 ```
-python src/data_provenance/02_generate_solutions.py --workers 30
+
+The smoke run checks code paths and data joins. Its bootstrap values are not
+expected to match the locked full run exactly.
+
+## Reproduce a prompt subset
+
+Write one prompt ID per line, then pass:
+
+```bash
+python src/analyze_kink.py \
+  --scored-dir data/stage_d/scored_combined \
+  --rubric data/stage_d/ensemble_scores_current_aggregated.jsonl \
+  --prompts data/stage_d/stage_d_prompts.jsonl \
+  --restrict-prompts path/to/prompt_ids.txt \
+  --outdir results/subset
 ```
 
-Generates one solution per prompt for every model in the panel. Resume-safe: if interrupted, it picks up where it left off. Output: `data/generations/<model_id>.jsonl`, one file per model.
+This is the supported route for source-restricted or other prompt-level
+robustness checks.
 
-This step is the bulk of the wall-clock time and API spend. Plan for roughly 24 hours and $400 with the full panel running concurrently.
+## Regenerate paper figures
 
-### Step 5: Sandboxed scoring
+After reproducing the locked analysis, place its combined summary at:
 
+```text
+results/analysis_summary.json
 ```
+
+The figure generator also expects:
+
+```text
+results/per_model_bootstrap_summary.csv
+```
+
+Then run:
+
+```bash
+python scripts/generate_stage_d_paper_figures.py
+```
+
+It writes the four filenames used by the submitted manuscript:
+
+- `paper/pipeline.png`
+- `paper/complexity_kink.png`
+- `paper/heatmap_E_per_model_kink.png`
+- `paper/sankey.png`
+
+The script reads thresholds and statistics from result files or recomputes them
+from scored inputs. Reported result values are not typed into the plotting code.
+
+## Full benchmark construction
+
+The tracked construction pipeline is under `src/stage_d/`:
+
+1. `01_collect_candidate_prompts.py` collects eligible source prompts.
+2. `02_select_rubric_balanced_prompts.py` locks the prompt set.
+3. `04_prepare_generation_delta.py` identifies model-prompt rows that need new
+   generations.
+4. `05_score_rubric_ensemble.py` applies the fixed rubric with held-out judges.
+5. `06_aggregate_ensemble_scores.py` builds prompt-level ensemble scores.
+6. `07_combine_stage_d_scored.py` combines retained and newly scored rows.
+7. `08_audit_unit_tests.py` checks the selected unit-test contracts.
+
+The original 5,000-prompt source draw used `--scan-limit 200000`, a prefix
+scan over source-ordered shards. Run
+`scripts/check_sample_representativeness.py` against an independent full-pool
+reference sample to audit that sampling-frame decision. Stage D then performs
+its prompt-side rubric balancing on the collected candidate set.
+
+Provider batch helpers are under `scripts/`. All credentials are read from
+environment variables. Local credential loaders, cloud resource names, batch
+request files, and provider logs are intentionally excluded from the release.
+
+## Sandboxed execution
+
+Build the scorer image:
+
+```bash
 docker build -t kink-scorer -f docker/Dockerfile.scorer .
+```
+
+Then score generated rows through:
+
+```bash
 python src/data_provenance/03_execute_and_score.py
 ```
 
-Runs each generation through the original NVIDIA test suite inside a Docker sandbox. Output: `data/scored/<model_id>.jsonl`. Pass rate is the fraction of test cases passed.
+Generated code should never be executed directly on the host. The scorer uses
+timeouts and isolated working directories, but Docker is still a required
+safety boundary for a full rerun.
 
-### Step 6: Audit and judge
+## Post-submission checks
 
-```
-python src/data_provenance/06_audit_scoring.py
-python src/data_provenance/07_apply_judge.py
-```
+The review-period checks include task-type controls, overidentification
+subsamples, pooling sensitivity, pass@k, human calibration, paraphrase
+stability, language transfer, and the audit-clean high-complexity extension.
 
-Detects silent scoring failures (zero-pass-rate rows that look like infrastructure problems rather than actual code failures) and applies an LLM judge to ambiguous outputs. Output: `data/scored_corrected/<model_id>.jsonl`.
+This repository publishes their consolidated outputs, not the internal response
+drafts, grader keys, provider logs, or account-specific generation runners:
 
-### Step 7: Stage C analysis
+- Human-readable report: `docs/robustness_results.md`
+- Machine-readable report: `results/robustness_summary.json`
 
-```
-python src/analyze_kink.py
-python src/extract_paper_numbers.py
-```
-
-`analyze_kink.py` runs per-model and combined 2SLS with rubric instruments, the Hansen sup-Wald threshold detection with bootstrap inference, the placebo permutation test, and the cross-model comparisons. Output: `results/analysis_summary.json` plus interactive HTML figures.
-
-`extract_paper_numbers.py` produces every specific numeric claim cited in the paper, including the per-dimension first-stage coefficients, the placebo distribution statistics, and the kink sample splits. Output: `results/paper_numbers.json`.
-
-## Analysis only
-
-If you have the rubric scores and scored generations from a prior run, the analysis stage finishes in under five minutes:
-
-```
-pip install -r requirements.txt
-python src/analyze_kink.py
-python src/extract_paper_numbers.py
-```
-
-This is the fastest path to verify the paper's reported values against the underlying data.
-
-## Keyword-pilot reproduction
-
-The unpublished keyword-pilot pipeline is reproducible from the same raw data.
-It uses keyword features in place of the rubric and a Random Forest in place of
-the LLM scorer.
-
-```
-python src/feature_extractor_iv.py
-python src/train_stage1_iv.py
-python src/run_stage2_iv.py
-```
-
-Output: keyword features, trained Random Forest weights, and keyword-pilot
-threshold estimates.
-
-## Smoke test
-
-```
-python src/verify_pipeline.py
-```
-
-Runs the keyword-pilot pipeline on a 2,000-sample subset with assertion-based output checks. Useful for catching regressions in shared infrastructure (data loader, parsers, configuration).
-
-## Verifying the headline numbers
-
-After running `extract_paper_numbers.py`, the key claims in the paper map to fields in `results/paper_numbers.json` as follows.
-
-| Paper claim | JSON path |
-| :-- | :-- |
-| First-stage F = 3,002 | `iv.fstat` |
-| Partial R-squared = 0.462 | `iv.partial_r2` |
-| OLS coefficient on kappa = -0.00918 | `kappa_ols.coef` |
-| 2SLS coefficient on kappa = -0.01310 | `iv.coef` |
-| Sargan J = 154.3 | `iv.sargan_stat` |
-| Below-kink pass rate = 48.9% | `kink_split.mean_below` |
-| Above-kink pass rate = 37.0% | `kink_split.mean_above` |
-| Placebo mean sup-Wald = 2.22 | `placebo_distribution.mean` |
-| Placebo 95% range = [0.51, 5.22] | `placebo_distribution.p025`, `p975` |
-
-If any of these drift from the paper after a rerun, that is the signal to investigate. The most common cause is an updated rubric score file or a regenerated scored output.
-
-## Per-model numbers
-
-`results/analysis_summary.json` contains one entry per panel model plus a `_combined` entry. Each entry includes the OLS and 2SLS coefficients, the first-stage F, the Hausman statistic, the kink threshold and bootstrap CI, the regime pass rates, and the placebo p-value. Table 4 of the paper is generated directly from this file.
+The raw benchmark extension and generated responses should be distributed in
+the separate anonymized data artifact, where their licenses, hashes, and
+provenance can be documented without mixing private review material into the
+source repository.
