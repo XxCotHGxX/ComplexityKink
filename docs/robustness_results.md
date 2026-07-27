@@ -97,10 +97,10 @@ high-regime pattern through bin 16, but the extreme tail remains unresolved.
 
 ## 5. Human calibration
 
-Two people graded prompts with the LLM scores hidden. The first grader scored
-200 prompts. The second scored a 50-prompt overlap. Half of the 200-prompt set
-was deliberately drawn from the highest-disagreement cases, so this is a stress
-test rather than an average-case population estimate.
+Michael Hernandez and Tian Zhao graded prompts with the LLM scores hidden.
+Michael scored 200 prompts. Tian scored a 50-prompt overlap. Half of the
+200-prompt set was deliberately drawn from the highest-disagreement cases, so
+this is a stress test rather than an average-case population estimate.
 
 On the full 200 prompts:
 
@@ -112,10 +112,10 @@ On the full 200 prompts:
 
 On the shared 50 prompts:
 
-- first grader versus LLM Pearson: 0.61
-- second grader versus LLM Pearson: 0.92
+- Michael versus LLM Pearson: 0.61
+- Tian versus LLM Pearson: 0.92
 - human versus human correlation: 0.56
-- second grader minus LLM composite offset: -1.35 points
+- Tian minus LLM composite offset: -1.35 points
 
 The rubric carries signal, but neither a single human nor an LLM ensemble
 should be treated as ground truth.

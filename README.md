@@ -2,9 +2,15 @@
 
 **Prompt-side structural complexity and code-generation reliability**
 
-Anonymous authors. This repository is the source snapshot for a double-blind
-review artifact. The private GitHub URL is not the reviewer-facing anonymous
-URL.
+Michael Hernandez, University of Wisconsin-Milwaukee
+
+Faculty advisor and review-period collaborator: Tian Zhao,
+University of Wisconsin-Milwaukee
+
+This is Michael's named public research copy. The manuscript source remains
+anonymous because it preserves the version submitted for double-blind review.
+The reviewer-facing artifact should use its separate anonymous URL, not this
+GitHub repository.
 
 ## What this project studies
 
