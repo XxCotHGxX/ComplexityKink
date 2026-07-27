@@ -1,25 +1,31 @@
-# Manuscript snapshot
+# Revised manuscript source
 
-`Scratch-NeurIps.tex` and its four PNG figures preserve the anonymous Stage D
-manuscript snapshot used for submission. They are included so the repository
-state can be compared with the locked analysis.
+`Scratch-NeurIps.tex` is the current anonymous manuscript revision. It
+incorporates the additional analyses directly:
 
-The post-submission checks in `docs/robustness_results.md` do not silently
-rewrite this source. In particular, the submitted manuscript still contains
-language that the review-period evidence narrows:
+- The rubric composite is treated as a prompt-side index, not a validated
+  causal instrument.
+- Task-type controls, pooling sensitivity, human calibration, repeated
+  sampling, paraphrase stability, and language rescoring are reported.
+- The 365-prompt audit-clean extension is shown in a matched five-model frame.
+- The generated-output CC figure states its complete-case denominator.
+- A 404-prompt diagnostic provides no support for a library/framework
+  explanation.
 
-- The full overidentification rejection is not a harmless large-sample effect.
-- Task-type controls explain a substantial part of the pooled regime gap.
-- Human calibration is now complete.
-- The clean high-complexity extension supports the pattern through bin 16, but
-  leaves the extreme tail unresolved.
-- The earlier library/framework explanation is not supported by its scoped
-  diagnostic.
+The paper directory contains six referenced PNG figures. The original submitted
+source is not duplicated in this reviewer-facing snapshot. Aggregate numerical
+inputs for the two new figures are under `results/`, and the plotting code is
+in `scripts/generate_stage_d_paper_figures.py`. Rebuild the revised pipeline,
+tail-extension, and output-CC figures with:
 
-Those points belong in a revised or camera-ready manuscript after the review
-process. Keeping them in a separate results note preserves a clear record of
-what was submitted and what was learned afterward.
+```powershell
+python scripts/generate_stage_d_paper_figures.py --revision-only
+```
 
-The old Stage C manuscript source was removed from the current tree because it
-reported a different prompt set and threshold. It remains available in Git
-history.
+The tail source tables use a matched five-model frame and first average pass
+rate within prompt. `tail_extension_source_split.csv` covers displayed bins 9
+through 18, not the full benchmark; `tail_extension_replication.csv` records
+the bin-15 and bin-16 Welch comparisons. In `pass_vs_output_cc.csv`, bin 40 is
+top-coded as 40 or greater. `reverse_threshold_zero_pass_cells.csv` contains
+14,776 complete cases and excludes 977 zero-pass rows without computable
+output CC, as stated in the manuscript.

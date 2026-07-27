@@ -66,14 +66,13 @@ fields are:
 | Claim | JSON field |
 | :-- | :-- |
 | Number of prompts | `_combined.N` |
-| First-stage F | `_combined.iv_fstat` |
+| Robust first-stage Wald chi-square(6) | `_combined.iv_fstat` |
 | Sargan-Hansen p-value | `_combined.iv_j_pval` |
-| Hausman statistic | `_combined.hausman_stat` |
 | Threshold | `_combined.kink_threshold` |
 | Sup-Wald | `_combined.kink_sup_wald` |
 | Bootstrap interval | `_combined.kink_ci_lower`, `_combined.kink_ci_upper` |
-| Pass rate below threshold | `_combined.mean_pass_low` |
-| Pass rate at or above threshold | `_combined.mean_pass_high` |
+| Pass rate at or below threshold | `_combined.mean_pass_low` |
+| Pass rate above threshold | `_combined.mean_pass_high` |
 
 For a fast pipeline check:
 
@@ -129,12 +128,14 @@ Then run:
 python scripts/generate_stage_d_paper_figures.py
 ```
 
-It writes the four filenames used by the submitted manuscript:
+It writes the six filenames used by the revised manuscript:
 
 - `paper/pipeline.png`
 - `paper/complexity_kink.png`
 - `paper/heatmap_E_per_model_kink.png`
 - `paper/sankey.png`
+- `paper/tail_extension.png`
+- `paper/pass_vs_output_cc.png`
 
 The script reads thresholds and statistics from result files or recomputes them
 from scored inputs. Reported result values are not typed into the plotting code.
@@ -155,8 +156,10 @@ The tracked construction pipeline is under `src/stage_d/`:
 The original 5,000-prompt source draw used `--scan-limit 200000`, a prefix
 scan over source-ordered shards. Run
 `scripts/check_sample_representativeness.py` against an independent full-pool
-reference sample to audit that sampling-frame decision. Stage D then performs
-its prompt-side rubric balancing on the collected candidate set.
+reference sample to audit that sampling-frame decision. Stage D then balanced
+the collected candidate set using a preliminary single `o4-mini` rubric score.
+After the prompt set was locked, the four-judge ensemble rescored it. Every
+reported analysis uses the ensemble mean, not the preliminary sampling score.
 
 Provider batch helpers are under `scripts/`. All credentials are read from
 environment variables. Local credential loaders, cloud resource names, batch
@@ -182,7 +185,7 @@ safety boundary for a full rerun.
 
 ## Post-submission checks
 
-The review-period checks include task-type controls, overidentification
+The additional checks include task-type controls, overidentification
 subsamples, pooling sensitivity, pass@k, human calibration, paraphrase
 stability, language transfer, and the audit-clean high-complexity extension.
 

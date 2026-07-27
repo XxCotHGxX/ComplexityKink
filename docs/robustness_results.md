@@ -11,13 +11,28 @@ The submitted Stage D panel contains 5,000 prompts and 21 evaluated models.
 Four out-of-panel judges score each prompt against the same six-dimension
 structural rubric. The combined threshold estimate is
 $\hat{\gamma}=13.75$, with sup-Wald 121.70 and a 95% bootstrap interval of
-$[7.75,14.0]$. Mean pass rate is 0.799 below the threshold and 0.876 at or
-above it.
+$[7.75,14.0]$. Mean pass rate is 0.799 at or below the threshold and 0.876
+above it. None of 2,000 wild-bootstrap or 2,000 shuffled-index placebo draws
+reaches the observed statistic.
+
+The 5,000 prompts were selected evenly across six bands of a preliminary
+single-rater score, then rescored by the four-judge ensemble used in every
+reported analysis. The final ensemble index is not balanced across those
+bands, and the benchmark is not representative of the natural OpenCodeInstruct
+frequency distribution.
 
 The pooled curve is non-monotone. It falls through a mid-complexity region and
 then rises in the better-supported part of the high-complexity region. That
 shape is not a universal failure threshold, and the direction varies across
 models.
+
+The reported panel contains 21 models. A locally served, quantized
+AuroraGPT-IT-v4 run covered only the earlier prompt frame and therefore lacks
+outputs for the 2,754 newly added prompts. It was excluded before the final
+panel analysis in a post hoc decision without a prespecified eligibility rule.
+Its pass rate on the earlier frame was 20.6%, and performance was not a
+documented exclusion criterion. The reported claims are limited to the
+21-model panel.
 
 ## 2. Instrument validity
 
@@ -27,7 +42,7 @@ restrictions: $J=411.3$ on five degrees of freedom, with $J/N=0.082$.
 We tested whether this was merely a large-sample rejection. Across 200 random
 subsamples at each size from $n=250$ through $n=4{,}000$, $J/N$ changes only
 modestly, from 0.102 to 0.082. At $n=250$, 97.5% of the draws still reject at
-the 5% level. The restrictions are genuinely violated.
+the 5% level, so the result does not appear to be only a large-sample artifact.
 
 The dimension-level estimates show why. In just-identified fits,
 `data_structures` has a positive coefficient, while `composition` and `state`
@@ -76,7 +91,7 @@ The final extension contains 365 prompts:
 | 17 | 4 |
 | 18 | 3 |
 
-At the well-supported bins, matched-five-model pass rates closely reproduce the
+At the well-supported bins, matched-five-model pass rates are similar to the
 original panel:
 
 | Bin | Extension | Original matched panel | Difference | Welch p-value |
@@ -85,12 +100,11 @@ original panel:
 | 16 | 0.80 | 0.81 | -0.010 | 0.73 |
 
 Combining the extension with the original matched frame gives
-$\hat{\gamma}=14.0$, with pass rate 0.783 below and 0.859 above. Support at bins
-15 and 16 rises to 878 and 417 prompts.
+$\hat{\gamma}=14.0$, with pass rate 0.783 at or below and 0.859 above. Support
+at bins 15 and 16 rises to 878 and 417 prompts.
 
-Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro Preview each completed 801 of 801
-requested generations before the audit filter. On the retained analysis frame,
-all three score about 0.94 at bin 15 and 0.85 to 0.88 at bin 16.
+On the retained 515-prompt analysis frame, Claude Opus 4.6, GPT-5.4, and Gemini
+3.1 Pro Preview all score about 0.94 at bin 15 and 0.85 to 0.88 at bin 16.
 
 Only seven audit-clean additions lie above bin 16. The extension supports the
 high-regime pattern through bin 16, but the extreme tail remains unresolved.
@@ -177,10 +191,10 @@ where output complexity is most contaminated.
 
 ## 10. Mechanism and model dependence
 
-A 404-prompt diagnostic at bins 13 and 17 does not support the earlier
+A 404-prompt diagnostic at bins 13 and 17 provides no support for a
 library/framework explanation. After controlling for ordinary prompt features,
-the external-library tag has coefficient -0.045 with $p=0.67$. The mechanism is
-therefore left open.
+the external-library tag has coefficient -0.045 with $p=0.67$. Other
+source-composition mechanisms remain possible.
 
 Leave-one-model-out threshold estimation returns 13.75 in all 21 fits. Median
 pooling still favors the piecewise model, but moves the threshold to 10.75 and

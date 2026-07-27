@@ -1,14 +1,20 @@
-"""Generate Stage D paper figures from locked prompt/model outputs.
+"""Generate Stage D paper figures and additional robustness figures.
 
 The script writes the filenames referenced by the NeurIPS draft:
 ``paper/pipeline.png``, ``paper/complexity_kink.png``,
-``paper/heatmap_E_per_model_kink.png``, and ``paper/sankey.png``.
+``paper/heatmap_E_per_model_kink.png``, ``paper/sankey.png``,
+``paper/tail_extension.png``, and ``paper/pass_vs_output_cc.png``.
 All plotted thresholds and statistics are read from Stage D result files or
 recomputed from the scored outputs; no reported result is hand-entered.
+
+Use ``--revision-only`` to rebuild the pipeline and the two additional
+figures from the small aggregate CSVs under ``results/`` without loading raw
+model outputs.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -31,6 +37,12 @@ SCORED_DIR = STAGE_D_DIR / "scored_combined"
 RUBRIC_PATH = STAGE_D_DIR / "ensemble_scores_current_aggregated.jsonl"
 SUMMARY_PATH = ROOT / "results" / "analysis_summary.json"
 PER_MODEL_SUMMARY_PATH = ROOT / "results" / "per_model_bootstrap_summary.csv"
+TAIL_CURVE_PATH = ROOT / "results" / "tail_extension_curve.csv"
+TAIL_SPLIT_PATH = ROOT / "results" / "tail_extension_source_split.csv"
+TAIL_REPLICATION_PATH = ROOT / "results" / "tail_extension_replication.csv"
+OUTPUT_CC_CURVE_PATH = ROOT / "results" / "pass_vs_output_cc.csv"
+REVERSE_CELL_PATH = ROOT / "results" / "reverse_threshold_zero_pass_cells.csv"
+ROBUSTNESS_SUMMARY_PATH = ROOT / "results" / "robustness_summary.json"
 PAPER_DIR = ROOT / "paper"
 
 FIG_DPI = 220
@@ -80,11 +92,11 @@ DISPLAY_NAMES = {
     "azure_mistral-large-3": "Mistral Large-3",
     "glm_4_7_flash_results": "GLM 4.7-flash",
     "google_gemini-3-flash-preview": "Gemini 3 Flash",
-    "google_gemini-3.1-pro-preview": "Gemini 3.1 Pro",
+    "google_gemini-3.1-pro-preview": "Gemini 3.1 Pro Preview",
     "gpt-4.1": "GPT-4.1",
     "gpt-5-mini": "GPT-5-mini",
     "gpt-oss-20b": "GPT-OSS-20B",
-    "ministral-3-14b-reasoning": "Ministral-3-14B",
+    "ministral-3-14b-reasoning": "Ministral-3-14B-reasoning",
     "mistral-small-2412": "Mistral Small 2412",
     "openai_gpt-5.4": "GPT-5.4",
     "qwen3.5-9b": "Qwen 3.5-9B",
@@ -102,6 +114,10 @@ def load_model_frames() -> dict[str, pd.DataFrame]:
     for path in sorted(SCORED_DIR.glob("*.jsonl")):
         frames[path.stem] = load_scored_model(path, rubric)
     return frames
+
+
+def load_revision_summary() -> dict:
+    return json.loads(ROBUSTNESS_SUMMARY_PATH.read_text(encoding="utf-8"))
 
 
 def style_matplotlib() -> None:
@@ -123,48 +139,345 @@ def style_matplotlib() -> None:
 
 def save_pipeline() -> None:
     stages = [
-        ("OpenCodeInstruct", "5,000 stratified\nPython prompts"),
-        ("Judge Ensemble", "4 out-of-panel LLMs\n6 rubric dimensions"),
-        ("Model Panel", "21 models x 5,000\ngenerations"),
-        ("Measurements", "prompt complexity,\noutput CC, pass rate"),
-        ("Inference", "2SLS diagnostics and\nHansen threshold tests"),
+        ("Prompt sample", "5,000 Python tasks\nsampling strata"),
+        ("Prompt index", "4 judges; 6 dimensions\nfixed first"),
+        ("Model outcomes", "21-model panel\nunit tests; output CC"),
+        ("Analysis", "Index breakpoints\nsensitivity; IV checks"),
     ]
-    fig, ax = plt.subplots(figsize=(11.2, 2.8))
+    fig, ax = plt.subplots(figsize=(5.5, 1.75))
     ax.axis("off")
-    y = 0.55
-    box_w = 0.152
-    xs = np.linspace(0.095, 0.905, len(stages))
+    y = 0.57
+    box_w = 0.205
+    xs = np.linspace(0.115, 0.885, len(stages))
     for i, (x, (title, body)) in enumerate(zip(xs, stages)):
         rect = plt.Rectangle(
-            (x - box_w / 2, y - 0.22),
+            (x - box_w / 2, y - 0.24),
             box_w,
-            0.44,
+            0.48,
             facecolor="#f7f9fb",
             edgecolor=BLUE,
-            linewidth=1.4,
+            linewidth=1.1,
             joinstyle="round",
         )
         ax.add_patch(rect)
-        ax.text(x, y + 0.065, title, ha="center", va="center", weight="bold", color="#1f2937", fontsize=10)
-        ax.text(x, y - 0.075, body, ha="center", va="center", color="#374151", linespacing=1.25, fontsize=9)
+        ax.text(
+            x,
+            y + 0.075,
+            title,
+            ha="center",
+            va="center",
+            weight="bold",
+            color="#1f2937",
+            fontsize=7.8,
+        )
+        ax.text(
+            x,
+            y - 0.09,
+            body,
+            ha="center",
+            va="center",
+            color="#374151",
+            linespacing=1.2,
+            fontsize=7.0,
+        )
         if i < len(stages) - 1:
             ax.annotate(
                 "",
-                xy=(xs[i + 1] - box_w / 2 - 0.012, y),
-                xytext=(x + box_w / 2 + 0.012, y),
-                arrowprops=dict(arrowstyle="->", color=GRAY, lw=1.4),
+                xy=(xs[i + 1] - box_w / 2 - 0.006, y),
+                xytext=(x + box_w / 2 + 0.006, y),
+                arrowprops=dict(arrowstyle="->", color=GRAY, lw=1.0),
             )
     ax.text(
         0.5,
-        0.09,
-        "Prompt-side complexity is measured before generation; output complexity is retained only as a comparison measure.",
+        0.11,
+        "The prompt index is fixed before any evaluated model generates code.",
         ha="center",
         va="center",
         color=GRAY,
-        fontsize=9,
+        fontsize=7.2,
     )
     fig.tight_layout()
     fig.savefig(PAPER_DIR / "pipeline.png", dpi=FIG_DPI, bbox_inches="tight")
+    plt.close(fig)
+
+
+def save_tail_extension() -> None:
+    curve = pd.read_csv(TAIL_CURVE_PATH)
+    split = pd.read_csv(TAIL_SPLIT_PATH)
+    replication = pd.read_csv(TAIL_REPLICATION_PATH)
+    revision = load_revision_summary()["high_complexity_extension"]
+    matched = revision["matched_five_model"]
+    gamma = float(matched["combined_threshold"])
+    curve = curve[curve["bin"].between(9, 18)].copy()
+    original = split[split["source"] == "Original benchmark"].copy()
+    extension = split[split["source"] == "Audit-clean extension"].copy()
+
+    # The replication table records the original-versus-extension tests quoted
+    # in the manuscript. Verify that its plotted values agree with the compact
+    # source-split table before drawing the figure.
+    merged = replication.merge(split, on=["source", "bin"], suffixes=("_rep", "_plot"))
+    for column in ["n", "mean_pass", "sem"]:
+        if not np.allclose(merged[f"{column}_rep"], merged[f"{column}_plot"]):
+            raise ValueError(f"Tail replication mismatch in {column}")
+
+    fig, (ax_curve, ax_count) = plt.subplots(
+        1,
+        2,
+        figsize=(5.5, 3.15),
+        gridspec_kw={"width_ratios": [1.55, 1.0]},
+    )
+
+    ax_curve.plot(
+        curve["bin"],
+        curve["mean_pass"],
+        "-o",
+        color=BLUE,
+        lw=2.1,
+        markersize=4.5,
+        label="Combined matched frame",
+        zorder=3,
+    )
+    ax_curve.fill_between(
+        curve["bin"],
+        curve["mean_pass"] - 1.96 * curve["sem"].fillna(0),
+        curve["mean_pass"] + 1.96 * curve["sem"].fillna(0),
+        color=BLUE,
+        alpha=0.13,
+        linewidth=0,
+    )
+    high_original = original[original["bin"] >= 15]
+    ax_curve.errorbar(
+        high_original["bin"] - 0.06,
+        high_original["mean_pass"],
+        yerr=1.96 * high_original["sem"],
+        fmt="o",
+        color=GRAY,
+        markersize=4.5,
+        capsize=2.5,
+        label="Original prompts",
+        zorder=4,
+    )
+    ax_curve.errorbar(
+        extension["bin"] + 0.06,
+        extension["mean_pass"],
+        yerr=1.96 * extension["sem"],
+        fmt="s",
+        color=ORANGE,
+        markersize=4.5,
+        capsize=2.5,
+        label="Audit-clean extension",
+        zorder=4,
+    )
+    ax_curve.axvline(gamma, color=RED, linestyle="--", lw=1.2)
+    ax_curve.text(
+        gamma + 0.1,
+        0.54,
+        rf"$\hat{{\gamma}}={gamma:.1f}$",
+        color=RED,
+        fontsize=7.0,
+    )
+    for b in [15, 16]:
+        row = curve[curve["bin"] == b].iloc[0]
+        offset = (4, 10) if b == 16 else (0, 8)
+        align = "left" if b == 16 else "center"
+        ax_curve.annotate(
+            f"n={int(row['n'])}",
+            (b, row["mean_pass"]),
+            xytext=offset,
+            textcoords="offset points",
+            ha=align,
+            fontsize=7.0,
+            color="#1f2937",
+        )
+    ax_curve.axvspan(16.5, 18.5, color="#f3f4f6", zorder=0)
+    sparse_new_n = int(extension.loc[extension["bin"] > 16, "n"].sum())
+    ax_curve.text(
+        17.5,
+        0.985,
+        f"{sparse_new_n} additions",
+        ha="center",
+        va="top",
+        fontsize=7.0,
+        color=GRAY,
+    )
+    ax_curve.set_xlim(8.7, 18.35)
+    ax_curve.set_ylim(0.0, 1.0)
+    ax_curve.set_xticks(range(9, 19))
+    ax_curve.set_xlabel("Rounded prompt rubric composite")
+    ax_curve.set_ylabel("Mean pass rate over five matched models")
+    ax_curve.set_title("(a) Matched-frame reliability curve", loc="left")
+    ax_curve.grid(True, alpha=0.22)
+    ax_curve.legend(loc="lower left", frameon=True)
+
+    support_bins = np.arange(14, 19)
+    original_counts = (
+        original.set_index("bin")["n"].reindex(support_bins, fill_value=0).to_numpy()
+    )
+    extension_counts = (
+        extension.set_index("bin")["n"].reindex(support_bins, fill_value=0).to_numpy()
+    )
+    ax_count.bar(
+        support_bins,
+        original_counts,
+        color="#9ca3af",
+        label="Original prompts",
+    )
+    ax_count.bar(
+        support_bins,
+        extension_counts,
+        bottom=original_counts,
+        color=ORANGE,
+        label="Audit-clean extension",
+    )
+    for b, old_n, new_n in zip(support_bins, original_counts, extension_counts):
+        total = int(old_n + new_n)
+        if new_n == 0 or new_n >= 20:
+            total_label = f"{total}"
+        else:
+            total_label = f"{total}\n(+{int(new_n)})"
+        ax_count.text(b, total + 13, total_label, ha="center", fontsize=7.0)
+        if new_n >= 20:
+            ax_count.text(
+                b,
+                old_n + new_n / 2,
+                f"+{int(new_n)}",
+                ha="center",
+                va="center",
+                fontsize=7.0,
+                color="white",
+                weight="bold",
+            )
+    ax_count.set_xticks(support_bins)
+    ax_count.set_xlabel("Rounded prompt rubric composite")
+    ax_count.set_ylabel("Prompt count")
+    ax_count.set_title("(b) Support in the high bins", loc="left")
+    ax_count.grid(True, axis="y", alpha=0.22)
+
+    for ax in (ax_curve, ax_count):
+        ax.title.set_fontsize(8.4)
+        ax.xaxis.label.set_fontsize(7.5)
+        ax.yaxis.label.set_fontsize(7.5)
+        ax.tick_params(axis="both", labelsize=7.0)
+        legend = ax.get_legend()
+        if legend is not None:
+            for text in legend.get_texts():
+                text.set_fontsize(7.0)
+
+    fig.tight_layout()
+    fig.savefig(PAPER_DIR / "tail_extension.png", dpi=FIG_DPI, bbox_inches="tight")
+    plt.close(fig)
+
+
+def save_output_cc_diagnostic() -> None:
+    curve = pd.read_csv(OUTPUT_CC_CURVE_PATH)
+    cells = pd.read_csv(REVERSE_CELL_PATH)
+
+    fig, (ax_curve, ax_cell) = plt.subplots(
+        1,
+        2,
+        figsize=(5.5, 3.15),
+        gridspec_kw={"width_ratios": [1.65, 1.0]},
+    )
+
+    ax_curve.plot(
+        curve["cc_binned"],
+        curve["mean_pass"],
+        "-o",
+        color=RED,
+        markersize=3.2,
+        lw=1.8,
+    )
+    ax_curve.fill_between(
+        curve["cc_binned"],
+        curve["mean_pass"] - 1.96 * curve["sem"],
+        curve["mean_pass"] + 1.96 * curve["sem"],
+        color=RED,
+        alpha=0.12,
+        linewidth=0,
+    )
+    ax_curve.set_xlabel("Lizard CC on generated output (40 means 40+)")
+    ax_curve.set_ylabel("Mean pass rate", color=RED)
+    ax_curve.tick_params(axis="y", labelcolor=RED)
+    ax_curve.set_ylim(0.65, 0.97)
+    ax_curve.set_xlim(0.5, 40.5)
+    ax_curve.grid(True, alpha=0.22)
+    ax_curve.set_title("(a) Output-side reliability curve", loc="left")
+
+    ax_rubric = ax_curve.twinx()
+    ax_rubric.plot(
+        curve["cc_binned"],
+        curve["mean_rubric"],
+        "--",
+        color=BLUE,
+        lw=1.5,
+        alpha=0.9,
+    )
+    ax_rubric.set_ylabel("Mean prompt rubric composite", color=BLUE)
+    ax_rubric.tick_params(axis="y", labelcolor=BLUE)
+    ax_rubric.set_ylim(3.5, 16.5)
+
+    prompt_order = ["Prompt composite <= 8", "Prompt composite > 8"]
+    output_order = ["Output CC <= 10", "Output CC > 10"]
+    matrix = (
+        cells.pivot(index="prompt_group", columns="output_group", values="n")
+        .reindex(index=prompt_order, columns=output_order)
+        .to_numpy(dtype=float)
+    )
+    total = matrix.sum()
+    ax_cell.imshow(matrix, cmap="Blues", aspect="auto")
+    for row in range(matrix.shape[0]):
+        for col in range(matrix.shape[1]):
+            count = int(matrix[row, col])
+            color = "white" if matrix[row, col] > matrix.max() * 0.65 else "#111827"
+            ax_cell.text(
+                col,
+                row,
+                f"{count:,}\n({count / total:.1%})",
+                ha="center",
+                va="center",
+                color=color,
+                fontsize=7.6,
+                weight="bold",
+            )
+    highlight = plt.Rectangle(
+        (-0.5, 0.5),
+        1,
+        1,
+        fill=False,
+        edgecolor=RED,
+        linewidth=3,
+    )
+    ax_cell.add_patch(highlight)
+    ax_cell.text(
+        0,
+        1.38,
+        "reverse-threshold\ncell",
+        ha="center",
+        va="bottom",
+        color=RED,
+        fontsize=7.0,
+        weight="bold",
+    )
+    ax_cell.set_xticks([0, 1])
+    ax_cell.set_xticklabels(
+        [r"Output CC $\leq 10$", "Output CC > 10"],
+        rotation=18,
+        ha="right",
+    )
+    ax_cell.set_yticks([0, 1])
+    ax_cell.set_yticklabels([r"Prompt $\leq 8$", "Prompt > 8"])
+    ax_cell.set_title("(b) Zero-pass complete cases", loc="left")
+    ax_cell.set_xlabel("Generated-output complexity")
+    ax_cell.set_ylabel("Pre-generation prompt index")
+
+    for ax in (ax_curve, ax_rubric, ax_cell):
+        ax.title.set_fontsize(8.4)
+        ax.xaxis.label.set_fontsize(7.5)
+        ax.yaxis.label.set_fontsize(7.5)
+        ax.tick_params(axis="both", labelsize=7.0)
+
+    fig.tight_layout()
+    fig.savefig(PAPER_DIR / "pass_vs_output_cc.png", dpi=FIG_DPI, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -213,7 +526,7 @@ def save_complexity_kink(combined: pd.DataFrame, summary: dict) -> None:
     ax.text(
         0.02,
         0.06,
-        f"Below threshold: {summary['mean_pass_low']:.1%}\nAbove threshold: {summary['mean_pass_high']:.1%}",
+        f"At or below threshold: {summary['mean_pass_low']:.1%}\nAbove threshold: {summary['mean_pass_high']:.1%}",
         transform=ax.transAxes,
         bbox=dict(boxstyle="round,pad=0.35", facecolor="white", edgecolor=LIGHT_GRAY),
     )
@@ -271,7 +584,7 @@ def save_heatmap(model_frames: dict[str, pd.DataFrame], per_model: pd.DataFrame,
                 rgba = im.cmap(im.norm(val))
                 luminance = 0.2126 * rgba[0] + 0.7152 * rgba[1] + 0.0722 * rgba[2]
                 color = "white" if luminance < HEATMAP_TEXT_LIGHTNESS_CUTOFF else "#111827"
-            ax.text(x, y, label, ha="center", va="center", fontsize=5.6, weight="bold", color=color)
+            ax.text(x, y, label, ha="center", va="center", fontsize=10.0, weight="bold", color=color)
 
     for y, model_id in enumerate(ordered_models):
         gamma = threshold_by_model[model_id]
@@ -404,20 +717,46 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--revision-only",
+        action="store_true",
+        help="Build pipeline, tail-extension, and output-CC PNGs from aggregate inputs.",
+    )
+    args = parser.parse_args()
+
     style_matplotlib()
     PAPER_DIR.mkdir(parents=True, exist_ok=True)
+    save_pipeline()
+    save_tail_extension()
+    save_output_cc_diagnostic()
+
+    if args.revision_only:
+        names = ["pipeline.png", "tail_extension.png", "pass_vs_output_cc.png"]
+        print("Wrote revision figures:")
+        for name in names:
+            path = PAPER_DIR / name
+            print(f"  {path} ({path.stat().st_size:,} bytes)")
+        return
+
     summary = load_summary()
     model_frames = load_model_frames()
     combined = build_combined_df(model_frames)
     per_model = pd.read_csv(PER_MODEL_SUMMARY_PATH)
 
-    save_pipeline()
     save_complexity_kink(combined, summary)
     save_heatmap(model_frames, per_model, summary)
     save_sankey(model_frames, summary)
 
     print("Wrote paper figures:")
-    for name in ["pipeline.png", "complexity_kink.png", "heatmap_E_per_model_kink.png", "sankey.png"]:
+    for name in [
+        "pipeline.png",
+        "tail_extension.png",
+        "pass_vs_output_cc.png",
+        "complexity_kink.png",
+        "heatmap_E_per_model_kink.png",
+        "sankey.png",
+    ]:
         path = PAPER_DIR / name
         print(f"  {path} ({path.stat().st_size:,} bytes)")
 

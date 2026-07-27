@@ -2,7 +2,37 @@
   "artifact_status": "post_submission_robustness",
   "submitted_baseline": {
     "n_prompts": 5000,
+    "sampling_frame": "Constructed benchmark balanced on a preliminary single-judge rubric score, then rescored for analysis by a four-judge ensemble",
+    "preliminary_sampling_score": "o4-mini using the same six-dimension rubric",
+    "preliminary_sampling_band_counts": {
+      "0-3": 834,
+      "4-6": 834,
+      "7-9": 833,
+      "10-12": 833,
+      "13-15": 833,
+      "16-24": 833
+    },
+    "analysis_index_band_convention": "[0,3], (3,6], (6,9], (9,12], (12,15], (15,24]",
+    "analysis_index_band_counts": {
+      "0-3": 319,
+      "4-6": 943,
+      "7-9": 940,
+      "10-12": 898,
+      "13-15": 1425,
+      "16-24": 475
+    },
+    "source_mix": {
+      "retained_earlier_prompts": 2246,
+      "new_stage_d_candidates": 2754
+    },
+    "source_prefix_scan_limit": 200000,
     "n_models": 21,
+    "post_hoc_excluded_model": {
+      "model": "AuroraGPT-IT-v4",
+      "earlier_panel_corrected_mean_pass_rate": 0.20582,
+      "missing_new_stage_d_prompts": 2754,
+      "reason_for_scope_note": "The run covered only the earlier prompt frame and was excluded before the final panel analysis in a post hoc decision without a prespecified eligibility rule. Performance was not a documented exclusion criterion, so reported claims are limited to the 21-model panel."
+    },
     "n_scored_generations": 105000,
     "composite_icc": 0.8719,
     "threshold": 13.75,
@@ -11,8 +41,15 @@
       14.0
     ],
     "sup_wald": 121.69946916445008,
-    "mean_pass_below": 0.7993088194636438,
-    "mean_pass_at_or_above": 0.8757222050063699
+    "mean_pass_at_or_below": 0.7993088194636438,
+    "mean_pass_above": 0.8757222050063699,
+    "resampling_confirmation": {
+      "wild_bootstrap_draws": 2000,
+      "wild_bootstrap_exceedances": 0,
+      "shuffled_index_placebo_draws": 2000,
+      "shuffled_index_placebo_exceedances": 0,
+      "finite_monte_carlo_upper_bound": 0.0004997501249375312
+    }
   },
   "overidentification": {
     "n": 5000,
@@ -21,8 +58,31 @@
     "j_per_observation": 0.08226482943851798,
     "subsample_draws_per_n": 200,
     "smallest_subsample_n": 250,
+    "mean_j_at_n_250": 25.458824281691967,
     "j_per_observation_at_n_250": 0.102,
     "rejection_share_at_n_250": 0.975,
+    "single_instrument_estimates": {
+      "branching": -0.0008330857847513832,
+      "iteration": -0.0003510362477060435,
+      "state": -0.0037810865265124317,
+      "data_structures": 0.002130486011120763,
+      "edge_cases": -0.0008405930644249926,
+      "composition": -0.004160729056655926
+    },
+    "principal_component_diagnostic": {
+      "all_six_pc_j_statistic": 411.3241471925899,
+      "all_overidentified_leading_pc_fits_reject": true,
+      "pc1_only_is_just_identified": true
+    },
+    "post_hoc_subset_example": {
+      "dimensions": [
+        "branching",
+        "edge_cases"
+      ],
+      "j_p_value": 0.9678643590421144,
+      "robust_first_stage_wald_chi2": 7570.326690419477,
+      "degrees_of_freedom": 2
+    },
     "interpretation": "The six-dimension composite is treated primarily as a prompt-side complexity index. Overidentified IV fits are limited diagnostics."
   },
   "task_type_controls": {
@@ -40,6 +100,13 @@
       "sup_wald": 19.55686173579877,
       "regime_gap_percentage_points": 2.1,
       "wild_bootstrap_p_lt": 0.01
+    },
+    "piecewise_predictive_fit": {
+      "task_type_only_r2": 0.08387346897992676,
+      "piecewise_composite_only_r2": 0.04537,
+      "task_type_plus_piecewise_composite_r2": 0.13640,
+      "incremental_r2_over_task_type": 0.05253,
+      "piecewise_threshold": 10.75
     },
     "large_task_types_tested_for_overidentification": 5,
     "large_task_types_rejecting": 4
@@ -67,19 +134,19 @@
         "welch_p": 0.73
       },
       "combined_threshold": 14.0,
-      "combined_pass_below": 0.783310829057521,
+      "combined_pass_at_or_below": 0.783310829057521,
       "combined_pass_above": 0.8585439229843562,
       "combined_bin_15_support": 878,
       "combined_bin_16_support": 417
     },
-    "exact_version_frontier": {
+    "fixed_version_three_model_check": {
       "models": [
         "Claude Opus 4.6",
         "GPT-5.4",
         "Gemini 3.1 Pro Preview"
       ],
-      "generation_successes_per_model": 801,
-      "generation_targets_per_model": 801,
+      "analysis_prompts_per_model": 515,
+      "analysis_frame": "150 midrange anchors plus 365 audit-clean extension prompts",
       "bin_15_pass_rates": [
         0.94,
         0.94,
@@ -101,6 +168,10 @@
       "human_llm_pearson": 0.41,
       "human_llm_spearman": 0.3728183100591818,
       "human_llm_icc_2_1": 0.395057734816509,
+      "per_dimension_pearson_range": [
+        0.24853901306809356,
+        0.4840395914242323
+      ],
       "weighted_kappa_range": [
         0.22,
         0.44
@@ -110,7 +181,9 @@
     "shared_50": {
       "first_grader_llm_pearson": 0.61,
       "second_grader_llm_pearson": 0.92,
-      "human_human_correlation": 0.56,
+      "human_human_pearson": 0.5611715224323337,
+      "human_human_spearman": 0.5441891416370532,
+      "human_human_icc_2_1": 0.5536523265413728,
       "second_grader_minus_llm_mean_offset": -1.35
     }
   },
@@ -122,7 +195,13 @@
     "mean_within_prompt_model_sd": 0.0641328451714896,
     "first_draw_vs_five_draw_mean_pearson": 0.9600741912467502,
     "first_draw_threshold": 14.25,
-    "five_draw_mean_threshold": 14.25
+    "five_draw_mean_threshold": 14.25,
+    "first_draw_sup_wald": 10.629045390244311,
+    "five_draw_mean_sup_wald": 11.417442590583093,
+    "first_draw_pass_at_or_below": 0.7878136200716847,
+    "first_draw_pass_above": 0.7546875,
+    "five_draw_pass_at_or_below": 0.7854659498207884,
+    "five_draw_pass_above": 0.7496875000000001
   },
   "paraphrase_stability": {
     "n_pairs": 150,
@@ -130,6 +209,7 @@
     "pearson": 0.9873327665170818,
     "spearman": 0.9626410188376949,
     "mean_composite_shift": -0.115,
+    "paired_p_value": 0.030672508428971176,
     "share_within_one_point": 0.9133333333333333,
     "share_within_two_points": 0.9933333333333333
   },
@@ -148,6 +228,9 @@
   },
   "reverse_threshold": {
     "n_scored_generations": 103948,
+    "n_missing_output_cyclomatic_complexity": 1052,
+    "n_zero_pass_complete_cases": 14776,
+    "n_zero_pass_missing_output_cyclomatic_complexity": 977,
     "prompt_composite_gt": 8.0,
     "output_cyclomatic_complexity_lte": 10.0,
     "shares": {
@@ -161,6 +244,29 @@
       "estimated_output_cyclomatic_complexity": 22.9
     }
   },
+  "output_cc_regression_diagnostics": {
+    "unit": "prompt-level means across model generations with computable output cyclomatic complexity",
+    "n_prompts": 5000,
+    "prompts_with_all_21_model_values": 4294,
+    "prompts_with_fewer_than_21_model_values": 706,
+    "direct_ols": {
+      "regressor": "mean generated-output cyclomatic complexity",
+      "coefficient": 0.0008673055488597129,
+      "hc1_standard_error": 0.00032833234287924466,
+      "p_value": 0.008252818240930394,
+      "r_squared": 0.0011863568669494562
+    },
+    "candidate_iv_2sls": {
+      "regressor": "mean generated-output cyclomatic complexity",
+      "coefficient": -0.00014284080295880387,
+      "robust_standard_error": 0.0003800078967830416,
+      "p_value": 0.7069993899274176,
+      "robust_first_stage_wald_chi2": 13611.32535412769,
+      "degrees_of_freedom": 6,
+      "partial_r_squared": 0.681
+    },
+    "interpretation": "The 2SLS coefficient is diagnostic only because the full instrument set fails overidentification."
+  },
   "mechanism_diagnostic": {
     "n_prompts": 404,
     "bins": [
@@ -169,12 +275,14 @@
     ],
     "external_library_coefficient": -0.045,
     "p_value": 0.67,
-    "interpretation": "The scoped diagnostic does not support the earlier library/framework explanation."
+    "interpretation": "The scoped diagnostic provides no support for a library/framework explanation, while other source-composition mechanisms remain possible."
   },
   "pooling_robustness": {
     "leave_one_model_out_fits": 21,
     "leave_one_model_out_threshold": 13.75,
     "median_pool_threshold": 10.75,
+    "median_pool_pass_at_or_below": 0.8392603660814344,
+    "median_pool_pass_above": 0.861773568661214,
     "models_with_upward_regime_change": 16,
     "models_with_downward_regime_change": 5
   }
