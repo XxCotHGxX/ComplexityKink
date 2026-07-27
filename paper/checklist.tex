@@ -5,7 +5,7 @@
 \item {\bf Claims}
     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The abstract and Introduction state the central claim: prompt-side complexity measurement prevents output-side failures from being reclassified as easy cases and enables a threshold analysis of code-generation reliability. The stated claims are tied to the 5,000-prompt, 21-model experiment, and the limitations section explicitly bounds generalization.
+    \item[] Justification: The abstract and Introduction present the work as prompt-side measurement and observational breakpoint analysis, not causal identification. Claims are scoped to the 5,000-prompt selection-stratified benchmark and reported 21-model panel, with task-type, pooling, human-calibration, model-exclusion, and extreme-tail limitations stated directly.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the abstract and introduction do not include the claims made in the paper.
@@ -17,7 +17,7 @@
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper contains a dedicated Limitations section covering scorer dependence, sparse high-complexity support, Python-only scope, the untestability of the exclusion restriction, and pending human calibration.
+    \item[] Justification: The paper contains a dedicated Limitations section covering the constructed sampling frame, scorer and human-rater disagreement, task composition, pooling sensitivity, sparse support above bin 16, Python-only execution, failed IV restrictions, post hoc robustness checks, and cross-sectional scope.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper.
@@ -31,7 +31,7 @@
 \item {\bf Theory assumptions and proofs}
     \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof?
     \item[] Answer: \answerNA{}
-    \item[] Justification: The paper uses standard IV and threshold estimators but does not introduce new theorems or proofs. The identifying assumptions for the empirical IV design are stated in the Background, Methodology, Discussion, and Limitations sections.
+    \item[] Justification: The paper uses standard breakpoint and IV diagnostic estimators but does not introduce new theorems or proofs. The candidate IV restrictions reject, and the manuscript explicitly makes no causal interpretation.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include theoretical results.
@@ -45,7 +45,7 @@
 \item {\bf Experimental result reproducibility}
     \item[] Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The Methodology section specifies the prompt source, stratification, scoring rubric, judge ensemble, evaluated panel, unit-test outcome definition, Lizard output-complexity measurement, IV specification, threshold search, and placebo test. The appendix describes the anonymized supplementary artifact containing data, metadata, scores, and scripts needed to reproduce the reported analyses.
+    \item[] Justification: The Methodology distinguishes the preliminary single-rater sampling score from the four-judge analysis index and specifies the source scan, candidate pooling, exact sampling bands, scoring rubric, evaluated panel, unit-test outcome, Lizard complete-case definition, breakpoint search, task controls, diagnostic IV specification, and robustness designs. The appendix describes the anonymous source artifact and aggregate source tables for the new figures.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
@@ -57,8 +57,8 @@
 
 \item {\bf Open access to data and code}
     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
-    \item[] Answer: \answerYes{}
-    \item[] Justification: For double-blind review, an anonymized OpenReview supplementary artifact is provided with prompts, scores, generation metadata, unit-test outcomes, Lizard outputs, analysis scripts, and Croissant metadata. The appendix states that persistent public hosting will be completed for the camera-ready release if accepted.
+    \item[] Answer: \answerNo{}
+    \item[] Justification: The anonymous source artifact provides analysis code, locked summary outputs, robustness summaries, and aggregate figure inputs. Large prompt and generated-output bundles are not committed in the Git snapshot, so a full inference and execution rerun also requires the separately retained data bundle and provider access.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments requiring code.
@@ -70,7 +70,7 @@
 \item {\bf Experimental setting/details}
     \item[] Question: Does the paper specify all the training and test details (e.g., data splits, hyperparameters, how they were chosen, type of optimizer) necessary to understand the results?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper does not train a new model, but it specifies the prompt sampling design, judge scoring protocol, model panel, one-generation-per-prompt setting, unit-test execution outcome, Lizard measurement, and econometric estimators. Additional version and execution details are provided in the supplementary artifact described in the appendix.
+    \item[] Justification: The paper does not train a new model. It specifies the preliminary-score sampling design, four-judge analysis index, model panel, primary one-generation setting, repeated-sampling subset and temperature, audit-clean extension, unit-test execution, Lizard measurement, and statistical estimators. Additional version and execution details are in the artifact.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
@@ -81,7 +81,7 @@
 \item {\bf Experiment statistical significance}
     \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The Results section reports robust standard errors, p-values, bootstrap confidence intervals, Hansen sup-Wald tests, placebo tests, and per-model significance checks. Figure captions identify confidence intervals where shown.
+    \item[] Justification: The Results and appendix report pairs-bootstrap intervals, sup-Wald statistics, bootstrap and placebo exceedance counts with finite Monte Carlo corrections, Welch tests, task-type sensitivity, and prompt-level normal-approximation intervals for the tail extension. The output-CC caption labels its band as descriptive generation-row uncertainty and states that it does not adjust for repeated prompts or models.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
@@ -92,8 +92,8 @@
 
 \item {\bf Experiments compute resources}
     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources (type of compute workers, memory, time of execution) needed to reproduce the experiments?
-    \item[] Answer: \answerYes{}
-    \item[] Justification: The appendix summarizes the compute profile: rubric and panel inference through serverless/API endpoints or one-model-at-a-time A100-class GPU workers, with CPU execution for tests, Lizard scoring, and econometric analysis. The supplementary artifact records model/provider metadata and documents excluded or failed exploratory runs separately from the final panel.
+    \item[] Answer: \answerNo{}
+    \item[] Justification: The appendix identifies serverless/API inference, one-model-at-a-time A100-class GPU workers, and CPU execution for tests, Lizard scoring, and analysis. Exact worker memory, wall times, per-run compute, and total compute were not logged consistently across providers, so the disclosure is incomplete.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
@@ -105,7 +105,7 @@
 \item {\bf Code of ethics}
     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The work evaluates code-generation reliability using programming prompts and generated code, and does not collect personal data, deploy a model, or target protected populations. The paper discusses limitations, reproducibility, artifact access, and responsible release considerations.
+    \item[] Justification: The work evaluates code-generation reliability using programming prompts and generated code, does not collect personal data or target protected populations, and does not deploy a model. Two research-team members supplied blind rubric ratings as methodological calibration. The paper reports limitations, artifact access, and execution safeguards.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics.
@@ -116,7 +116,7 @@
 \item {\bf Broader impacts}
     \item[] Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The Introduction, Discussion, Limitations, and Conclusion discuss positive uses for model selection, benchmark design, and deployment guardrails, as well as risks from overgeneralization, scorer bias, and false confidence in complex code-generation settings.
+    \item[] Justification: The Introduction, Discussion, Limitations, and Conclusion discuss the value of pre-generation diagnostics and the risks of treating an observational breakpoint as a universal cutoff, causal effect, or deployment rule. Scorer bias, human disagreement, and sparse-tail uncertainty are explicit.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that there is no societal impact of the work performed.
@@ -139,7 +139,7 @@
 \item {\bf Licenses for existing assets}
     \item[] Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper cites OpenCodeInstruct, Lizard, linearmodels, and the evaluated model families where used. The appendix states that the supplementary artifact records dependency versions and license information and separates existing assets from derived benchmark outputs.
+    \item[] Justification: The paper cites OpenCodeInstruct, Lizard, linearmodels, and the evaluated model families where used. The appendix names CC BY 4.0 for OpenCodeInstruct, the MIT License for Lizard 1.21.0, and the NCSA License for linearmodels 7.0.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not use existing assets.
@@ -152,7 +152,7 @@
 \item {\bf New assets}
     \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The new assets are the locked benchmark subset metadata, rubric scores, model generation metadata, unit-test outcomes, Lizard measurements, and analysis scripts. The appendix states that these are documented in the anonymized supplementary artifact with Croissant metadata, and that persistent public hosting will accompany the camera-ready release if accepted.
+    \item[] Justification: The new public source assets are analysis scripts, locked result summaries, robustness summaries, and documented aggregate figure inputs. The appendix states that large prompt and generated-output bundles are not part of the Git snapshot.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not release new assets.
@@ -164,7 +164,7 @@
 \item {\bf Crowdsourcing and research with human subjects}
     \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)?
     \item[] Answer: \answerNA{}
-    \item[] Justification: The paper does not involve crowdsourcing or human-subject data collection. The scoring judges are LLM systems, and informal manuscript feedback is not a human-subject experiment.
+    \item[] Justification: No external participants or crowd workers were recruited. Two members of the research team produced blind rubric ratings as part of conducting the study; no personal or sensitive data were collected, and no participant compensation applied.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
@@ -175,7 +175,7 @@
 \item {\bf Institutional review board (IRB) approvals or equivalent for research with human subjects}
     \item[] Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained?
     \item[] Answer: \answerNA{}
-    \item[] Justification: No human-subject research or crowdsourcing experiment is conducted, so IRB or equivalent review is not applicable.
+    \item[] Justification: No external human subjects or crowd workers were recruited. The only human ratings were research annotations produced by two members of the research team, with no personal or sensitive data collected.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
@@ -187,7 +187,7 @@
 \item {\bf Declaration of LLM usage}
     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does not impact the core methodology, scientific rigor, or originality of the research, declaration is not required.
     \item[] Answer: \answerYes{}
-    \item[] Justification: LLM usage is central to the paper: out-of-panel LLMs score prompts with the rubric, and a 21-model LLM panel is evaluated for code-generation reliability. The appendix also declares LLM-assisted drafting and editing under author supervision.
+    \item[] Justification: LLM usage is central: out-of-panel LLMs score prompts, a 21-model panel is evaluated, and LLMs support paraphrase and task-label robustness checks. The appendix also declares LLM-assisted drafting and editing under author supervision.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the core method development in this research does not involve LLMs as any important, original, or non-standard components.

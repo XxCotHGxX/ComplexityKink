@@ -8,9 +8,8 @@ Faculty advisor and review-period collaborator: Tian Zhao,
 University of Wisconsin-Milwaukee
 
 This is Michael's named public research copy. The manuscript source remains
-anonymous because it preserves the version submitted for double-blind review.
-The reviewer-facing artifact should use its separate anonymous URL, not this
-GitHub repository.
+anonymous because it is the active double-blind revision. The reviewer-facing
+artifact should use its separate anonymous URL, not this GitHub repository.
 
 ## What this project studies
 
@@ -29,26 +28,26 @@ generation. Each prompt is scored on six fixed dimensions:
 - edge cases
 - algorithmic composition
 
-Four out-of-panel LLM judges score the 5,000-prompt benchmark. The resulting
-prompt-side composite is compared with unit-test pass rate across 21 evaluated
-models.
+The prompt set was stratified across six bands of a preliminary single-rater
+rubric score, then locked and rescored by four out-of-panel LLM judges. The
+four-judge stage yields 19,997 score rows: 4,998 prompts have four ratings, one
+has three, and one has two. All reported analyses use the ensemble composite,
+which is compared with unit-test pass rate across 21 evaluated models.
 
 ## Artifact status
 
-This snapshot separates the submitted analysis from the checks added during
-review:
+This snapshot contains the current manuscript revision and distinguishes
+the locked submitted results from the checks added during review:
 
-- `paper/Scratch-NeurIps.tex` is the anonymous submitted manuscript source. It
-  is preserved as a submission snapshot rather than silently rewritten.
+- `paper/Scratch-NeurIps.tex` is the anonymous revised manuscript source.
 - `results/analysis_summary.json` and
   `results/per_model_bootstrap_summary.{csv,json}` contain the locked Stage D
   analysis used for the submitted results.
 - `docs/robustness_results.md` and `results/robustness_summary.json` record the
-  post-submission checks requested during review.
+  additional robustness checks.
 
 The old Stage C result JSON, duplicate Stage C manuscript, and stale derived
-figures were removed from this snapshot. They remain recoverable from Git
-history.
+figures were removed from this snapshot.
 
 ## Submitted result
 
@@ -62,14 +61,14 @@ history.
 | Combined threshold | $\hat{\gamma}=13.75$ |
 | 95% bootstrap interval | $[7.75,14.0]$ |
 | Sup-Wald statistic | 121.70 |
-| Placebo p-value | $p<0.001$ |
-| Mean pass rate below threshold | 79.9% |
-| Mean pass rate at or above threshold | 87.6% |
+| Wild bootstrap and placebo | 0 of 2,000 exceedances each; $p_{\mathrm{MC}}<0.001$ |
+| Mean pass rate at or below threshold | 79.9% |
+| Mean pass rate above threshold | 87.6% |
 
-The stable finding is a strong nonlinear regime change, not a universal
-"harder means worse" collapse. Pass rates fall through a mid-complexity region
-and rebound in the better-supported part of the high-complexity region. The
-direction and size of the change vary across models and task types.
+The unadjusted mean-pooled curve is nonlinear, not a universal "harder means
+worse" collapse. Pass rates fall through a mid-complexity region and rebound in
+the better-supported part of the high region. The location, direction, and size
+of the fitted change vary across task controls, pooling choices, and models.
 
 ## What changed after review
 
@@ -95,11 +94,12 @@ The additional checks make the interpretation narrower and more useful:
   0.41 and ICC(2,1) is 0.40. On the 50-prompt overlap, the two human graders
   correlate at 0.56.
 - A five-draw check on 359 prompts gives single-draw versus five-draw
-  correlation $r=0.960$, with the same estimated threshold of 14.25.
+  correlation $r=0.960$, with the same estimated threshold of 14.25. This is a
+  part-whole comparison because the first draw contributes to the mean.
 - Prompt paraphrases preserve the ordering well
   (Spearman $\rho=0.963$, 91% within one composite point).
-- Java and C++ ports preserve the prompt-side score ordering
-  ($r=0.992$ and $r=0.969$).
+- Java and C++ prompt re-expressions preserve the prompt-side score ordering
+  ($r=0.992$ and $r=0.969$); generation and execution remain Python-only.
 
 Full definitions, sample sizes, and limitations are in
 `docs/robustness_results.md`.
@@ -122,9 +122,14 @@ Full definitions, sample sizes, and limitations are in
 |   `-- *.png
 |-- results/
 |   |-- analysis_summary.json
+|   |-- pass_vs_output_cc.csv
 |   |-- per_model_bootstrap_summary.csv
 |   |-- per_model_bootstrap_summary.json
-|   `-- robustness_summary.json
+|   |-- reverse_threshold_zero_pass_cells.csv
+|   |-- robustness_summary.json
+|   |-- tail_extension_curve.csv
+|   |-- tail_extension_replication.csv
+|   `-- tail_extension_source_split.csv
 |-- scripts/
 `-- src/
 ```
@@ -185,6 +190,15 @@ map.
 
 The four rubric judges are excluded from the evaluated model panel.
 
+One additional locally served, quantized AuroraGPT-IT-v4 run covered only the
+earlier prompt frame and was not generated for the 2,754 newly added prompts.
+It was excluded before the final panel analysis in a post hoc decision without
+a prespecified eligibility rule. Its pass rate on the earlier frame was 20.6%,
+and performance was not a documented exclusion criterion. All claims are
+limited to the reported 21-model panel.
+
 ## License
 
-MIT License. See `LICENSE`.
+Repository code is under the MIT License. See `LICENSE`. OpenCodeInstruct is
+used under CC BY 4.0, Lizard under the MIT License, and linearmodels under the
+NCSA License.
