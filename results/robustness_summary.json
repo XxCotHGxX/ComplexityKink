@@ -1,5 +1,10 @@
 {
   "artifact_status": "post_submission_robustness",
+  "display_bin_convention": {
+    "rule": "Display bin b contains composite values in [b-0.5,b+0.5); exact half-point boundaries enter the higher bin.",
+    "implementation": "floor(composite + 0.5)",
+    "scope": "Descriptive integer-bin figures and summaries only. Threshold inference uses the continuous unbinned composite."
+  },
   "submitted_baseline": {
     "n_prompts": 5000,
     "sampling_frame": "Constructed benchmark balanced on a preliminary single-judge rubric score, then rescored for analysis by a four-judge ensemble",
@@ -111,33 +116,81 @@
     "large_task_types_tested_for_overidentification": 5,
     "large_task_types_rejecting": 4
   },
+  "source_frame_sensitivity": {
+    "status": "post_hoc",
+    "mapping_field": "selection_source",
+    "retained_earlier_frame": {
+      "n_prompts": 2246,
+      "mean_composite": 7.922232116355002,
+      "mean_pass_rate": 0.7472480176398253,
+      "threshold": 7.75,
+      "sup_wald": 3.4292172604240885,
+      "wild_bootstrap_p_finite_mc": 0.19269102990033224,
+      "mean_pass_at_or_below": 0.8245555141116498,
+      "mean_pass_above": 0.6662759907974128,
+      "linear_bic": 1215.9903971581925,
+      "piecewise_bic": 1224.5640261769106
+    },
+    "later_candidate_frame": {
+      "n_prompts": 2754,
+      "mean_composite": 11.41884531590414,
+      "mean_pass_rate": 0.8801397102050696,
+      "threshold": 14.25,
+      "sup_wald": 36.714745015196826,
+      "wild_bootstrap_p_finite_mc": 0.0033222591362126247,
+      "mean_pass_at_or_below": 0.8766457862072967,
+      "mean_pass_above": 0.8852989037341555,
+      "linear_bic": -617.8275200735225,
+      "piecewise_bic": -674.557561575014
+    },
+    "source_controlled_threshold": {
+      "threshold": 8.5,
+      "sup_wald": 47.37329466658257,
+      "wild_bootstrap_p_finite_mc": 0.0033222591362126247,
+      "mean_pass_at_or_below": 0.8408146873207114,
+      "mean_pass_above": 0.805994301994302,
+      "raw_regime_gap_percentage_points": -3.482038532640941
+    },
+    "fit_comparison": {
+      "source_specific_linear_slopes_r2": 0.09910277071421592,
+      "source_specific_linear_slopes_bic": 963.2108777331622,
+      "source_controlled_breakpoint_r2": 0.09970274886550035,
+      "source_controlled_breakpoint_bic": 976.9142624945893
+    },
+    "pooled_threshold_source_mix": {
+      "threshold": 13.75,
+      "later_candidate_share_at_or_below": 0.39922587779928115,
+      "later_candidate_share_above": 0.9472161966738973
+    },
+    "interpretation": "The pooled trough and rebound are descriptive features of the constructed benchmark. Neither source frame reproduces the pooled +7.6-point regime gap, so the large upward change is treated as source-composition-sensitive rather than an intrinsic complexity effect."
+  },
   "high_complexity_extension": {
     "n_audit_clean_prompts": 365,
     "all_reference_solutions_pass_all_tests": true,
     "bin_counts": {
       "15": 218,
-      "16": 140,
-      "17": 4,
+      "16": 133,
+      "17": 11,
       "18": 3
     },
     "matched_five_model": {
       "bin_15": {
-        "extension_pass_rate": 0.88,
-        "original_pass_rate": 0.89,
-        "difference": -0.01,
-        "welch_p": 0.53
+        "extension_pass_rate": 0.880183486238532,
+        "original_pass_rate": 0.8940941176470588,
+        "difference": -0.0139106314085268,
+        "welch_p": 0.3774414492862219
       },
       "bin_16": {
-        "extension_pass_rate": 0.8,
-        "original_pass_rate": 0.81,
-        "difference": -0.01,
-        "welch_p": 0.73
+        "extension_pass_rate": 0.7990977443609023,
+        "original_pass_rate": 0.8084824902723735,
+        "difference": -0.0093847459114712,
+        "welch_p": 0.7648572756022299
       },
       "combined_threshold": 14.0,
       "combined_pass_at_or_below": 0.783310829057521,
       "combined_pass_above": 0.8585439229843562,
-      "combined_bin_15_support": 878,
-      "combined_bin_16_support": 417
+      "combined_bin_15_support": 1068,
+      "combined_bin_16_support": 390
     },
     "fixed_version_three_model_check": {
       "models": [
@@ -147,18 +200,24 @@
       ],
       "analysis_prompts_per_model": 515,
       "analysis_frame": "150 midrange anchors plus 365 audit-clean extension prompts",
+      "display_bin_counts": {
+        "15": 228,
+        "16": 133,
+        "17": 11,
+        "18": 3
+      },
       "bin_15_pass_rates": [
-        0.94,
-        0.94,
-        0.94
+        0.9407894736842105,
+        0.9403508771929824,
+        0.9359649122807017
       ],
       "bin_16_pass_rates": [
-        0.88,
-        0.85,
-        0.85
+        0.8714285714285714,
+        0.850375939849624,
+        0.8451127819548871
       ]
     },
-    "limitation": "Only seven audit-clean additions are above bin 16, so the extreme tail remains underpowered."
+    "limitation": "Only 14 audit-clean additions are above display bin 16, so the extreme tail remains underpowered."
   },
   "human_calibration": {
     "first_grader_n": 200,
@@ -268,13 +327,13 @@
     "interpretation": "The 2SLS coefficient is diagnostic only because the full instrument set fails overidentification."
   },
   "mechanism_diagnostic": {
-    "n_prompts": 404,
+    "n_prompts": 459,
     "bins": [
       13,
       17
     ],
-    "external_library_coefficient": -0.045,
-    "p_value": 0.67,
+    "external_library_coefficient": -0.0501,
+    "p_value": 0.6083,
     "interpretation": "The scoped diagnostic provides no support for a library/framework explanation, while other source-composition mechanisms remain possible."
   },
   "pooling_robustness": {

@@ -26,6 +26,10 @@ then rises in the better-supported part of the high-complexity region. That
 shape is not a universal failure threshold, and the direction varies across
 models.
 
+All descriptive integer-bin summaries place scores in display bin $b$ when
+$C_i\in[b-0.5,b+0.5)$, with exact half-point boundaries assigned to the higher
+bin. Breakpoint estimation uses the continuous, unbinned composite.
+
 The reported panel contains 21 models. A locally served, quantized
 AuroraGPT-IT-v4 run covered only the earlier prompt frame and therefore lacks
 outputs for the 2,754 newly added prompts. It was excluded before the final
@@ -76,7 +80,47 @@ $R^2=0.053$ beyond task-type effects. Overidentification still rejects within
 four of the five task types large enough to test, so the instrument disagreement
 is not localized to one task category.
 
-## 4. Clean high-complexity extension
+## 4. Construction-frame sensitivity
+
+The benchmark combines 2,246 prompts retained from an earlier construction
+frame with 2,754 later candidates. All 5,000 prompt IDs map to this recorded
+source indicator. The frames differ sharply:
+
+| Frame | Prompts | Mean composite | Mean pass rate |
+| :-- | --: | --: | --: |
+| Retained earlier | 2,246 | 7.922 | 0.747 |
+| Later candidate | 2,754 | 11.419 | 0.880 |
+
+Adding the construction-frame indicator to the pooled and split regressions
+changes the selected threshold from 13.75 to 8.50. Sup-Wald is 47.37, and the
+raw regime means at that selected split are 0.841 below versus 0.806 above, a
+-3.48-point gap. None of 300 wild-bootstrap draws reaches the observed
+statistic, giving $p_{\mathrm{MC}}\leq1/301$.
+
+Separate unbinned searches do not reproduce the pooled +7.6-point increase:
+
+| Frame | Threshold | Sup-Wald | Bootstrap $p_{\mathrm{MC}}$ | Raw gap |
+| :-- | --: | --: | --: | --: |
+| Retained earlier | 7.75 | 3.43 | 0.193 | -15.83 points |
+| Later candidate | 14.25 | 36.71 | $\leq1/301$ | +0.87 points |
+
+For the earlier frame, linear BIC is 1,216.0 versus 1,224.6 for piecewise. For
+the later frame, piecewise BIC is -674.6 versus -617.8 for linear. A model with
+frame-specific linear slopes also has lower BIC than the source-controlled
+breakpoint fit, 963.2 versus 976.9, with nearly the same $R^2$, 0.0991 versus
+0.0997.
+
+At the pooled threshold of 13.75, later candidates are 39.9% of the lower
+regime but 94.7% of the upper regime. The large pooled rebound is therefore
+best treated as a source-composition-sensitive feature of this constructed
+benchmark, not an intrinsic effect of prompt complexity. A smaller nonlinear
+pattern remains in the later frame.
+
+The deterministic analysis is in
+`scripts/analyze_source_frame_sensitivity.py`, with locked output in
+`results/source_frame_sensitivity.json`.
+
+## 5. Clean high-complexity extension
 
 The extension was selected from prompt-side scores, then passed through a full
 contract audit and reference-execution gate. Every retained reference solution
@@ -84,11 +128,11 @@ passes every test.
 
 The final extension contains 365 prompts:
 
-| Rounded composite bin | Added prompts |
+| Display bin | Added prompts |
 | --: | --: |
 | 15 | 218 |
-| 16 | 140 |
-| 17 | 4 |
+| 16 | 133 |
+| 17 | 11 |
 | 18 | 3 |
 
 At the well-supported bins, matched-five-model pass rates are similar to the
@@ -96,20 +140,21 @@ original panel:
 
 | Bin | Extension | Original matched panel | Difference | Welch p-value |
 | --: | --: | --: | --: | --: |
-| 15 | 0.88 | 0.89 | -0.010 | 0.53 |
-| 16 | 0.80 | 0.81 | -0.010 | 0.73 |
+| 15 | 0.880 | 0.894 | -0.014 | 0.377 |
+| 16 | 0.799 | 0.808 | -0.009 | 0.765 |
 
 Combining the extension with the original matched frame gives
 $\hat{\gamma}=14.0$, with pass rate 0.783 at or below and 0.859 above. Support
-at bins 15 and 16 rises to 878 and 417 prompts.
+at bins 15 and 16 rises to 1,068 and 390 prompts.
 
 On the retained 515-prompt analysis frame, Claude Opus 4.6, GPT-5.4, and Gemini
-3.1 Pro Preview all score about 0.94 at bin 15 and 0.85 to 0.88 at bin 16.
+3.1 Pro Preview score 0.941, 0.940, and 0.936 at bin 15 and 0.871, 0.850, and
+0.845 at bin 16.
 
-Only seven audit-clean additions lie above bin 16. The extension supports the
+Only 14 audit-clean additions lie above bin 16. The extension supports the
 high-regime pattern through bin 16, but the extreme tail remains unresolved.
 
-## 5. Human calibration
+## 6. Human calibration
 
 Michael Hernandez and Tian Zhao graded prompts with the LLM scores hidden.
 Michael scored 200 prompts. Tian scored a 50-prompt overlap. Half of the
@@ -134,7 +179,7 @@ On the shared 50 prompts:
 The rubric carries signal, but neither a single human nor an LLM ensemble
 should be treated as ground truth.
 
-## 6. Repeated sampling
+## 7. Repeated sampling
 
 The pass@k check uses 359 prompts, four models, and five generations per
 prompt-model pair, for 7,180 executed generations.
@@ -147,7 +192,7 @@ prompt-model pair, for 7,180 executed generations.
 This is a part-whole comparison, but it shows that the estimated threshold is
 not being set by a single unusual completion in this sample.
 
-## 7. Wording sensitivity
+## 8. Wording sensitivity
 
 We rewrote 150 threshold-region prompts in plainer language while preserving
 their requirements. Median paraphrase length is 46% of the original.
@@ -160,7 +205,7 @@ their requirements. Median paraphrase length is 46% of the original.
 
 The score ordering is stable under a large reduction in wording and verbosity.
 
-## 8. Language transfer
+## 9. Language transfer
 
 We re-expressed 117 prompts in Java and 117 in C++, then rescored intended
 structure. This checks measurement transfer, not full execution-based
@@ -174,7 +219,7 @@ reliability in the other languages.
 
 A full generation and execution rerun outside Python remains future work.
 
-## 9. Output-side complexity
+## 10. Output-side complexity
 
 Generated-output cyclomatic complexity is computed with Lizard on cleaned model
 output. It is not dataset metadata, a post-generation rubric score, or reference
@@ -189,12 +234,13 @@ $\hat{\gamma}=13.75$ at generated-output cyclomatic complexity about 22.9. That
 mapping is descriptive. It is deliberately estimated outside the failure region
 where output complexity is most contaminated.
 
-## 10. Mechanism and model dependence
+## 11. Mechanism and model dependence
 
-A 404-prompt diagnostic at bins 13 and 17 provides no support for a
+A 459-prompt diagnostic at display bins 13 and 17 provides no support for a
 library/framework explanation. After controlling for ordinary prompt features,
-the external-library tag has coefficient -0.045 with $p=0.67$. Other
-source-composition mechanisms remain possible.
+the external-library tag has coefficient -0.050 with $p=0.61$. The broader
+construction-frame analysis above shows material source-composition
+sensitivity, but this narrower library tag does not explain it.
 
 Leave-one-model-out threshold estimation returns 13.75 in all 21 fits. Median
 pooling still favors the piecewise model, but moves the threshold to 10.75 and

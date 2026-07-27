@@ -67,8 +67,9 @@ figures were removed from this snapshot.
 
 The unadjusted mean-pooled curve is nonlinear, not a universal "harder means
 worse" collapse. Pass rates fall through a mid-complexity region and rebound in
-the better-supported part of the high region. The location, direction, and size
-of the fitted change vary across task controls, pooling choices, and models.
+the better-supported part of the high region. This is a descriptive feature of
+the constructed benchmark. Its location, direction, and size vary across
+construction frames, task controls, pooling choices, and models.
 
 ## What changed after review
 
@@ -83,12 +84,18 @@ The additional checks make the interpretation narrower and more useful:
   the regime gap from 7.6 to 2.1 percentage points, while the break remains
   significant. Task composition explains a substantial part of the pooled
   shape, but not all of it.
+- Construction-frame sensitivity is more consequential. Adding an indicator
+  for the 2,246 retained earlier prompts versus 2,754 later candidates moves the
+  selected threshold to 8.50 and the raw regime gap to -3.48 points. The earlier
+  frame has no significant breakpoint. The later frame selects 14.25, but its
+  raw gap is only +0.87 points. Neither frame reproduces the pooled +7.6-point
+  increase, so we treat the large rebound as source-composition-sensitive.
 - A contract-audited extension adds 365 prompt-side-selected prompts, with
-  218/140/4/3 prompts in bins 15/16/17/18. At bins 15 and 16, matched-five-model
-  pass rates are 0.88 and 0.80, compared with 0.89 and 0.81 in the original
-  panel. The differences are both -0.010 and are not significant
-  ($p=0.53$ and $p=0.73$). Evidence above bin 16 remains too sparse for a strong
-  endpoint claim.
+  218/133/11/3 prompts in display bins 15/16/17/18. At bins 15 and 16,
+  matched-five-model pass rates are 0.880 and 0.799, compared with 0.894 and
+  0.808 in the original panel. The differences are -0.014 and -0.009 and are
+  not significant ($p=0.377$ and $p=0.765$). Evidence above bin 16 remains too
+  sparse for a strong endpoint claim.
 - Human calibration shows meaningful signal and meaningful disagreement. On a
   deliberately difficult 200-prompt sample, human-LLM Pearson correlation is
   0.41 and ICC(2,1) is 0.40. On the 50-prompt overlap, the two human graders
@@ -122,12 +129,15 @@ Full definitions, sample sizes, and limitations are in
 |   `-- *.png
 |-- results/
 |   |-- analysis_summary.json
+|   |-- mechanism_diagnostic.json
 |   |-- pass_vs_output_cc.csv
 |   |-- per_model_bootstrap_summary.csv
 |   |-- per_model_bootstrap_summary.json
 |   |-- reverse_threshold_zero_pass_cells.csv
 |   |-- robustness_summary.json
+|   |-- source_frame_sensitivity.json
 |   |-- tail_extension_curve.csv
+|   |-- tail_extension_fixed_version.csv
 |   |-- tail_extension_replication.csv
 |   `-- tail_extension_source_split.csv
 |-- scripts/
@@ -136,6 +146,11 @@ Full definitions, sample sizes, and limitations are in
 
 Large prompt bundles, generated model outputs, provider request logs, API keys,
 and local cloud-resource configurations are not committed here.
+
+Descriptive integer bins use one explicit convention throughout: display bin
+$b$ contains composite values in $[b-0.5,b+0.5)$, so exact half-point
+boundaries enter the higher bin. The inferential threshold searches use the
+continuous, unbinned composite.
 
 ## Quick analysis check
 

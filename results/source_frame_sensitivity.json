@@ -1,0 +1,309 @@
+{
+  "fit_comparisons": {
+    "common_source_fe_piecewise": {
+      "adjusted_r2": 0.09353449795910307,
+      "aic": 965.9486288064818,
+      "bic": 998.534594763563,
+      "n_parameters": 5,
+      "r2": 0.09425981542422868,
+      "rss": 354.4282227177072,
+      "threshold": 14.0
+    },
+    "composite_only_linear": {
+      "adjusted_r2": 0.0006237659318645283,
+      "aic": 1450.842456226921,
+      "bic": 1463.8768426097536,
+      "n_parameters": 2,
+      "r2": 0.0008236811617240436,
+      "rss": 390.9910291032752
+    },
+    "source_only": {
+      "adjusted_r2": 0.055641998294909234,
+      "aic": 1167.7125308246232,
+      "bic": 1180.7469172074557,
+      "n_parameters": 2,
+      "r2": 0.05583090767712662,
+      "rss": 369.4659672119161
+    },
+    "source_plus_composite_linear": {
+      "adjusted_r2": 0.07371138619484863,
+      "aic": 1072.1146841366972,
+      "bic": 1091.666263710946,
+      "n_parameters": 3,
+      "r2": 0.07408197575828324,
+      "rss": 362.3240806832379
+    },
+    "source_specific_linear_plus_piecewise": {
+      "adjusted_r2": 0.1094146417624634,
+      "aic": 878.5774234008513,
+      "bic": 917.6805825493487,
+      "n_parameters": 6,
+      "r2": 0.11030540527340305,
+      "rss": 348.14936925669633,
+      "threshold": 14.25
+    },
+    "source_specific_linear_slopes": {
+      "adjusted_r2": 0.09856179959975297,
+      "aic": 937.1421049674973,
+      "bic": 963.2108777331622,
+      "n_parameters": 4,
+      "r2": 0.09910277071421592,
+      "rss": 352.53310967606217
+    },
+    "task_style_source_controlled_split": {
+      "adjusted_r2": 0.09880136995967892,
+      "aic": 937.8111033460918,
+      "bic": 976.9142624945893,
+      "n_parameters": 6,
+      "r2": 0.09970274886550035,
+      "rss": 352.2983302178351,
+      "threshold": 8.5
+    },
+    "unadjusted_piecewise": {
+      "adjusted_r2": 0.04666881131490008,
+      "aic": 1216.9964909041591,
+      "bic": 1243.0652636698242,
+      "n_parameters": 4,
+      "r2": 0.04724092445073824,
+      "rss": 372.82734229491496,
+      "threshold": 13.75
+    }
+  },
+  "inputs": {
+    "join_key": "prompt_id",
+    "prompt_metadata": "data/stage_d/stage_d_prompts.jsonl",
+    "rubric": "data/stage_d/ensemble_scores_current_aggregated.jsonl",
+    "scored_models": "data/stage_d/scored_combined/*.jsonl",
+    "source_mapping_field": "selection_source"
+  },
+  "interpretive_checks": {
+    "later_frame_raw_regime_gap": 0.008653117526858822,
+    "retained_frame_breakpoint_bootstrap_p_finite_mc": 0.19269102990033224,
+    "source_specific_linear_r2_minus_source_linear_r2": 0.02502079495593268,
+    "task_style_split_r2_minus_source_specific_linear_r2": 0.0005999781512844304
+  },
+  "method": {
+    "bootstrap_draws": 300,
+    "bootstrap_seed": 42,
+    "minimum_regime_size": 500,
+    "regime_means": "Reported regime means are raw summaries at each selected threshold, matching the manuscript's task-type sensitivity.",
+    "source_controlled_search": "Matches src/rebuttal/09_threshold_with_task_type.py: the pooled null and both regime regressions include the composite and source-frame dummy. The split alternative therefore permits the source coefficient to differ by regime."
+  },
+  "original_13_75_decomposition": {
+    "overall_source_weights": {
+      "later_candidate_frame": 0.5508,
+      "retained_earlier_frame": 0.4492
+    },
+    "raw": {
+      "gap_above_minus_at_or_below": 0.07641338554272603,
+      "later_candidate_share_above": 0.9472161966738973,
+      "later_candidate_share_at_or_below": 0.39922587779928115,
+      "mean_pass_above": 0.8757222050063699,
+      "mean_pass_at_or_below": 0.7993088194636438,
+      "n_above": 1383,
+      "n_at_or_below": 3617
+    },
+    "source_standardized_to_overall_weights": {
+      "caution": "The retained-earlier frame has limited support above 13.75, so this standardization is an overlap diagnostic rather than a population estimate.",
+      "gap_above_minus_at_or_below": -0.020022771049568622,
+      "mean_pass_above": 0.7983320310123838,
+      "mean_pass_at_or_below": 0.8183548020619524
+    },
+    "threshold": 13.75,
+    "within_source_cells": {
+      "later_candidate_frame": {
+        "above": {
+          "mean_pass": 0.886026899309342,
+          "n": 1310
+        },
+        "at_or_below": {
+          "mean_pass": 0.8747988392032714,
+          "n": 1444
+        }
+      },
+      "retained_earlier_frame": {
+        "above": {
+          "mean_pass": 0.6908023483365948,
+          "n": 73
+        },
+        "at_or_below": {
+          "mean_pass": 0.7491442596366664,
+          "n": 2173
+        }
+      }
+    }
+  },
+  "schema_version": 1,
+  "source_controlled_threshold": {
+    "mean_pass_high": 0.805994301994302,
+    "mean_pass_low": 0.8408146873207114,
+    "n_high": 2925,
+    "n_low": 2075,
+    "raw_regime_gap": -0.03482038532640941,
+    "sup_wald": 47.37329466658257,
+    "threshold": 8.5,
+    "threshold_grid_candidates": 36,
+    "wild_bootstrap": {
+      "draws": 300,
+      "exceedances": 0,
+      "maximum": 9.22274161416902,
+      "p_finite_mc": 0.0033222591362126247,
+      "p_raw": 0.0,
+      "q95": 5.810380203491595,
+      "seed": 42
+    }
+  },
+  "source_descriptives": {
+    "later_candidate_frame": {
+      "max_composite": 19.25,
+      "mean_composite": 11.41884531590414,
+      "mean_pass": 0.8801397102050696,
+      "min_composite": 0.0,
+      "n": 2754,
+      "selection_source_value": "stage_d_candidate"
+    },
+    "retained_earlier_frame": {
+      "max_composite": 16.75,
+      "mean_composite": 7.922232116355002,
+      "mean_pass": 0.7472480176398253,
+      "min_composite": 0.25,
+      "n": 2246,
+      "selection_source_value": "stage_c_existing"
+    }
+  },
+  "sup_wald_attenuation_ratio": 0.38926459574468697,
+  "unadjusted_threshold": {
+    "mean_pass_high": 0.8757222050063699,
+    "mean_pass_low": 0.7993088194636438,
+    "n_high": 1383,
+    "n_low": 3617,
+    "raw_regime_gap": 0.07641338554272603,
+    "sup_wald": 121.6994691642957,
+    "threshold": 13.75,
+    "threshold_grid_candidates": 36,
+    "wild_bootstrap": {
+      "draws": 300,
+      "exceedances": 0,
+      "maximum": 8.724827334210289,
+      "p_finite_mc": 0.0033222591362126247,
+      "p_raw": 0.0,
+      "q95": 5.57535504259146,
+      "seed": 42
+    }
+  },
+  "validation": {
+    "analyzed_models": 21,
+    "analyzed_prompts": 5000,
+    "duplicate_prompt_ids": 0,
+    "expected_models": 21,
+    "expected_prompts": 5000,
+    "expected_source_counts": {
+      "stage_c_existing": 2246,
+      "stage_d_candidate": 2754
+    },
+    "missing_source_mappings": 0,
+    "model_row_counts": {
+      "anthropic_claude-opus-4.6": 5000,
+      "anthropic_claude-opus-4.7": 5000,
+      "anthropic_claude-sonnet-4.6": 5000,
+      "arcee-ai_trinity-large-preview_free": 5000,
+      "azure_deepseek-v3.2-speciale": 5000,
+      "azure_gpt-oss-120b": 5000,
+      "azure_grok-3": 5000,
+      "azure_kimi-k2.5": 5000,
+      "azure_llama-3.3-70b": 5000,
+      "azure_mistral-large-3": 5000,
+      "glm_4_7_flash_results": 5000,
+      "google_gemini-3-flash-preview": 5000,
+      "google_gemini-3.1-pro-preview": 5000,
+      "gpt-4.1": 5000,
+      "gpt-5-mini": 5000,
+      "gpt-oss-20b": 5000,
+      "ministral-3-14b-reasoning": 5000,
+      "mistral-small-2412": 5000,
+      "openai_gpt-5.4": 5000,
+      "qwen3.5-9b": 5000,
+      "qwen_qwen3.6-plus": 5000
+    },
+    "prompt_metadata_rows": 5000,
+    "source_counts": {
+      "stage_c_existing": 2246,
+      "stage_d_candidate": 2754
+    },
+    "unexpected_sources": []
+  },
+  "within_frame_thresholds": {
+    "later_candidate_frame": {
+      "linear_fit": {
+        "adjusted_r2": 0.0027816505064127695,
+        "aic": -629.6691394320997,
+        "bic": -617.8275200735225,
+        "n_parameters": 2,
+        "r2": 0.0031438802011070077,
+        "rss": 128.10396339899947
+      },
+      "mean_pass_high": 0.8852989037341555,
+      "mean_pass_low": 0.8766457862072967,
+      "n_high": 1112,
+      "n_low": 1642,
+      "piecewise_fit": {
+        "adjusted_r2": 0.028010117661005585,
+        "aic": -698.2408002921684,
+        "bic": -674.557561575014,
+        "n_parameters": 4,
+        "r2": 0.029069314772163124,
+        "rss": 124.77233824725366,
+        "threshold": 14.25
+      },
+      "raw_regime_gap": 0.008653117526858822,
+      "sup_wald": 36.714745015196826,
+      "threshold": 14.25,
+      "threshold_grid_candidates": 23,
+      "wild_bootstrap": {
+        "draws": 300,
+        "exceedances": 0,
+        "maximum": 10.032081958979218,
+        "p_finite_mc": 0.0033222591362126247,
+        "p_raw": 0.0,
+        "q95": 6.090066311107451,
+        "seed": 42
+      }
+    },
+    "retained_earlier_frame": {
+      "linear_fit": {
+        "adjusted_r2": 0.06818130767834762,
+        "aic": 1204.5565848875958,
+        "bic": 1215.9903971581925,
+        "n_parameters": 2,
+        "r2": 0.06859637168383614,
+        "rss": 224.42914627706273
+      },
+      "mean_pass_high": 0.6662759907974128,
+      "mean_pass_low": 0.8245555141116498,
+      "n_high": 1097,
+      "n_low": 1149,
+      "piecewise_fit": {
+        "adjusted_r2": 0.07019440909567332,
+        "aic": 1201.696401635717,
+        "bic": 1224.5640261769106,
+        "n_parameters": 4,
+        "r2": 0.07143691099888616,
+        "rss": 223.7446956328285,
+        "threshold": 7.75
+      },
+      "raw_regime_gap": -0.158279523314237,
+      "sup_wald": 3.4292172604240885,
+      "threshold": 7.75,
+      "threshold_grid_candidates": 20,
+      "wild_bootstrap": {
+        "draws": 300,
+        "exceedances": 57,
+        "maximum": 7.342975060070532,
+        "p_finite_mc": 0.19269102990033224,
+        "p_raw": 0.19,
+        "q95": 5.144520323779485,
+        "seed": 42
+      }
+    }
+  }
+}

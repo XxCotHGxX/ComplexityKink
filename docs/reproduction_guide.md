@@ -139,6 +139,10 @@ It writes the six filenames used by the revised manuscript:
 
 The script reads thresholds and statistics from result files or recomputes them
 from scored inputs. Reported result values are not typed into the plotting code.
+Descriptive prompt-composite bins use
+$b=\lfloor C_i+0.5\rfloor$, equivalently
+$C_i\in[b-0.5,b+0.5)$. Exact half-point boundaries therefore enter the higher
+bin. Breakpoint estimation remains on the continuous, unbinned composite.
 
 ## Full benchmark construction
 
@@ -185,15 +189,39 @@ safety boundary for a full rerun.
 
 ## Post-submission checks
 
-The additional checks include task-type controls, overidentification
-subsamples, pooling sensitivity, pass@k, human calibration, paraphrase
-stability, language transfer, and the audit-clean high-complexity extension.
+The additional checks include construction-frame and task-type controls,
+overidentification subsamples, pooling sensitivity, pass@k, human calibration,
+paraphrase stability, language transfer, and the audit-clean high-complexity
+extension.
 
 This repository publishes their consolidated outputs, not the internal response
 drafts, grader keys, provider logs, or account-specific generation runners:
 
 - Human-readable report: `docs/robustness_results.md`
 - Machine-readable report: `results/robustness_summary.json`
+- Construction-frame output: `results/source_frame_sensitivity.json`
+- Mechanism diagnostic: `results/mechanism_diagnostic.json`
+
+With the retained data bundle available, verify the three corrected binned
+artifacts and the construction-frame sensitivity with:
+
+```bash
+python scripts/regenerate_tail_extension_tables.py \
+  --data-root path/to/retained/repository \
+  --check
+python scripts/regenerate_mechanism_diagnostic.py \
+  --data-root path/to/retained/repository \
+  --check
+python scripts/analyze_source_frame_sensitivity.py \
+  --data-root path/to/retained/repository/data \
+  --output results/source_frame_sensitivity.json \
+  --n-boot 300 \
+  --seed 42
+```
+
+The tail command checks all four source CSVs, including the fixed-version
+three-model table. The construction-frame command validates complete 5,000
+prompt mapping and 21 by 5,000 model coverage before fitting the sensitivity.
 
 The raw benchmark extension and generated responses should be distributed in
 the separate anonymized data artifact, where their licenses, hashes, and

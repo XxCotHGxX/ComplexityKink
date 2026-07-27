@@ -34,7 +34,7 @@
 \maketitle
 
 \begin{abstract}
-Complexity measured from generated code is failure-dependent: a difficult prompt can produce a short failing program and then be assigned low output complexity. We introduce a six-dimension prompt-side structural-complexity index that is scored before generation and kept separate from functional correctness. We first select 5{,}000 Python prompts across six bands of a preliminary single-rater rubric score. Four out-of-panel LLM raters then rescore the locked prompts, providing 19{,}997 score rows; composite inter-rater reliability is ICC $=0.872$ on the 4{,}998 prompts with all four ratings. We evaluate 21 models on every prompt, yielding 105{,}000 model-prompt generations. In the unadjusted mean-pooled analysis, pass rate has a nonmonotone breakpoint at composite $\hat{\gamma}=13.75$, with 79.9\% at or below and 87.6\% above. This pooled pattern is not a universal failure cutoff. Task-type fixed effects shift the breakpoint to 10.75 and reduce the regime gap from 7.6 to 2.1 percentage points, while model-specific fits include 16 upward and five downward changes. A 365-prompt audit-clean extension closely matches the original matched-five-model point estimates at the well-supported bins 15 and 16, but adds only seven prompts above bin 16. Among zero-pass generations with computable Lizard complexity, 28.5\% pair a prompt composite above 8 with generated-output complexity at most 10, illustrating the measurement problem. Human agreement is moderate and rater-dependent on a disagreement-enriched calibration set, while paraphrase and cross-language rescoring preserve score ordering. Overidentification tests strongly reject the joint restrictions on the six rubric dimensions, so we treat the composite as an index and make no causal interpretation of the 2SLS estimates. The contribution is a pre-generation measurement framework and a bounded observational analysis of reliability regimes.
+Complexity measured from generated code is failure-dependent: a difficult prompt can produce a short failing program and then be assigned low output complexity. We introduce a six-dimension prompt-side structural-complexity index that is scored before generation and kept separate from functional correctness. We first select 5{,}000 Python prompts across six bands of a preliminary single-rater rubric score. Four out-of-panel LLM raters then rescore the locked prompts, providing 19{,}997 score rows; composite inter-rater reliability is ICC $=0.872$ on the 4{,}998 prompts with all four ratings. We evaluate 21 models on every prompt, yielding 105{,}000 model-prompt generations. In the unadjusted mean-pooled analysis, pass rate has a nonmonotone breakpoint at composite $\hat{\gamma}=13.75$, with 79.9\% at or below and 87.6\% above. This pooled pattern is not a universal failure cutoff. Task-type fixed effects shift the breakpoint to 10.75 and reduce the regime gap from 7.6 to 2.1 percentage points. A post hoc construction-frame control shifts it to 8.50 with a raw regime gap of $-3.5$ points, and neither frame alone reproduces the pooled $+7.6$-point change. Model-specific fits also include 16 upward and five downward changes. A 365-prompt audit-clean extension closely matches the original matched-five-model point estimates at the well-supported bins 15 and 16, but adds only 14 prompts above bin 16. Among zero-pass generations with computable Lizard complexity, 28.5\% pair a prompt composite above 8 with generated-output complexity at most 10, illustrating the measurement problem. Human agreement is moderate and rater-dependent on a disagreement-enriched calibration set, while paraphrase and cross-language rescoring preserve score ordering. Overidentification tests strongly reject the joint restrictions on the six rubric dimensions, so we treat the composite as an index and make no causal interpretation of the 2SLS estimates. The contribution is a pre-generation measurement framework and a bounded observational analysis of reliability regimes.
 \end{abstract}
 
 \section{Introduction}
@@ -48,7 +48,7 @@ A natural baseline is to approximate prompt complexity with keyword features, su
 
 We present the Complexity Kink benchmark, a prompt-side measurement study that keeps intended solution structure separate from generated-output complexity and functional correctness. From OpenCodeInstruct~\cite{opencodeinst}, we construct 5{,}000 Python prompts stratified across six bands of a preliminary single-rater rubric score. Four out-of-panel LLM judges rescore the locked prompts, and 21 evaluated models each generate one solution per prompt. Our primary analysis estimates the shape of pass rate as a function of the unbinned ensemble index. We also compare output-side cyclomatic complexity and report 2SLS diagnostics, but the candidate instruments fail their joint exclusion restrictions and receive no causal interpretation.
 
-The empirical results do not support a universal cutoff. The mean-pooled curve declines through the middle of the index and rebounds in the denser high region, but task-type controls substantially reduce the gap and shift its estimated location. Five model-specific fits move downward across their breakpoints while 16 move upward. A matched five-model extension closely matches the original point estimates at bins 15 and 16, where it materially increases support, but the region above 16 remains too thin for a strong endpoint claim.
+The empirical results do not support a universal cutoff. The mean-pooled curve declines through the middle of the index and rebounds in the denser high region, but task type and construction frame substantially change the gap and its estimated location. In particular, the two prompt-source frames differ sharply in both score and pass rate, and neither reproduces the pooled $+7.6$-point change on its own. Five model-specific fits move downward across their breakpoints while 16 move upward. A matched five-model extension closely matches the original point estimates at bins 15 and 16, where it materially increases support, but the region above 16 remains too thin for a strong endpoint claim.
 
 \vspace{2pt}
 \noindent\textbf{Contributions.}
@@ -56,7 +56,7 @@ The empirical results do not support a universal cutoff. The mean-pooled curve d
 \item We formalize failure-dependent output complexity and illustrate it in this sample: 28.5\% of zero-pass complete cases combine a structurally nontrivial prompt with generated-output cyclomatic complexity at most 10.
 \item We introduce an ensemble-scored prompt-side index and examine its reliability against human ratings, plain-language paraphrases, and Java and C++ re-expressions.
 \item We construct a 5{,}000-prompt Python benchmark stratified by a preliminary rubric score and evaluate 21 models with unit tests, including model-specific, pooling, repeated-sampling, task-type, and audit-clean tail checks.
-\item We report the limits of the measurement design as results. Task composition explains a substantial part of the pooled breakpoint, the extreme tail remains sparse, and the candidate IV restrictions fail.
+\item We report the limits of the measurement design as results. Task and construction-frame composition explain much of the pooled breakpoint, the extreme tail remains sparse, and the candidate IV restrictions fail.
 \end{itemize}
 
 % =====================================================================
@@ -88,7 +88,7 @@ We address the timing problem with a prompt-side index $C_i$, computed before an
 % =====================================================================
 
 \subsection{Data}
-We use 5{,}000 Python coding tasks drawn from OpenCodeInstruct~\cite{opencodeinst}. Construction combines 2{,}246 retained prompts from an earlier stage with 2{,}754 newly collected candidates after automated contract and test-quality filtering. The earlier draw scanned a 200{,}000-record source-ordered prefix, and later candidate collection deliberately supplemented the high reference-complexity tail. A preliminary \texttt{o4-mini} rater scored candidates with the same six-dimension rubric used below. We then selected 834 prompts in each of the preliminary-score bands 0 to 3 and 4 to 6, and 833 in each of 7 to 9, 10 to 12, 13 to 15, and 16 to 24. This score was used for sampling only.
+We use 5{,}000 Python coding tasks drawn from OpenCodeInstruct~\cite{opencodeinst}. Construction combines 2{,}246 retained prompts from an earlier stage with 2{,}754 newly collected candidates after automated contract and test-quality filtering. The earlier draw scanned a 200{,}000-record source-ordered prefix, and later candidate collection deliberately supplemented the high reference-complexity tail. We retain this two-level construction-frame indicator for a post hoc sensitivity analysis. A preliminary \texttt{o4-mini} rater scored candidates with the same six-dimension rubric used below. We then selected 834 prompts in each of the preliminary-score bands 0 to 3 and 4 to 6, and 833 in each of 7 to 9, 10 to 12, 13 to 15, and 16 to 24. This score was used for sampling only.
 
 After the prompt set was locked, the four-judge ensemble rescored every prompt. All reported analyses use that ensemble mean, not the preliminary sampling score. Re-scoring changes the distribution: using the continuous bands $[0,3]$, $(3,6]$, $(6,9]$, $(9,12]$, $(12,15]$, and $(15,24]$, the analyzed-index counts are 319, 943, 940, 898, 1{,}425, and 475. The benchmark is therefore stratified by the preliminary score, but not balanced on the final index. Neither distribution represents the natural OpenCodeInstruct frequency distribution. Reference-solution cyclomatic complexity helped shape the upstream candidate pool and is retained for alignment checks; it is never the analyzed prompt index or generated-output complexity.
 
@@ -154,13 +154,15 @@ For a candidate breakpoint $\gamma$, we fit separate linear relationships on the
 \end{equation}
 The mean-pooled outcome first averages pass rate across the 21 models within prompt, yielding $N=5{,}000$. Model-specific fits use the same prompt index and test infrastructure. We also report median pooling and 21 leave-one-model-out fits. The regime means are descriptive summaries of a selection-stratified sample.
 
+Because benchmark construction combines two prompt-source frames, we also run a construction-frame sensitivity. We add a binary indicator for the 2{,}246 retained earlier prompts versus the 2{,}754 later candidates to the pooled and split regressions, compare a model with frame-specific linear slopes, and repeat the threshold search within each frame.
+
 To locate the breakpoint, we adapt Hansen's threshold-regression procedure~\cite{hansen2000sample}:
 \begin{enumerate}
 \item For each candidate $\gamma$ on a percentile-spaced grid over $C_i$, requiring at least 500 prompts in each regime, we compare (\ref{eq:threshold}) with a pooled single-line model using a Wald-type $F$-statistic $W(\gamma)$.
 \item The supremum $W^* = \sup_\gamma W(\gamma)$ identifies the threshold $\hat{\gamma}$.
 \item Under $H_0$ of no threshold, we use Rademacher wild-bootstrap residual resampling and recompute $W^*$ at each draw. A separate pairs bootstrap estimates the threshold interval.
 \end{enumerate}
-The revised mean-pooled analysis uses 2{,}000 wild-bootstrap draws, 1{,}000 pairs-bootstrap draws for the interval, and 2{,}000 shuffled-index placebo draws. Model-specific fits use 500 wild-bootstrap and 500 placebo draws. We repeat the search with nine task-type fixed effects and use a 300-draw wild bootstrap for that controlled specification.
+The revised mean-pooled analysis uses 2{,}000 wild-bootstrap draws, 1{,}000 pairs-bootstrap draws for the interval, and 2{,}000 shuffled-index placebo draws. Model-specific fits use 500 wild-bootstrap and 500 placebo draws. We repeat the search with nine task-type fixed effects and, separately, with a construction-frame indicator, using a 300-draw wild bootstrap for each controlled specification.
 
 \subsection{Output-Complexity and IV Diagnostics}\label{sec:hansen-j}
 We first compare pass rate directly against generated-output complexity and quantify the reverse-threshold cell among failed generations. As a secondary diagnostic, we regress generated-output complexity on the six rubric dimensions and use the fitted value in a 2SLS pass-rate regression:
@@ -171,7 +173,7 @@ y_i &= \alpha+\beta\widehat{\kappa}_i+u_i. \label{eq:stage2}
 We estimate these equations with \texttt{IV2SLS} from \texttt{linearmodels}~\cite{linearmodels}. With six candidate instruments and one endogenous regressor, the Sargan overidentification statistic has five degrees of freedom. We also report a robust Wooldridge overidentification test, individual-instrument fits, principal-component rotations, and post hoc subsets. These tests reject the full instrument set, so $\hat{\beta}$ is a diagnostic coefficient rather than a causal estimate.
 
 \subsection{Additional Robustness Designs}
-We added several stress tests after the initial analysis. Nine task categories are assigned to all prompts by one out-of-panel judge; three additional judges label a shared 500-prompt subset. We compare first-draw and five-draw outcomes on 359 prompts and four models, test 150 plain-language paraphrases, and re-express 117 prompts in each of Java and C++ for rescoring. Two members of the research team also grade a disagreement-enriched calibration sample with the LLM scores hidden. Finally, a prompt-side-selected extension retains 365 new prompts only after contract audit and successful execution of every reference solution. These analyses are post hoc robustness checks, not preregistered confirmation.
+We added several stress tests after the initial analysis. Nine task categories are assigned to all prompts by one out-of-panel judge; three additional judges label a shared 500-prompt subset. We examine the two recorded prompt-source frames, compare first-draw and five-draw outcomes on 359 prompts and four models, test 150 plain-language paraphrases, and re-express 117 prompts in each of Java and C++ for rescoring. Two members of the research team also grade a disagreement-enriched calibration sample with the LLM scores hidden. Finally, a prompt-side-selected extension retains 365 new prompts only after contract audit and successful execution of every reference solution. These analyses are post hoc robustness checks, not preregistered confirmation.
 
 \paragraph{Workflow} Figure~\ref{fig:pipeline} summarizes the measurement and analysis workflow.
 
@@ -259,19 +261,19 @@ On the unadjusted mean-pooled benchmark, the sup-Wald search selects $\hat{\gamm
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{complexity_kink.png}
-\caption{Unadjusted mean-pooled relationship in the original 5{,}000-prompt benchmark. Pass rate is first averaged across 21 models within prompt, then summarized by rounded prompt composite over displayed bins 1 to 17. The dashed line marks $\hat{\gamma}=13.75$; the shaded vertical band is the 95\% pairs-bootstrap interval. This figure does not include task-type controls or the separate 365-prompt extension.}
+\caption{Unadjusted mean-pooled relationship in the original 5{,}000-prompt benchmark. Pass rate is first averaged across 21 models within prompt. Display bin $b$ contains $C_i\in[b-0.5,b+0.5)$, so exact half-point boundaries enter the higher bin. The dashed line marks the threshold $\hat{\gamma}=13.75$ estimated from the unbinned composite; the shaded vertical band is the 95\% pairs-bootstrap interval. This figure does not include task-type or construction-frame controls, or the separate 365-prompt extension.}
 \label{fig:kink}
 \end{figure}
 
 The 95\% pairs-bootstrap interval is $[7.75,14.0]$. Its width reflects the broad trough visible in Figure~\ref{fig:kink}. The estimate summarizes an observational breakpoint in this constructed benchmark, not a universal point at which harder prompts become easier.
 
-\subsection{Task-Type Sensitivity}
+\subsection{Task-Type and Construction-Frame Sensitivity}
 
 We label all 5{,}000 prompts using a nine-category taxonomy fixed before labeling. One out-of-panel judge labels the full set; three more label a shared 500-prompt subset, with Krippendorff $\alpha=0.787$. Adding task-type fixed effects shifts $\hat{\gamma}$ from 13.75 to 10.75, reduces sup-Wald from 121.7 to 19.6, and reduces the raw regime gap from 7.6 to 2.1 percentage points. None of 300 wild-bootstrap draws reaches the observed controlled statistic ($p_{\mathrm{MC}}\leq1/301<0.01$). Task composition therefore explains a substantial part of the pooled pattern.
 
 \begin{table}[h]
 \centering
-\caption{Mean-pooled breakpoint before and after task-type fixed effects. Regime means are raw summaries at each specification's selected breakpoint.}
+\caption{Mean-pooled breakpoint under composition controls. Regime means are raw summaries at each specification's selected breakpoint.}
 \label{tab:task-type}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
@@ -279,30 +281,35 @@ Specification & $\hat{\gamma}$ & sup-Wald & Pass $C\leq\hat{\gamma}$ & Pass $C>\
 \midrule
 Unadjusted & 13.75 & 121.7 & 0.799 & 0.876 \\
 Task-type fixed effects & 10.75 & 19.6 & 0.811 & 0.832 \\
+Construction-frame fixed effect & 8.50 & 47.4 & 0.841 & 0.806 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 A piecewise composite term at 10.75 raises predictive $R^2$ from 0.084 for task type alone to 0.136; the piecewise term alone has $R^2=0.045$. This is incremental predictive fit, not causal independence. Four of five sufficiently large task categories still reject the full IV restrictions, so task type does not explain away the overidentification failure.
 
+The construction-frame sensitivity is more consequential. The 2{,}246 retained earlier-frame prompts have mean composite 7.92 and mean pass rate 0.747, while the 2{,}754 later candidates have mean composite 11.42 and mean pass rate 0.880. With a common construction-frame fixed effect in every threshold regression, the selected breakpoint moves to 8.50 and the raw regime means move from 0.841 to 0.806. None of 300 wild-bootstrap draws reaches the controlled sup-Wald statistic of 47.4 ($p_{\mathrm{MC}}\leq1/301$). However, a simpler model with frame-specific linear slopes has lower BIC than the source-controlled breakpoint model (963 versus 977) with nearly the same $R^2$ (0.0991 versus 0.0997).
+
+The within-frame fits explain why we narrow the claim. The earlier frame selects 7.75, but the break is not significant (sup-Wald 3.43, bootstrap $p=0.19$), and a linear decline has lower BIC. The later candidate frame selects 14.25 and supports nonlinearity (sup-Wald 36.71, $p_{\mathrm{MC}}\leq1/301$), but its raw regime change is only $+0.9$ points, from 0.877 to 0.885. At the pooled threshold, later candidates make up 39.9\% of prompts below but 94.7\% above. Thus the pooled trough and rebound remain features of the constructed benchmark, while the large upward regime gap is largely construction-frame composition rather than evidence that increasing prompt complexity improves reliability.
+
 \subsection{Model and Pooling Heterogeneity}
 
 Model-specific thresholds range from 7.75 to 14.25, with median 11.25. Sixteen models have higher mean pass rate above their own threshold and five have lower rates: Grok-3, Kimi K2.5, Gemini 3.1 Pro Preview, GPT-5.4, and Qwen 3.6 Plus. The same prompt set, scores, and test harness are reused, so these are comparative model fits rather than independent replications. The mean-pooled threshold remains exactly 13.75 in all 21 leave-one-model-out fits. Median pooling still selects a piecewise form, but shifts the threshold to 10.75 and narrows the raw gap to 2.3 points (0.839 to 0.862). Full results appear in Appendix~\ref{app:per-model}.
 
-A 404-prompt diagnostic at bins 13 and 17 gives an external-library coefficient of $-0.045$ ($p=0.67$) after prompt controls. This provides no support for a library or framework explanation, but it does not rule out other source-composition mechanisms.
+A 459-prompt diagnostic at display bins 13 and 17 gives an external-library coefficient of $-0.050$ ($p=0.61$) after prompt controls. This provides no support for a library or framework explanation, while the construction-frame analysis above shows that source composition is material.
 
 \subsection{Audit-Clean High-Complexity Extension}
 
-We independently selected high-composite candidates on the prompt side, audited their contracts, and retained only prompts whose reference solution passes every supplied test. This yields 365 new prompts: 218/140/4/3 at rounded bins 15/16/17/18. To avoid changing model composition, Figure~\ref{fig:tail-extension} uses the five models present in both the original and extension runs. At bin 15, the extension and original means are 0.880 and 0.890; at bin 16 they are 0.797 and 0.807. Both differences are $-0.010$ (Welch $p=0.531$ and $p=0.731$). Combined support rises to 878 and 417 prompts, and the same-frame threshold is 14.0, with mean pass 0.783 at or below and 0.859 above.
+We independently selected high-composite candidates on the prompt side, audited their contracts, and retained only prompts whose reference solution passes every supplied test. This yields 365 new prompts: 218/133/11/3 at display bins 15/16/17/18. To avoid changing model composition, Figure~\ref{fig:tail-extension} uses the five models present in both the original and extension runs. At bin 15, the extension and original means are 0.880 and 0.894; at bin 16 they are 0.799 and 0.808. The differences are $-0.014$ and $-0.009$ (Welch $p=0.377$ and $p=0.765$). Combined support rises to 1{,}068 and 390 prompts, and the same-frame threshold, estimated from the unbinned composite, remains 14.0, with mean pass 0.783 at or below and 0.859 above.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{tail_extension.png}
-\caption{Audit-clean extension in a matched five-model frame. (a) Pass rate is first averaged over the five models shared by the original benchmark and extension, then over prompts within rounded composite bins. Error bars and the shaded band are prompt-level normal-approximation intervals using $\pm1.96$ standard errors. The dashed line is the same-frame threshold estimated on the unbinned composite. (b) The 365 additions materially raise support at bins 15 and 16. Only seven additions lie above 16, so bins 17 and 18 remain descriptive.}
+\caption{Audit-clean extension in a matched five-model frame. (a) Pass rate is first averaged over the five models shared by the original benchmark and extension, then over prompts within display bins, where bin $b$ contains $C_i\in[b-0.5,b+0.5)$. Error bars and the shaded band are prompt-level normal-approximation intervals using $\pm1.96$ standard errors. The dashed line is the same-frame threshold estimated on the unbinned composite. (b) The 365 additions materially raise support at bins 15 and 16. Only 14 additions lie above 16, so bins 17 and 18 remain descriptive.}
 \label{fig:tail-extension}
 \end{figure}
 
-A separate fixed-version three-model check with Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro Preview analyzes the same 150 midrange anchors plus 365 retained tail prompts per model. All three score about 0.94 at bin 15 and 0.85 to 0.88 at bin 16. Only seven retained tail prompts lie above bin 16, so the extreme-tail shape remains unresolved.
+A separate fixed-version three-model check with Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro Preview analyzes the same 150 midrange anchors plus 365 retained tail prompts per model. Their bin-15 pass rates are 0.941, 0.940, and 0.936, and their bin-16 rates are 0.871, 0.850, and 0.845. Only 14 retained tail prompts lie above bin 16, so the extreme-tail shape remains unresolved.
 
 \subsection{Repeated-Sampling Robustness}
 
@@ -322,9 +329,9 @@ What survives is the composite's use as a pre-generation index. Its timing avoid
 
 \subsection{What the Breakpoint Means}
 
-The unadjusted mean-pooled breakpoint is a compact description of a nonmonotone curve in a selection-stratified benchmark. It is not a universal difficulty limit. Three results make that boundary especially important. First, task-type controls shrink the gap from 7.6 to 2.1 points and move the estimated location. Second, median pooling shifts the estimate to 10.75. Third, five model-specific curves move downward while 16 move upward. The leave-one-model-out stability shows that no single model creates the mean-pooled estimate, but it does not remove dependence on the pooling functional or prompt composition.
+The unadjusted mean-pooled breakpoint is a compact description of a nonmonotone curve in a selection-stratified benchmark. It is not a universal difficulty limit. Four results make that boundary especially important. First, task-type controls shrink the gap from 7.6 to 2.1 points and move the estimated location. Second, construction-frame control reverses the selected raw regime gap, and neither frame alone reproduces the pooled increase. Third, median pooling shifts the estimate to 10.75. Fourth, five model-specific curves move downward while 16 move upward. The leave-one-model-out stability shows that no single model creates the mean-pooled estimate, but it does not remove dependence on the pooling functional or prompt composition.
 
-The 365-prompt extension strengthens the evidence only where it adds support. Bins 15 and 16 closely match the original matched-five-model point estimates, while bins 17 and 18 receive only four and three additions. We therefore find similar rates through bin 16 within this frame and leave the extreme tail unresolved.
+The 365-prompt extension strengthens the evidence only where it adds support. Bins 15 and 16 closely match the original matched-five-model point estimates, while bins 17 and 18 receive only 11 and three additions. We therefore find similar rates through bin 16 within this frame and leave the extreme tail unresolved.
 
 \subsection{Why a Prompt-Side Index Is Useful}
 
@@ -341,27 +348,27 @@ Analyses that stratify by generated-output complexity should report how missing 
 % =====================================================================
 % \subsection{Current limitations}
 
-\textbf{Constructed sampling frame.} The benchmark is balanced across bands of a preliminary single-rater score, not the final four-judge index. Its source pool also inherits a 200{,}000-record prefix scan and deliberate high-reference-complexity supplementation. It therefore does not estimate performance under the natural OpenCodeInstruct prompt distribution. Regime means and thresholds are conditional on this constructed frame and its selection rater.
+\textbf{Constructed sampling frame.} The benchmark is balanced across bands of a preliminary single-rater score, not the final four-judge index. Its source pool also inherits a 200{,}000-record prefix scan and deliberate high-reference-complexity supplementation. The retained and later-candidate frames differ sharply in score and pass rate, and the source sensitivity shows that their changing mixture explains much of the pooled rebound. The benchmark therefore does not estimate performance under the natural OpenCodeInstruct prompt distribution. Regime means and thresholds are conditional on this constructed frame and its selection rater.
 
 \textbf{Scorer dependence and human disagreement.} Systematic LLM-rater bias can propagate into the index. The four-judge ensemble makes disagreement observable but cannot remove common-mode bias. Human-LLM agreement is only moderate on the disagreement-enriched 200-prompt sample and varies substantially by rater.
 
-\textbf{Task composition and pooling.} Task-type controls substantially attenuate and shift the breakpoint, and median pooling also changes its location. The mean-pooled 13.75 estimate should not be read without those sensitivities.
+\textbf{Composition and pooling.} Task-type and construction-frame controls substantially alter the breakpoint, and median pooling also changes its location. The mean-pooled 13.75 estimate should not be read without those sensitivities.
 
 \textbf{Post hoc model exclusion.} AuroraGPT-IT-v4 was removed in a post hoc panel decision without a prespecified eligibility rule and lacks final-frame outputs for 2{,}754 prompts. A like-for-like 22-model sensitivity on the final frame is therefore unavailable.
 
-\textbf{Sparse extreme tail.} The audit-clean extension adds 358 prompts at bins 15 and 16 but only seven above 16. The endpoint beyond bin 16 remains underpowered.
+\textbf{Sparse extreme tail.} The audit-clean extension adds 351 prompts at bins 15 and 16 but only 14 above 16. The endpoint beyond bin 16 remains underpowered.
 
 \textbf{Python execution only.} Java and C++ results test score transfer after re-expression. We did not rerun generation and unit-test execution in those languages.
 
 \textbf{No causal IV claim.} The overidentification restrictions reject even in small subsamples, and candidate instruments imply conflicting coefficients. The 2SLS fits cannot identify a causal effect.
 
-\textbf{Post hoc checks and cross-sectional scope.} The task taxonomy, tail extension, human calibration, paraphrase, language, and repeated-sampling checks were added after the initial analysis. They sharpen the evidence but are not preregistered. We also do not track comparable prompts and model families over time.
+\textbf{Post hoc checks and cross-sectional scope.} The task taxonomy, construction-frame sensitivity, tail extension, human calibration, paraphrase, language, and repeated-sampling checks were added after the initial analysis. They sharpen the evidence but are not preregistered. We also do not track comparable prompts and model families over time.
 
 % =====================================================================
 \section{Conclusion}
 % =====================================================================
 
-Generated-output cyclomatic complexity is a poor stand-in for prompt structure when failures can produce short or unscorable programs. A prompt-side index avoids that mechanical timing problem and reveals a nonmonotone reliability relationship in this 5{,}000-prompt, 21-model benchmark. The unadjusted mean-pooled breakpoint is 13.75, but task-type controls move it to 10.75 and shrink the gap, median pooling also moves it, and model-specific directions differ.
+Generated-output cyclomatic complexity is a poor stand-in for prompt structure when failures can produce short or unscorable programs. A prompt-side index avoids that mechanical timing problem and reveals a nonmonotone reliability relationship in this 5{,}000-prompt, 21-model benchmark. The unadjusted mean-pooled breakpoint is 13.75, but task-type controls shrink the gap, construction-frame sensitivity shows that the large pooled rebound is mostly compositional, median pooling moves the estimate, and model-specific directions differ.
 
 The audit-clean extension closely matches the bin-15 and bin-16 point estimates in a matched five-model frame, while support above bin 16 remains too sparse for a strong claim. Human calibration is moderate, paraphrase and language-transfer checks preserve ordering, and repeated sampling preserves the local threshold estimate. The six candidate instruments fail their joint restrictions, so the contribution is measurement and observational analysis, not causal identification.
 
@@ -548,7 +555,7 @@ Scorer disagreement       & n/a     & observable \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{heatmap_E_per_model_kink.png}
-\caption{Model-specific pass rate by prompt-side composite bin in the original benchmark. Rows are 21 evaluated models and columns are rounded values 1 to 16. The diamond marks each model's fitted breakpoint, rounded to the nearest displayed bin. Sparse original bins 0 and 17 to 19 contain 8, 25, 8, and 3 prompts and are omitted.}
+\caption{Model-specific pass rate by prompt-side composite display bin in the original benchmark. Bin $b$ contains $C_i\in[b-0.5,b+0.5)$, so exact half-point boundaries enter the higher bin. Rows are 21 evaluated models and columns are bins 1 to 16. The diamond marks each model's fitted breakpoint in the corresponding display bin. Sparse original bins 0 and 17 to 19 contain 3, 45, 6, and 5 prompts and are omitted.}
 \label{fig:heatmap}
 \end{figure}
 
@@ -627,6 +634,26 @@ Other                      & 341     & 9.58   & 0.088 & 0.0281 \\
 \end{tabular}
 \end{table}
 
+\subsection{Construction-frame sensitivity}
+
+All 5{,}000 prompts map to the recorded construction frame. The retained earlier frame contains 2{,}246 prompts and the later candidate frame contains 2{,}754. At the pooled $\hat{\gamma}=13.75$, later candidates account for 39.9\% of the lower regime and 94.7\% of the upper regime. Within the earlier frame, raw pass rate is 0.749 below versus 0.691 above that pooled threshold, with only 73 prompts above. Within the later frame, it is 0.875 versus 0.886. The overlap limitation makes reweighting unstable, so we report the controlled and within-frame fits rather than treating a standardized contrast as definitive.
+
+\begin{table}[h]
+\centering
+\caption{Unbinned threshold searches within the two construction frames. Regime means are raw summaries at each frame's selected breakpoint.}
+\label{tab:source-frame}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Frame & $n$ & $\hat{\gamma}$ & sup-Wald & Bootstrap $p$ & Pass low & Pass high \\
+\midrule
+Retained earlier & 2{,}246 & 7.75 & 3.43 & 0.19 & 0.825 & 0.666 \\
+Later candidate & 2{,}754 & 14.25 & 36.71 & $\leq1/301$ & 0.877 & 0.885 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the earlier frame, linear BIC is 1{,}216.0 versus 1{,}224.6 for the piecewise fit. For the later frame, piecewise BIC is $-674.6$ versus $-617.8$ for linear. Across both frames, a model with frame-specific linear slopes has $R^2=0.0991$ and BIC 963.2, compared with $R^2=0.0997$ and BIC 976.9 for the common-frame-effect breakpoint model. Thus nonlinearity remains in the later frame, but the data do not support a common within-frame transition of the pooled magnitude.
+
 \subsection{Pooling and repeated sampling}
 
 Every leave-one-model-out mean-pooled fit selects 13.75. Median pooling selects 10.75, with 0.839 at or below and 0.862 above. Table~\ref{tab:passk} gives the repeated-sampling subset. The subset has 359 prompts, four models, five draws, and 7{,}180 executed generations.
@@ -657,16 +684,16 @@ Table~\ref{tab:tail-detail} keeps the original and extension sources separate. P
 \toprule
 Source & Bin 15 & Bin 16 & Bin 17 & Bin 18 \\
 \midrule
-Original & 0.890 (660) & 0.807 (277) & 0.662 (25) & 0.405 (8) \\
-Audit-clean extension & 0.880 (218) & 0.797 (140) & 0.560 (4) & 0.627 (3) \\
-Combined & 0.888 (878) & 0.804 (417) & 0.648 (29) & 0.465 (11) \\
+Original & 0.894 (850) & 0.808 (257) & 0.718 (45) & 0.450 (6) \\
+Audit-clean extension & 0.880 (218) & 0.799 (133) & 0.682 (11) & 0.627 (3) \\
+Combined & 0.891 (1{,}068) & 0.805 (390) & 0.711 (56) & 0.509 (9) \\
 \midrule
-Welch $p$, original vs extension & 0.531 & 0.731 & n/a & n/a \\
+Welch $p$, original vs extension & 0.377 & 0.765 & n/a & n/a \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The separate fixed-version three-model check analyzes 515 prompts per model: 150 midrange anchors plus 365 audit-clean additions. Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro Preview have bin-15 pass rates 0.942, 0.942, and 0.937, and bin-16 rates 0.876, 0.849, and 0.851. The four and three prompts in bins 17 and 18 are descriptive only.
+The separate fixed-version three-model check analyzes 515 prompts per model: 150 midrange anchors plus 365 audit-clean additions. Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro Preview have bin-15 pass rates 0.941, 0.940, and 0.936, and bin-16 rates 0.871, 0.850, and 0.845. The 11 and three prompts in bins 17 and 18 are descriptive only.
 
 \subsection{Human, paraphrase, and language checks}
 
