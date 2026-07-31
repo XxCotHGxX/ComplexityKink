@@ -1,4 +1,8 @@
-# Revised manuscript source
+# Paper versions
+
+`Complexity_Kink_Official.pdf` is the named Stage C public paper by Michael
+Hernandez. It reports the single-rater rubric-instrument study that preceded
+the active NeurIPS revision.
 
 `Scratch-NeurIps.tex` is the current anonymous manuscript revision. It
 incorporates the additional analyses directly:
