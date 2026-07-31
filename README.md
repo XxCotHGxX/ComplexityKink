@@ -8,10 +8,10 @@ Faculty advisor and review-period collaborator: Tian Zhao,
 University of Wisconsin-Milwaukee
 
 This is Michael's named public research copy. The
-[official named Stage C paper](paper/Complexity_Kink_Official.pdf) is available
-as a PDF. The active NeurIPS manuscript source remains anonymous because it is
-under double-blind review. The reviewer-facing artifact should use its separate
-anonymous URL, not this GitHub repository.
+[official named paper](paper/Complexity_Kink_Official.pdf) is the definitive
+manuscript and is available as a PDF. The NeurIPS submission source remains in
+the anonymous form prepared for double-blind review. The reviewer-facing
+artifact should use its separate anonymous URL, not this GitHub repository.
 
 ## What this project studies
 
@@ -41,8 +41,9 @@ which is compared with unit-test pass rate across 21 evaluated models.
 This snapshot contains the current manuscript revision and distinguishes
 the locked submitted results from the checks added during review:
 
-- `paper/Complexity_Kink_Official.pdf` is the named Stage C public paper.
-- `paper/Scratch-NeurIps.tex` is the anonymous revised NeurIPS manuscript source.
+- `paper/Complexity_Kink_Official.pdf` is the named definitive public paper.
+- `paper/Scratch-NeurIps.tex` is the anonymous double-blind source for the same
+  manuscript.
 - `results/analysis_summary.json` and
   `results/per_model_bootstrap_summary.{csv,json}` contain the locked Stage D
   analysis used for the submitted results.

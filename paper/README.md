@@ -1,11 +1,10 @@
 # Paper versions
 
-`Complexity_Kink_Official.pdf` is the named Stage C public paper by Michael
-Hernandez. It reports the single-rater rubric-instrument study that preceded
-the active NeurIPS revision.
+`Complexity_Kink_Official.pdf` is the named public preprint of the definitive
+manuscript by Michael Hernandez.
 
-`Scratch-NeurIps.tex` is the current anonymous manuscript revision. It
-incorporates the additional analyses directly:
+`Scratch-NeurIps.tex` is the anonymous double-blind source for the same
+manuscript. It incorporates the additional analyses directly:
 
 - The rubric composite is treated as a prompt-side index, not a validated
   causal instrument.
