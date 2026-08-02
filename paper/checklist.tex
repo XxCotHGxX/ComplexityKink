@@ -5,7 +5,7 @@
 \item {\bf Claims}
     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The abstract and Introduction present the work as prompt-side measurement and observational breakpoint analysis, not causal identification. Claims are scoped to the 5,000-prompt selection-stratified benchmark and reported 21-model panel, with construction-frame, task-type, pooling, human-calibration, model-exclusion, and extreme-tail limitations stated directly.
+    \item[] Justification: The abstract and Introduction present the work as prompt-side measurement and model-specific, benchmark-conditional breakpoint estimation, not causal identification or a universal cutoff. Claims are scoped to the 5,000-prompt selection-stratified benchmark and reported 21-model panel, with construction-frame, task-type, pooling, human-calibration, model-exclusion, and extreme-tail limitations stated directly.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the abstract and introduction do not include the claims made in the paper.
@@ -81,7 +81,7 @@
 \item {\bf Experiment statistical significance}
     \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The Results and appendix report pairs-bootstrap intervals, sup-Wald statistics, bootstrap and placebo exceedance counts with finite Monte Carlo corrections, Welch tests, construction-frame and task-type sensitivities, and prompt-level normal-approximation intervals for the tail extension. The output-CC caption labels its band as descriptive generation-row uncertainty and states that it does not adjust for repeated prompts or models.
+    \item[] Justification: The Results and appendix report pairs-bootstrap intervals, sup-Wald statistics, bootstrap and placebo exceedance counts with finite Monte Carlo corrections, Welch tests, pooled and model-specific construction-frame sensitivities, task-type sensitivity, and prompt-level normal-approximation intervals for the tail extension. The output-CC caption labels its band as descriptive generation-row uncertainty and states that it does not adjust for repeated prompts or models.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
