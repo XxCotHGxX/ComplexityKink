@@ -57,6 +57,11 @@ def main() -> None:
     ap.add_argument("--out-dir", type=Path, default=None)
     ap.add_argument("--n-candidates", type=int, default=360,
                     help="Candidates to execute; more than the 150 kept, to survive filters.")
+    ap.add_argument("--seed", type=int, default=SEED)
+    ap.add_argument("--exclude-inputs", type=Path, nargs="*", default=[],
+                    help="pilot_inputs.jsonl files whose prompts must not be reused (fresh sets).")
+    ap.add_argument("--references", type=Path, default=None,
+                    help="Compact reference-solution cache; built from final_results_scored.jsonl if missing.")
     args = ap.parse_args()
     data = args.data_root
     out_dir = args.out_dir or data / "independent_audit" / "pilot"
@@ -66,12 +71,23 @@ def main() -> None:
     ensemble = {r["prompt_id"]: r for r in load_jsonl(data / "stage_d" / "ensemble_scores_current_aggregated.jsonl")}
     assert len(prompts) == 5000 and set(prompts) == set(ensemble), "benchmark/ensemble join must be 5,000"
 
-    refs = find_references(data / "final_results_scored.jsonl", set(prompts))
+    ref_cache = args.references or data / "independent_audit" / "references_5000.jsonl"
+    if ref_cache.exists():
+        refs = {r["prompt_id"]: r for r in load_jsonl(ref_cache)}
+    else:
+        refs = find_references(data / "final_results_scored.jsonl", set(prompts))
+        ref_cache.parent.mkdir(parents=True, exist_ok=True)
+        with open(ref_cache, "w", encoding="utf-8", newline="\n") as f:
+            for pid in sorted(refs):
+                f.write(json.dumps({"prompt_id": pid, **refs[pid]}) + "\n")
     assert len(refs) == 5000, f"only {len(refs)} reference solutions found"
 
+    excluded = {r["prompt_id"] for path in args.exclude_inputs for r in load_jsonl(path)}
     by_bin: dict[int, list[str]] = defaultdict(list)
     rows = {}
     for pid, p in prompts.items():
+        if pid in excluded:
+            continue
         composite = float(sum(ensemble[pid]["scores_mean"].values()))
         ref = refs[pid]["reference_code"]
         if not ref.strip():
@@ -89,7 +105,7 @@ def main() -> None:
         by_bin[rows[pid]["display_bin"]].append(pid)
 
     # Equal allocation across display bins, capped by bin support.
-    rng = random.Random(SEED)
+    rng = random.Random(args.seed)
     bins = sorted(by_bin)
     per_bin = math.ceil(args.n_candidates / len(bins))
     chosen: list[str] = []
@@ -100,11 +116,11 @@ def main() -> None:
     rng.shuffle(chosen)
 
     out = out_dir / "pilot_inputs.jsonl"
-    with open(out, "w", encoding="utf-8") as f:
+    with open(out, "w", encoding="utf-8", newline="\n") as f:
         for pid in chosen:
             f.write(json.dumps(rows[pid]) + "\n")
     counts = {b: min(len(by_bin[b]), per_bin) for b in bins}
-    print(f"wrote {len(chosen)} candidates to {out}")
+    print(f"wrote {len(chosen)} candidates to {out} (seed {args.seed}, {len(excluded)} prompts excluded)")
     print("per display bin:", counts)
 
 

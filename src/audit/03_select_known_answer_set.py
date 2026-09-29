@@ -29,6 +29,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pilot-dir", type=Path, default=ROOT / "data" / "independent_audit" / "pilot")
     ap.add_argument("--n-prompts", type=int, default=150)
+    ap.add_argument("--seed", type=int, default=SEED)
     args = ap.parse_args()
 
     inputs = {r["prompt_id"]: r for r in load_jsonl(args.pilot_dir / "pilot_inputs.jsonl")}
@@ -50,7 +51,7 @@ def main() -> None:
         bug = sorted(killed, key=lambda m: (-m["harness_pass_rate"], m["variant_id"]))[0]
         chosen[pid] = {"clean": clean[0], "cosmetic": cosmetic[0], "bug": bug}
 
-    rng = random.Random(SEED)
+    rng = random.Random(args.seed)
     by_bin: dict[int, list[str]] = defaultdict(list)
     for pid in sorted(chosen):
         by_bin[inputs[pid]["display_bin"]].append(pid)
@@ -84,7 +85,7 @@ def main() -> None:
     rng.shuffle(cases)
 
     out = args.pilot_dir / "known_answer_set.jsonl"
-    with open(out, "w", encoding="utf-8") as f:
+    with open(out, "w", encoding="utf-8", newline="\n") as f:
         for c in cases:
             f.write(json.dumps(c) + "\n")
 
