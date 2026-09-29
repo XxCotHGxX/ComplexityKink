@@ -44,6 +44,15 @@ The reminder now states the exact verdict schema and says not to repeat the
 inputs, and `max_completion_tokens` is 16,000. Both changes apply identically
 to both auditors, and smoke outputs are excluded from all pilot metrics.
 
+**Transport (operational, no effect on prompts or scoring).** First-party
+Azure model endpoints close blocking (non-streaming) requests at roughly 680 s
+and omit reasoning tokens from the usage report. The pilot used blocking
+requests: one Phi-4-reasoning case exhausted its retries and eight more stalled
+at the cut-off; those nine were re-requested with a longer client timeout, and
+all 450 cases of both auditors completed. Production runs stream responses,
+which keeps the connection open and reports reasoning tokens; the model
+computes the same thing.
+
 ## Known-answer pilot set
 
 Built by `src/audit/build_known_answer_set.py` from benchmark prompts whose

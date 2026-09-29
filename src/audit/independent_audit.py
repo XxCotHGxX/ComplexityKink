@@ -108,25 +108,70 @@ def audit_one(row: dict, cfg: dict) -> dict:
     for attempt in range(6):
         t0 = time.time()
         try:
-            resp = requests.post(url, headers=headers, json=body, timeout=cfg["request_timeout"])
-            if resp.status_code in (429, 500, 502, 503, 504):
-                last_error = f"http {resp.status_code}"
+            if cfg["stream"]:
+                status, text, content, finish, usage = _post_streaming(url, headers, body, cfg)
+            else:
+                status, text, content, finish, usage = _post_blocking(url, headers, body, cfg)
+            if status in (429, 500, 502, 503, 504):
+                last_error = f"http {status}"
                 time.sleep(min(60, 2 ** attempt * 3))
                 continue
-            if resp.status_code != 200:
-                return {**base, "status": "api_error", "error": f"http {resp.status_code}: {resp.text[:300]}"}
-            data = resp.json()
-            choice = data["choices"][0]
-            content = choice["message"].get("content") or ""
+            if status != 200:
+                return {**base, "status": "api_error", "error": f"http {status}: {text[:300]}"}
             verdict, reason, parse_status = parse_verdict(content)
             return {**base, "status": "ok" if verdict else "parse_error", "verdict": verdict,
-                    "reason": reason, "parse_status": parse_status,
-                    "finish_reason": choice.get("finish_reason"), "usage": data.get("usage"),
+                    "reason": reason, "parse_status": parse_status, "finish_reason": finish,
+                    "usage": usage, "transport": "stream" if cfg["stream"] else "blocking",
                     "latency_s": round(time.time() - t0, 2), "raw_tail": content[-600:]}
-        except (requests.RequestException, KeyError, ValueError) as exc:
+        except (requests.RequestException, KeyError, ValueError, TimeoutError) as exc:
             last_error = f"{type(exc).__name__}: {exc}"
             time.sleep(min(60, 2 ** attempt * 3))
     return {**base, "status": "api_error", "error": last_error}
+
+
+def _post_blocking(url, headers, body, cfg):
+    resp = requests.post(url, headers=headers, json=body, timeout=cfg["request_timeout"])
+    if resp.status_code != 200:
+        return resp.status_code, resp.text, "", None, None
+    data = resp.json()
+    choice = data["choices"][0]
+    return 200, "", choice["message"].get("content") or "", choice.get("finish_reason"), data.get("usage")
+
+
+def _post_streaming(url, headers, body, cfg):
+    """Stream the response. Transport only: the model computes the same thing, but the
+    connection stays alive past the ~680 s cut-off Azure applies to blocking requests."""
+    payload = {**body, "stream": True}
+    if cfg.get("stream_usage", True):
+        payload["stream_options"] = {"include_usage": True}
+    deadline = time.time() + cfg["max_wall_s"]
+    with requests.post(url, headers=headers, json=payload, stream=True,
+                       timeout=(30, cfg["request_timeout"])) as resp:
+        if resp.status_code != 200:
+            text = resp.text
+            if resp.status_code == 400 and "stream_options" in text and cfg.get("stream_usage", True):
+                cfg["stream_usage"] = False  # endpoint rejects usage-on-stream; retry without it
+                return 503, text, "", None, None
+            return resp.status_code, text, "", None, None
+        parts, finish, usage = [], None, None
+        for raw in resp.iter_lines(decode_unicode=True):
+            if time.time() > deadline:
+                raise TimeoutError(f"stream exceeded {cfg['max_wall_s']} s")
+            if not raw or not raw.startswith("data:"):
+                continue
+            data = raw[5:].strip()
+            if data == "[DONE]":
+                break
+            chunk = json.loads(data)
+            if chunk.get("usage"):
+                usage = chunk["usage"]
+            for choice in chunk.get("choices") or []:
+                delta = choice.get("delta") or {}
+                if delta.get("content"):
+                    parts.append(delta["content"])
+                if choice.get("finish_reason"):
+                    finish = choice["finish_reason"]
+        return 200, "", "".join(parts), finish, usage
 
 
 def main() -> None:
@@ -140,6 +185,10 @@ def main() -> None:
     ap.add_argument("--max-completion-tokens", type=int, default=16000)
     ap.add_argument("--request-timeout", type=int, default=900,
                     help="Seconds to wait for one response; long reasoning chains can exceed 5 minutes.")
+    ap.add_argument("--no-stream", action="store_true",
+                    help="Use blocking requests (Azure drops these at ~680 s).")
+    ap.add_argument("--max-wall-s", type=int, default=2400,
+                    help="Abandon one streamed response after this many seconds.")
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--limit", type=int, default=0)
     args = ap.parse_args()
@@ -148,7 +197,8 @@ def main() -> None:
     cfg = {"endpoint": endpoint, "key": key, "deployment": args.deployment,
            "system_prompt": original_system_prompt(),
            "max_completion_tokens": args.max_completion_tokens,
-           "request_timeout": args.request_timeout}
+           "request_timeout": args.request_timeout,
+           "stream": not args.no_stream, "max_wall_s": args.max_wall_s}
 
     with open(args.input, encoding="utf-8") as f:
         rows = [json.loads(line) for line in f if line.strip()]
