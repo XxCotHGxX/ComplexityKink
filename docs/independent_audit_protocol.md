@@ -169,6 +169,13 @@ streamed responses and the same prompt and parser as the pilot.
 MAI-Thinking-1's audit of the seeded 5% sample is the second auditor for
 inter-auditor agreement.
 
+**Confirmation result (2026-09-29).** On the fresh known-answer set (150
+prompts disjoint from the first set, seed 20260930), run at the production
+endpoint (OpenRouter, GMICloud bf16), MiMo-V2.6-Pro met every threshold: error
+rate 0.000, clean 0.953, cosmetic 0.973, bug wrong-rescue 0.007 (1 of 150),
+overall 0.973. It therefore satisfies the amendment-2 confirmation requirement;
+the selection-set shortfall on clean accuracy remains disclosed.
+
 ## Reporting
 
 The camera-ready reports each auditor's pilot metrics, the selection, the
