@@ -22,18 +22,20 @@
 
 \title{The Complexity Kink: LLM Rubric Instruments for Causal Inference on Code Generation Reliability}
 
-% Public release locations. TODO(camera-ready): replace the dataset placeholders
-% with the final Hugging Face and Harvard Dataverse (DOI) URLs once published.
+% Public release locations. The benchmark data will also be mirrored on Hugging
+% Face and Harvard Dataverse (with Croissant metadata); add those URLs here once
+% the dataset is published.
 \newcommand{\codeurl}{\url{https://github.com/uwm-se/ComplexityKink}}
-\newcommand{\hfurl}{\url{https://huggingface.co/datasets/TODO/complexity-kink}}
-\newcommand{\dataverseurl}{\url{https://doi.org/10.7910/DVN/TODO}}
 
-% TODO(camera-ready): author list must match OpenReview exactly (no additions or
-% removals); confirm co-authors, affiliations, and emails.
+% Authors as on OpenReview and arXiv:2609.19616 (no additions or removals).
 \author{%
   Michael Hernandez \\
   University of Wisconsin--Milwaukee \\
-  \texttt{herna273@uwm.edu}
+  \texttt{herna273@uwm.edu} \\
+  \And
+  Tian Zhao \\
+  University of Wisconsin--Milwaukee \\
+  \texttt{tzhao@uwm.edu}
 }
 
 \begin{document}
@@ -41,7 +43,7 @@
 \maketitle
 
 \begin{abstract}
-Complexity measured from generated code is failure-dependent: a difficult prompt can produce a short failing program and then be assigned low output complexity. We introduce a six-dimension prompt-side structural-complexity index that is scored before generation and kept separate from functional correctness. We first select 5{,}000 Python prompts across six bands of a preliminary single-rater rubric score. Four out-of-panel LLM raters then rescore the locked prompts, providing 19{,}997 score rows; composite inter-rater reliability is ICC $=0.872$ on the 4{,}998 prompts with all four ratings. We evaluate 21 models on every prompt, yielding 105{,}000 model-prompt generations. In the unadjusted mean-pooled analysis, pass rate has a nonmonotone breakpoint at composite $\hat{\gamma}=13.75$, with 79.9\% at or below and 87.6\% above. This pooled pattern is not a universal failure cutoff. Task-type fixed effects shift the breakpoint to 10.75 and reduce the regime gap from 7.6 to 2.1 percentage points. A post hoc construction-frame control shifts it to 8.50 with a raw regime gap of $-3.5$ points, and neither frame alone reproduces the pooled $+7.6$-point change. In the unadjusted model-specific fits, 16 models have higher raw mean pass above their selected breakpoint and five have lower raw mean pass. Among the downward fits, Kimi K2.5 is the clearest benchmark-conditional example: construction-frame-controlled and separate later-frame searches both select $\hat{\gamma}=14.25$, with later-frame raw mean pass of 0.808 at or below and 0.760 above and a 95\% pairs-bootstrap interval of $[14.00,14.75]$. A 365-prompt audit-clean extension closely matches the original matched-five-model point estimates at the well-supported bins 15 and 16, but adds only 14 prompts above bin 16. Among zero-pass generations with computable Lizard complexity, 28.5\% pair a prompt composite above 8 with generated-output complexity at most 10, illustrating the measurement problem. Human agreement is moderate and rater-dependent on a disagreement-enriched calibration set, while paraphrase and cross-language rescoring preserve score ordering. Overidentification tests strongly reject the joint restrictions on the six rubric dimensions, so we treat the composite as an index and make no causal interpretation of the 2SLS estimates. The contribution is a pre-generation framework for estimating model-specific, benchmark-conditional reliability breakpoints and auditing their sensitivity to prompt composition.
+Complexity measured from generated code is failure-dependent: a difficult prompt can produce a short failing program and then be assigned low output complexity. We introduce a six-dimension prompt-side structural-complexity index that is scored before generation and kept separate from functional correctness. We first select 5{,}000 Python prompts across six bands of a preliminary single-rater rubric score. Four out-of-panel LLM raters then rescore the locked prompts, providing 19{,}997 score rows; composite inter-rater reliability is ICC $=0.872$ on the 4{,}998 prompts with all four ratings. We evaluate 21 models on every prompt, yielding 105{,}000 model-prompt generations. In the unadjusted mean-pooled analysis, pass rate has a nonmonotone breakpoint at composite $\hat{\gamma}=13.75$, with 79.9\% at or below and 87.6\% above. This pooled pattern is not a universal failure cutoff. Task-type fixed effects shift the breakpoint to 10.75 and reduce the regime gap from 7.6 to 2.1 percentage points. A post hoc construction-frame control shifts it to 8.50 with a raw regime gap of $-3.5$ points, and neither frame alone reproduces the pooled $+7.6$-point change. In the unadjusted model-specific fits, 16 models have higher raw mean pass above their selected breakpoint and five have lower raw mean pass. Among the downward fits, Kimi K2.5 is the clearest benchmark-conditional example: construction-frame-controlled and separate later-frame searches both select $\hat{\gamma}=14.25$, with later-frame raw mean pass of 0.808 at or below and 0.760 above and a 95\% pairs-bootstrap interval of $[14.00,14.75]$. A 365-prompt audit-clean extension closely matches the original matched-five-model point estimates at the well-supported bins 15 and 16, but adds only 14 prompts above bin 16. Among zero-pass generations with computable Lizard complexity, 28.5\% pair a prompt composite above 8 with generated-output complexity at most 10, illustrating the measurement problem. Part of the outcome was defined by an LLM audit of the test harness; on raw unit-test outcomes the pooled breakpoint moves to 11.25 and one rather than five models has lower pass above its breakpoint, while the Kimi K2.5 later-frame result is unchanged. Human agreement is moderate and rater-dependent on a disagreement-enriched calibration set, while paraphrase and cross-language rescoring preserve score ordering. Overidentification tests strongly reject the joint restrictions on the six rubric dimensions, so we treat the composite as an index and make no causal interpretation of the 2SLS estimates. The contribution is a pre-generation framework for estimating model-specific, benchmark-conditional reliability breakpoints and auditing their sensitivity to prompt composition.
 \end{abstract}
 
 \section{Introduction}
@@ -60,7 +62,7 @@ The empirical results do not support a universal cutoff. The mean-pooled curve d
 \begin{itemize}
 \item We formalize failure-dependent output complexity and illustrate it in this sample: 28.5\% of zero-pass complete cases combine a structurally nontrivial prompt with generated-output cyclomatic complexity at most 10.
 \item We introduce an ensemble-scored prompt-side index and examine its reliability against human ratings, plain-language paraphrases, and Java and C++ re-expressions.
-\item We construct and publicly release a 5{,}000-prompt Python benchmark with all judge scores, 105{,}000 generations, and test outcomes,\footnote{Dataset: \hfurl{} (archival copy: \dataverseurl{}). Code: \codeurl{}.} and use it to estimate model-specific reliability breakpoints conditional on the scoring index, prompt frame, generation settings, and unit-test protocol.
+\item We construct and publicly release a 5{,}000-prompt Python benchmark with all judge scores, 105{,}000 generations, and test outcomes,\footnote{Code and data: \codeurl{}.} and use it to estimate model-specific reliability breakpoints conditional on the scoring index, prompt frame, generation settings, and unit-test protocol.
 \item We audit those estimates under pooling, repeated sampling, task type, construction frame, and an audit-clean tail extension, and report when an apparent breakpoint is composition-sensitive.
 \end{itemize}
 
@@ -74,7 +76,7 @@ The empirical results do not support a universal cutoff. The mean-pooled curve d
 
 \textbf{Instrumental variables and threshold estimation.} IVs are a standard response to endogenous regressors~\cite{wooldridge2010econometric}, with weak-instrument and overidentification tests as essential diagnostics~\cite{stock2005testing,hansen1982large,bowsher2002reject}, and are increasingly used in empirical software engineering~\cite{grafvlachy2024cleaning,siebert2023applications}. Our rubric-dimension IV fits fail these diagnostics and are retained only as such; the primary analysis adapts Hansen's threshold regression and bootstrap sup-Wald test~\cite{hansen2000sample} to the composite directly.
 
-\textbf{LLMs as judges.} G-Eval~\cite{liu2023geval}, AlpacaEval~\cite{alpacaeval}, and MT-Bench~\cite{zheng2023judging} use LLMs to evaluate model outputs, building on rubric-based automatic evaluation in NLP~\cite{hashimoto2019unifying}. Our judges never score answers or outcomes: they score the input prompt before generation against a published structural rubric and are excluded from the evaluated panel, making them a measurement layer for a latent input property rather than an outcome evaluator.
+\textbf{LLMs as judges.} G-Eval~\cite{liu2023geval}, AlpacaEval~\cite{alpacaeval}, and MT-Bench~\cite{zheng2023judging} use LLMs to evaluate model outputs, building on rubric-based automatic evaluation in NLP~\cite{hashimoto2019unifying}. Our rubric judges score the input prompt before generation against a published structural rubric and are excluded from the evaluated panel, making them a measurement layer for a latent input property rather than an outcome evaluator; the one exception, an \texttt{o4-mini} audit of part of the outcome, is disclosed in Section~\ref{sec:data}.
 
 % =====================================================================
 \section{Background: Failure-Dependent Output Complexity}
@@ -92,12 +94,12 @@ We address the timing problem with a prompt-side index $C_i$, computed before an
 \section{Methodology}
 % =====================================================================
 
-\subsection{Data}
+\subsection{Data}\label{sec:data}
 We use 5{,}000 Python tasks from OpenCodeInstruct~\cite{opencodeinst}: 2{,}246 prompts retained from an earlier stage, drawn from a 200{,}000-record source-ordered prefix, plus 2{,}754 later candidates that passed automated contract and test-quality filtering and deliberately supplemented the high reference-complexity tail. We retain this two-level construction-frame indicator for post hoc sensitivity analysis. A preliminary \texttt{o4-mini} rater scored candidates with the rubric below, and we sampled 834 prompts in each of the preliminary-score bands 0--3 and 4--6 and 833 in each of 7--9, 10--12, 13--15, and 16--24. This score was used for sampling only.
 
 After the prompt set was locked, the four-judge ensemble rescored every prompt, and all analyses use that ensemble mean. On the bands $[0,3]$, $(3,6]$, $(6,9]$, $(9,12]$, $(12,15]$, $(15,24]$ the analyzed index has 319, 943, 940, 898, 1{,}425, and 475 prompts, so the benchmark is stratified by the preliminary score but not balanced on the final index; neither matches the natural OpenCodeInstruct distribution. Reference-solution cyclomatic complexity shaped the upstream pool and is used only for alignment checks.
 
-The evaluated panel has 21 models: Claude Opus 4.6, Opus 4.7, and Sonnet 4.6; GPT-5.4, GPT-5-mini, GPT-4.1, GPT-OSS-20B, and GPT-OSS-120B; Gemini 3.1 Pro Preview and Gemini 3 Flash; Grok-3; DeepSeek V3.2; Kimi K2.5; Qwen 3.6 Plus and Qwen 3.5-9B; Mistral Large-3, Devstral Small 2505 (4-bit quantized), and Ministral-3-14B-reasoning; Llama 3.3-70B; GLM 4.7-flash; and Trinity-large. No rubric judge is in the panel. A locally served, quantized AuroraGPT-IT-v4 run covered only the earlier frame and was excluded in a post hoc decision without a prespecified eligibility rule; its earlier-frame pass rate was 20.6\%, and performance was not a documented exclusion criterion. Each model generated one solution per prompt ($21\times5{,}000=105{,}000$ generations). Pass rate is the fraction of Nvidia-supplied unit tests passed; the combined analysis averages it across the 21 models within prompt ($N=5{,}000$), and per-model analyses use the same 5{,}000 rows. Generated-output complexity is McCabe cyclomatic complexity from Lizard~\cite{lizard}, summed over the functions in the cleaned generated code; it is available for 103{,}948 generations, and analyses using it report complete-case denominators.
+The evaluated panel has 21 models: Claude Opus 4.6, Opus 4.7, and Sonnet 4.6; GPT-5.4, GPT-5-mini, GPT-4.1, GPT-OSS-20B, and GPT-OSS-120B; Gemini 3.1 Pro Preview and Gemini 3 Flash; Grok-3; DeepSeek V3.2; Kimi K2.5; Qwen 3.6 Plus and Qwen 3.5-9B; Mistral Large-3, Devstral Small 2505 (4-bit quantized), and Ministral-3-14B-reasoning; Llama 3.3-70B; GLM 4.7-flash; and Trinity-large. No rubric judge is in the panel. A locally served, quantized AuroraGPT-IT-v4 run covered only the earlier frame and was excluded in a post hoc decision without a prespecified eligibility rule; its earlier-frame pass rate was 20.6\%, and performance was not a documented exclusion criterion. Each model generated one solution per prompt ($21\times5{,}000=105{,}000$ generations). Pass rate is the fraction of Nvidia-supplied unit tests passed, except that for the 2{,}246 earlier-frame prompts an \texttt{o4-mini} audit of the harness verdict replaced it with 1.0 or 0.0 on 23{,}848 of 47{,}166 generations; later-frame outcomes are raw harness values, and Appendix~\ref{app:outcome-audit} repeats the main analyses on raw harness outcomes throughout. The combined analysis averages pass rate across the 21 models within prompt ($N=5{,}000$), and per-model analyses use the same 5{,}000 rows. Generated-output complexity is McCabe cyclomatic complexity from Lizard~\cite{lizard}, summed over the functions in the cleaned generated code; it is available for 103{,}948 generations, and analyses using it report complete-case denominators.
 
 \subsection{Rubric Scoring}
 
@@ -173,7 +175,7 @@ Because reference-solution cyclomatic complexity helped shape the candidate pool
 
 \subsection{Rater and Measurement Calibration}
 
-Beyond the four-judge ICC of 0.872, we ran a deliberately difficult human calibration with LLM scores hidden: the first author graded 200 prompts, roughly half sampled for high judge disagreement, and a second research-team member graded 50 of them. On all 200, first-author agreement with the ensemble is Pearson $r=0.408$, Spearman $\rho=0.373$, ICC$(2,1)=0.395$, with mean offset $-1.18$ points; per-dimension Pearson correlations range from 0.249 to 0.484 and quadratic-weighted $\kappa$ from 0.217 to 0.435. On the shared 50, the graders correlate 0.561 with each other and 0.613 and 0.921 with the ensemble, with offsets $-0.69$ and $-1.35$. These are stress-test estimates with substantial rater variation, not a human ground-truth certificate.
+Beyond the four-judge ICC of 0.872, we ran a deliberately difficult human calibration with LLM scores hidden: the first author graded 200 prompts, roughly half sampled for high judge disagreement, and the second author graded 50 of them. On all 200, first-author agreement with the ensemble is Pearson $r=0.408$, Spearman $\rho=0.373$, ICC$(2,1)=0.395$, with mean offset $-1.18$ points; per-dimension Pearson correlations range from 0.249 to 0.484 and quadratic-weighted $\kappa$ from 0.217 to 0.435. On the shared 50, the graders correlate 0.561 with each other and 0.613 and 0.921 with the ensemble, with offsets $-0.69$ and $-1.35$. These are stress-test estimates with substantial rater variation, not a human ground-truth certificate.
 
 Two checks probe whether the index follows presentation rather than structure. Across 150 plain-language rewrites, rank stability is high (Spearman $\rho=0.963$); the mean shift is small ($-0.115$) but detectable (paired $p=0.031$), and 91.3\% of pairs are within one point. The rewrites were not verified by execution, so this is score stability under a preservation instruction, not proof of semantic equivalence. For 117 prompts re-expressed in Java and C++, the composite correlates 0.992 and 0.969 with Python, with inter-judge ICC 0.912 (Python), 0.913 (Java), and 0.882 (C++): evidence of score transfer, not of non-Python generation reliability.
 
@@ -230,7 +232,7 @@ The within-frame fits explain why we narrow the claim. The earlier frame selects
 
 \subsection{Model and Pooling Heterogeneity}
 
-Model-specific thresholds in the unadjusted original benchmark range from 7.75 to 14.25, with median 11.25. Sixteen models have higher raw mean pass above their selected breakpoint and five have lower raw mean pass: Grok-3, Kimi K2.5, Gemini 3.1 Pro Preview, GPT-5.4, and Qwen 3.6 Plus. These five contrasts are not equally stable under construction-frame sensitivity.
+Model-specific thresholds in the unadjusted original benchmark range from 7.75 to 14.25, with median 11.25. Sixteen models have higher raw mean pass above their selected breakpoint and five have lower raw mean pass: Grok-3, Kimi K2.5, Gemini 3.1 Pro Preview, GPT-5.4, and Qwen 3.6 Plus. These five contrasts are not equally stable under construction-frame sensitivity, and on raw harness outcomes only Gemini 3.1 Pro Preview remains downward (Appendix~\ref{app:outcome-audit}).
 
 Kimi K2.5 is the clearest downward case. Its construction-frame-controlled search retains $\hat{\gamma}=14.25$ with sup-Wald 29.72 and zero exceedances in 300 wild-bootstrap draws ($p_{\mathrm{MC}}\leq1/301$). Within the later candidate frame, it separately selects 14.25 with sup-Wald 37.52, a 95\% pairs-bootstrap interval of $[14.00,14.75]$, and raw mean pass of 0.808 at or below versus 0.760 above. Piecewise BIC is 2{,}456 versus 2{,}515 for a linear fit. The earlier Kimi frame has no significant breakpoint ($p_{\mathrm{MC}}=0.382$), and linear BIC is lower. Gemini 3.1 Pro Preview also has a downward later-frame contrast at 14.75, but its interval $[9.50,14.75]$ localizes the breakpoint poorly. Grok-3, GPT-5.4, and Qwen 3.6 Plus have upward later-frame raw contrasts, so their unadjusted downward contrasts should not be read as stable failure onsets.
 
@@ -275,6 +277,8 @@ On a 359-prompt, four-model subset with five draws per prompt-model cell at temp
 
 \textbf{Composition and pooling.} Task-type and construction-frame controls substantially alter the breakpoint, and median pooling moves it; the mean-pooled 13.75 should not be read without those sensitivities.
 
+\textbf{Outcome definition.} The reported outcome mixes an \texttt{o4-mini}-audited pass rate in the earlier frame with raw harness values in the later frame. On a known-answer set that audit accepted no injected bug but judged 12\% of correct reference solutions incorrect, and on raw harness outcomes the pooled breakpoint moves to 11.25 (Appendix~\ref{app:outcome-audit}).
+
 \textbf{Scorer dependence and human disagreement.} Common-mode LLM-rater bias can propagate into the index; the ensemble makes disagreement observable but cannot remove it. Human-LLM agreement is only moderate on the disagreement-enriched sample and varies by rater.
 
 \textbf{No causal IV claim.} The overidentification restrictions reject even in small subsamples and candidate instruments imply conflicting coefficients, so the 2SLS fits cannot identify a causal effect.
@@ -288,16 +292,16 @@ On a 359-prompt, four-model subset with five draws per prompt-model cell at temp
 Generated-output cyclomatic complexity is a poor stand-in for prompt structure when failures produce short or unscorable programs. A prompt-side index avoids that timing problem and supports model-specific breakpoint estimation; the clearest downward example is Kimi K2.5 near 14.25, after construction-frame control and within the later frame. The mean-pooled result is less stable: task type shrinks its gap, the large rebound is mostly compositional, median pooling moves it, and model directions differ. The audit-clean extension closely matches bins 15 and 16, human calibration is moderate, paraphrase, language, and repeated-sampling checks preserve ordering and location, and the candidate instruments fail their joint restrictions, so the contribution is measurement and observational analysis, not causal identification. For benchmark designers the lesson is modest: supplement output-derived metrics with pre-generation measures, publish the rubric and rater uncertainty, show support counts, and report how composition and pooling alter the curve.
 
 \vspace{4pt}
-\noindent\textbf{Data and code availability.} The benchmark, all judge scores, 105{,}000 generations with test outcomes and Lizard complexity, human calibration grades, and the 365-prompt extension are released at \hfurl{} (archival copy with DOI: \dataverseurl{}) with Croissant metadata; analysis code is at \codeurl{}. See Appendix~\ref{app:artifact}.
+\noindent\textbf{Data and code availability.} Analysis code, the rubric, and the source tables for every figure are at \codeurl{}, which also links the benchmark release: prompts, all judge scores, 105{,}000 generations with test outcomes and Lizard complexity, human calibration grades, and the 365-prompt extension, with Croissant metadata. See Appendix~\ref{app:artifact}.
 
 % =====================================================================
 % Acknowledgments and funding disclosure: required in the camera-ready version;
 % like references, this section does not count toward the content-page limit.
+% Both authors must confirm the funding and competing-interest statements.
 \begin{ack}
-% TODO(camera-ready): confirm every item below with the authors.
-We thank [TODO: second human grader, if not an author] for independent blind rubric grading, and [TODO: others]. Model inference and rubric scoring used Microsoft Azure compute provided through [TODO: exact grant or program name] at the University of Wisconsin--Milwaukee. [TODO: any other third-party funding or support in the past 36 months, e.g., fellowships, API credits, or grants.]
+Model inference, rubric scoring, and unit-test execution ran on Microsoft Azure resources provided through the University of Wisconsin--Milwaukee. The authors received no other third-party funding for this work.
 
-\textbf{Competing interests.} [TODO: The authors declare no competing interests.]
+\textbf{Competing interests.} The authors declare no competing interests.
 \end{ack}
 
 \begin{thebibliography}{99}
@@ -375,7 +379,7 @@ Figure~\ref{fig:pipeline} summarizes the measurement and analysis workflow.
 \label{fig:pipeline}
 \end{figure}
 
-All of the following stress tests were added after the initial analysis and are post hoc robustness checks, not preregistered confirmation. Nine task categories are assigned to all prompts by one out-of-panel judge; three additional judges label a shared 500-prompt subset. We examine the two recorded prompt-source frames, compare first-draw and five-draw outcomes on 359 prompts and four models, and re-express 117 prompts in each of Java and C++ for rescoring. For the paraphrase check, we sample 150 prompts with 75\% drawn from rounded composite bins 10--18 and the remainder drawn outside that region. A non-judge DeepSeek-V3.2 model is instructed to preserve the exact required inputs, outputs, behavior, constraints, and edge cases while removing only verbose framing; the same four judges then rescore the rewrites. Two members of the research team grade a disagreement-enriched calibration sample with the LLM scores hidden. Finally, a prompt-side-selected extension retains 365 new prompts only after contract audit and successful execution of every reference solution.
+All of the following stress tests were added after the initial analysis and are post hoc robustness checks, not preregistered confirmation. Nine task categories are assigned to all prompts by one out-of-panel judge; three additional judges label a shared 500-prompt subset. We examine the two recorded prompt-source frames, compare first-draw and five-draw outcomes on 359 prompts and four models, and re-express 117 prompts in each of Java and C++ for rescoring. For the paraphrase check, we sample 150 prompts with 75\% drawn from rounded composite bins 10--18 and the remainder drawn outside that region. A non-judge DeepSeek-V3.2 model is instructed to preserve the exact required inputs, outputs, behavior, constraints, and edge cases while removing only verbose framing; the same four judges then rescore the rewrites. Both authors grade a disagreement-enriched calibration sample with the LLM scores hidden. Finally, a prompt-side-selected extension retains 365 new prompts only after contract audit and successful execution of every reference solution.
 
 \section{Rubric Alignment Details}
 \label{app:alignment}
@@ -701,10 +705,41 @@ C++ & Python vs C++ composite & 117 & 0.969 & C++ ICC $=0.882$ \\
 
 The paraphrases have median character length 46.3\% of the originals. Their mean composite shift is $-0.115$ (paired $p=0.031$), with 91.3\% within one point and 99.3\% within two. On the same 117 prompts used for language re-expression, Python inter-judge ICC is 0.912.
 
+\section{Outcome definition and raw-harness sensitivity}
+\label{app:outcome-audit}
+
+For the 2{,}246 earlier-frame prompts, the pipeline asked \texttt{o4-mini} whether each unit-test verdict was correct on the merits, given the task, code, tests, and harness pass rate, and to treat function-name mismatches, script-style input and output, and formatting differences as correct. A ``correct'' verdict set the pass rate to 1.0, ``incorrect'' to 0.0, and ``uncertain'' kept the harness value. The audit covered 46{,}706 of the 47{,}166 earlier-frame generations and changed 23{,}848 of them: 15{,}725 rose to 1.0 and 8{,}123 fell to 0.0. Earlier-frame mean pass is 0.747 with the audit and 0.683 on raw harness values. The 2{,}754 later-frame prompts were never audited, and their mean pass is 0.880 under either definition, so the outcome definition coincides with the construction-frame indicator.
+
+We measured this audit on a 450-case known-answer set built from 150 benchmark prompts whose reference solution passes every unit test: the reference itself, a copy with the test-called functions renamed, and a single-mutation bug that the tests detect, all executed in the benchmark harness. With its original prompt and settings, \texttt{o4-mini} judged 88.0\% of the references correct, rescued 82.0\% of the renamed copies, and accepted none of the bugs; 1.8\% of responses were unparseable. Some references pass their tests while violating an explicit instruction in the task, so the first two rates understate audit accuracy.
+
+\begin{table}[h]
+\centering
+\caption{Main breakpoint analyses under the reported outcome and under raw unit-test harness outcomes. Regime means are raw summaries at each specification's selected breakpoint.}
+\label{tab:outcome-sensitivity}
+\small
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+& \multicolumn{4}{c}{Reported outcome} & \multicolumn{4}{c}{Raw harness outcome} \\
+\cmidrule(lr){2-5}\cmidrule(l){6-9}
+Specification & $\hat{\gamma}$ & sup-Wald & Low & High & $\hat{\gamma}$ & sup-Wald & Low & High \\
+\midrule
+Unadjusted & 13.75 & 121.7 & 0.799 & 0.876 & 11.25 & 155.3 & 0.760 & 0.833 \\
+Task-type fixed effects & 10.75 & 19.6 & 0.811 & 0.832 & 9.50 & 31.9 & 0.781 & 0.801 \\
+Construction-frame fixed effect & 8.50 & 47.4 & 0.841 & 0.806 & 8.50 & 32.9 & 0.793 & 0.790 \\
+Earlier frame only & 7.75 & 3.4 & 0.825 & 0.666 & 9.50 & 3.5 & 0.723 & 0.591 \\
+Later frame only & 14.25 & 36.7 & 0.877 & 0.885 & 14.25 & 36.7 & 0.877 & 0.885 \\
+\midrule
+Models with lower pass above $\hat{\gamma}$ & \multicolumn{4}{c}{5 of 21} & \multicolumn{4}{c}{1 of 21} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On raw harness outcomes every pooled specification except the earlier frame alone still rejects the no-threshold null (0 of 300 wild-bootstrap draws exceed the observed statistic; 50 of 300 within the earlier frame), the task-type-controlled gap stays at 2.1 points, and the construction-frame-controlled gap shrinks from $-3.5$ to $-0.3$ points. Grok-3, GPT-5.4, Kimi K2.5, and Qwen 3.6 Plus change direction in the unadjusted model-specific contrast, leaving Gemini 3.1 Pro Preview as the only downward fit. Kimi K2.5's construction-frame-controlled search still selects 14.25 (sup-Wald 28.5, 0 of 300 exceedances), and its later-frame result is identical because no later-frame outcome was audited. The analyses are in \texttt{scripts/analyze\_harness\_outcome\_sensitivity.py} and \texttt{scripts/analyze\_harness\_outcome\_downward\_models.py}.
+
 \section{Dataset, code, and reproducibility details}
 \label{app:artifact}
 
-\textbf{Dataset.} The public release (\hfurl{}; archival copy with DOI at \dataverseurl{}) contains the 5{,}000 locked prompts with source identifiers and construction-frame labels, the 19{,}997 per-judge rubric score rows and ensemble aggregates, all 105{,}000 generations with unit-test outcomes and Lizard output complexity, the repeated-sampling subset, the human calibration grades, and the 365-prompt audit-clean extension. It is documented with a dataset card and Croissant metadata including the Responsible-AI fields. % TODO(camera-ready): reconcile this list with the final release inventory.
+\textbf{Dataset.} The public data release, linked from \codeurl{}, contains the 5{,}000 locked prompts with source identifiers and construction-frame labels, the 19{,}997 per-judge rubric score rows and ensemble aggregates, all 105{,}000 generations with unit-test outcomes and Lizard output complexity, the repeated-sampling subset, the human calibration grades, and the 365-prompt audit-clean extension. It is documented with a dataset card and Croissant metadata including the Responsible-AI fields. % TODO(camera-ready): reconcile this list with the final release inventory.
 
 \textbf{Code.} The repository (\codeurl{}) contains the six-dimension rubric prompt, model metadata, and analysis scripts for the breakpoint, task-control, construction-frame, diagnostic-IV, placebo, and figure pipelines, together with locked summary outputs and the source tables for every figure. Re-running model inference additionally requires provider access; all reported analyses can be reproduced from the released data without it.
 

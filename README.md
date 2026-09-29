@@ -3,14 +3,19 @@
 **Prompt-side structural complexity and code-generation reliability**
 
 Code and analysis artifact for *The Complexity Kink: LLM Rubric Instruments for
-Causal Inference on Code Generation Reliability*, accepted at the NeurIPS 2026
-Evaluations & Datasets track.
+Causal Inference on Code Generation Reliability* by Michael Hernandez and Tian
+Zhao (University of Wisconsin–Milwaukee), accepted at the NeurIPS 2026
+Evaluations & Datasets track. Preprint:
+[arXiv:2609.19616](https://arxiv.org/abs/2609.19616).
 
-- Dataset: <https://huggingface.co/datasets/TODO/complexity-kink>
-  (archival copy: <https://doi.org/10.7910/DVN/TODO>)
 - Paper source: [`paper/Scratch-NeurIps.tex`](paper/Scratch-NeurIps.tex)
-
-<!-- TODO(camera-ready): replace dataset placeholders and add the BibTeX entry. -->
+- Benchmark data: the release (prompts, per-judge rubric scores, all 105,000
+  generations with unit-test outcomes and Lizard complexity, human calibration
+  grades, and the 365-prompt extension, with Croissant metadata) will be linked
+  here; its dataset card is in [`release/`](release/).
+- Outcome audit: [`docs/independent_audit_protocol.md`](docs/independent_audit_protocol.md)
+  documents how the unit-test outcome is audited and the pre-declared auditor
+  selection rule.
 
 
 ## What this project studies
