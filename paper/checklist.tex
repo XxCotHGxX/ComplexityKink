@@ -45,7 +45,7 @@
 \item {\bf Experimental result reproducibility}
     \item[] Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The Methodology distinguishes the preliminary single-rater sampling score from the four-judge analysis index and specifies the source scan, candidate pooling, exact sampling bands, scoring rubric, evaluated panel, unit-test outcome, Lizard complete-case definition, breakpoint search, construction-frame and task controls, diagnostic IV specification, and robustness designs. The appendix describes the anonymous source artifact and aggregate source tables for the new figures.
+    \item[] Justification: The Methodology distinguishes the preliminary single-rater sampling score from the four-judge analysis index and specifies the source scan, candidate pooling, exact sampling bands, scoring rubric, evaluated panel, unit-test outcome, Lizard complete-case definition, breakpoint search, construction-frame and task controls, diagnostic IV specification, and robustness designs. The appendix describes the public dataset release, the code repository, and the source tables for every figure.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
@@ -57,8 +57,8 @@
 
 \item {\bf Open access to data and code}
     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
-    \item[] Answer: \answerNo{}
-    \item[] Justification: The anonymous source artifact provides analysis code, locked summary outputs, robustness summaries, and aggregate figure inputs. Large prompt and generated-output bundles are not committed in the Git snapshot, so a full inference and execution rerun also requires the separately retained data bundle and provider access.
+    \item[] Answer: \answerYes{}
+    \item[] Justification: The benchmark prompts, per-judge and ensemble rubric scores, all 105{,}000 generations with unit-test outcomes and Lizard complexity, human calibration grades, and the audit-clean extension are publicly released on Hugging Face with an archival Harvard Dataverse copy and Croissant metadata; the analysis code, rubric prompt, and figure source tables are public on GitHub (Section~\ref{app:artifact}). Re-running model inference additionally requires provider access.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments requiring code.
@@ -139,7 +139,7 @@
 \item {\bf Licenses for existing assets}
     \item[] Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper cites OpenCodeInstruct, Lizard, linearmodels, and the evaluated model families where used. The appendix names CC BY 4.0 for OpenCodeInstruct, the MIT License for Lizard 1.21.0, and the NCSA License for linearmodels 7.0.
+    \item[] Justification: The paper cites OpenCodeInstruct, Lizard, linearmodels, and the evaluated model families where used. The appendix names CC BY 4.0 for OpenCodeInstruct and for the derived benchmark, the MIT License for Lizard 1.21.0, and the NCSA License for linearmodels 7.0.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not use existing assets.
@@ -152,7 +152,7 @@
 \item {\bf New assets}
     \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The new public source assets are analysis scripts, locked result summaries, robustness summaries, and documented aggregate figure inputs. The appendix states that large prompt and generated-output bundles are not part of the Git snapshot.
+    \item[] Justification: The new assets are the released benchmark dataset, documented with a dataset card and Croissant metadata including Responsible-AI fields, and the analysis code repository with its rubric prompt, locked result summaries, and figure source tables (Section~\ref{app:artifact}).
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not release new assets.

@@ -99,7 +99,7 @@ DISPLAY_NAMES = {
     "gpt-5-mini": "GPT-5-mini",
     "gpt-oss-20b": "GPT-OSS-20B",
     "ministral-3-14b-reasoning": "Ministral-3-14B-reasoning",
-    "mistral-small-2412": "Mistral Small 2412",
+    "mistral-small-2412": "Devstral Small 2505",
     "openai_gpt-5.4": "GPT-5.4",
     "qwen3.5-9b": "Qwen 3.5-9B",
     "qwen_qwen3.6-plus": "Qwen 3.6 Plus",

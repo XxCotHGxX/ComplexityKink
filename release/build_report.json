@@ -1,0 +1,616 @@
+{
+  "generated_at_utc": "2026-09-28T19:09:51+00:00",
+  "pitfall_stale_ensemble_overlap": 2151,
+  "judge_rows_dropped_invalid": {
+    "gpt-5.5": 4,
+    "llama-4-maverick": 3
+  },
+  "ensemble_sd_definition": {
+    "matches_population_sd": "58",
+    "matches_sample_sd": "5000"
+  },
+  "source_scan": {
+    "found": 5365,
+    "wanted": 5365,
+    "missing": 0,
+    "unit_tests_differ_from_source": 0
+  },
+  "batch_request_files": [
+    {
+      "model_key": "google_gemini-3-flash-preview",
+      "submitted_local": "20260414_210423",
+      "requests": 530
+    },
+    {
+      "model_key": "google_gemini-3.1-pro-preview",
+      "submitted_local": "20260414_210600",
+      "requests": 4161
+    },
+    {
+      "model_key": "openai_gpt-5.4",
+      "submitted_local": "20260414_210702",
+      "requests": 5000
+    },
+    {
+      "model_key": "anthropic_claude-opus-4.6",
+      "submitted_local": "20260503_112620",
+      "requests": 2754
+    },
+    {
+      "model_key": "anthropic_claude-opus-4.7",
+      "submitted_local": "20260503_113652",
+      "requests": 2754
+    },
+    {
+      "model_key": "anthropic_claude-sonnet-4.6",
+      "submitted_local": "20260503_112139",
+      "requests": 2754
+    },
+    {
+      "model_key": "google_gemini-3.1-pro-preview",
+      "submitted_local": "20260504_190647",
+      "requests": 2754
+    },
+    {
+      "model_key": "google_gemini-3.1-pro-preview",
+      "submitted_local": "20260505_101715",
+      "requests": 165
+    },
+    {
+      "model_key": "gpt-4.1",
+      "submitted_local": "20260501_133154",
+      "requests": 1711
+    },
+    {
+      "model_key": "gpt-5-mini",
+      "submitted_local": "20260501_133154",
+      "requests": 2080
+    },
+    {
+      "model_key": "gpt-5-mini",
+      "submitted_local": "20260501_153711",
+      "requests": 17
+    },
+    {
+      "model_key": "openai_gpt-5.4",
+      "submitted_local": "20260430_203545",
+      "requests": 2754
+    },
+    {
+      "model_key": "qwen_qwen3.6-plus",
+      "submitted_local": "20260430_150933",
+      "requests": 2754
+    },
+    {
+      "model_key": "qwen_qwen3.6-plus",
+      "submitted_local": "20260430_151048",
+      "requests": 2754
+    }
+  ],
+  "generation_stats": {
+    "no_tests_executed": 208,
+    "audit_override_changed_value": 23848,
+    "audit_override_changed_to_correct": 15725,
+    "code_empty": 208,
+    "code_with_fence": 129,
+    "settings_not_recorded_per_row": 80325,
+    "settings_batch_request_record": 24675,
+    "audit_override_changed_to_incorrect": 8123
+  },
+  "keyword_feature_conflicts_across_models": 0,
+  "subset_sizes": {
+    "passk": 359,
+    "paraphrase": 150,
+    "cross_language": 117,
+    "human_graded": 200,
+    "fixed_version_anchors": 150
+  },
+  "extension_provenance": {
+    "candidates_scored_by_ensemble_with_composite_ge_15": 1129,
+    "dropped_by_contract_or_test_audit": 764,
+    "retained": 365,
+    "reference_rows_all_pass": true,
+    "overlap_with_24bin_set": 0,
+    "overlap_with_main_benchmark": 0,
+    "24bin_set_size": 4992,
+    "24bin_overlap_with_main_benchmark": 3072
+  },
+  "human_calibration_selection_replicated": true,
+  "rubric_hash": {
+    "computed": "3bbf9bb0c93c684dd5b8109fa5610501a8df42a89443a5441ac9075de33144a8",
+    "judge_rows": [
+      "3bbf9bb0c93c684dd5b8109fa5610501a8df42a89443a5441ac9075de33144a8"
+    ]
+  },
+  "sanity": {
+    "main_prompts": 5000,
+    "generation_rows": 105000,
+    "models": 21,
+    "judge_score_rows": 19997,
+    "judge_rows_by_judge": {
+      "command-a": 5000,
+      "gpt-5.5": 4998,
+      "llama-4-maverick": 4999,
+      "o4-mini": 5000
+    },
+    "judges_per_prompt": {
+      "4": 4998,
+      "3": 1,
+      "2": 1
+    },
+    "extension_prompts": 365,
+    "extension_display_bins": {
+      "15": 218,
+      "16": 133,
+      "17": 11,
+      "18": 3
+    },
+    "mean_pass_rate_generation_level": 0.820444761904762,
+    "mean_pass_rate_prompt_level": 0.820444761904762,
+    "mean_harness_pass_rate_generation_level": 0.7916,
+    "regime_at_13.75": {
+      "n_low": 3617,
+      "pass_low": 0.7993088194636438,
+      "n_high": 1383,
+      "pass_high": 0.8757222050063699,
+      "later_frame_share_low": 0.39922587779928115,
+      "later_frame_share_high": 0.9472161966738973
+    },
+    "main_display_bin_counts": {
+      "0": 3,
+      "1": 32,
+      "2": 74,
+      "3": 295,
+      "4": 293,
+      "5": 302,
+      "6": 354,
+      "7": 352,
+      "8": 301,
+      "9": 269,
+      "10": 270,
+      "11": 277,
+      "12": 392,
+      "13": 278,
+      "14": 345,
+      "15": 850,
+      "16": 257,
+      "17": 45,
+      "18": 6,
+      "19": 5
+    },
+    "frames": {
+      "earlier_retained": {
+        "n": 2246,
+        "mean_composite": 7.922232116355002,
+        "mean_pass_rate": 0.7472480176398253,
+        "mean_harness_pass_rate": 0.6830343891786457,
+        "ref_avg_test_score_lt_1": 1259,
+        "ref_avg_test_score_eq_0": 491
+      },
+      "later_candidate": {
+        "n": 2754,
+        "mean_composite": 11.41884531590414,
+        "mean_pass_rate": 0.8801397102050696,
+        "mean_harness_pass_rate": 0.8801397102050696,
+        "ref_avg_test_score_lt_1": 0,
+        "ref_avg_test_score_eq_0": 0
+      }
+    },
+    "analyzed_index_band_counts": [
+      319,
+      943,
+      940,
+      898,
+      1425,
+      475
+    ],
+    "prelim_band_counts": {
+      "7-9": 833,
+      "0-3": 834,
+      "16-24": 833,
+      "13-15": 833,
+      "10-12": 833,
+      "4-6": 834
+    },
+    "reference_cc_available": 5000,
+    "generations_with_lizard_cc": 103948,
+    "zero_pass_complete_cases": 14776,
+    "reverse_threshold_cell": 4216,
+    "reverse_threshold_share": 0.2853275582024905,
+    "zero_pass_without_cc": 977,
+    "icc_2_1_composite": {
+      "n_complete": 4998,
+      "icc": 0.8719344824248982
+    },
+    "human": {
+      "grader_1_n": 200,
+      "grader_2_n": 50,
+      "grader_1_vs_ensemble_pearson": 0.4081276385455263,
+      "grader_1_vs_ensemble_spearman": 0.3728183100591818,
+      "grader_1_vs_ensemble_icc_2_1": 0.395057734816509,
+      "grader_1_mean_offset": -1.1791666666666667,
+      "overlap_grader_1_vs_ensemble_pearson": 0.612996627540898,
+      "overlap_grader_2_vs_ensemble_pearson": 0.9212151257010252,
+      "overlap_grader_1_vs_grader_2_pearson": 0.5611715224323339,
+      "strata": {
+        "grader_1|random": 105,
+        "grader_1|high_disagreement": 95,
+        "grader_2|random": 31,
+        "grader_2|high_disagreement": 19
+      }
+    },
+    "extension_matched_five": {
+      "15": {
+        "extension_n": 218,
+        "extension_mean": 0.880183486238532,
+        "original_n": 850,
+        "original_mean": 0.8940941176470587
+      },
+      "16": {
+        "extension_n": 133,
+        "extension_mean": 0.7990977443609023,
+        "original_n": 257,
+        "original_mean": 0.8084824902723735
+      },
+      "17": {
+        "extension_n": 11,
+        "extension_mean": 0.6818181818181818,
+        "original_n": 45,
+        "original_mean": 0.7182222222222222
+      },
+      "18": {
+        "extension_n": 3,
+        "extension_mean": 0.6266666666666666,
+        "original_n": 6,
+        "original_mean": 0.45
+      }
+    },
+    "fixed_version_bins_15_16": {
+      "cli_claude-opus-4.6|15": {
+        "n": 228,
+        "mean": 0.9407894736842105
+      },
+      "cli_claude-opus-4.6|16": {
+        "n": 133,
+        "mean": 0.8714285714285714
+      },
+      "cli_gemini-3.1-pro|15": {
+        "n": 228,
+        "mean": 0.9359649122807018
+      },
+      "cli_gemini-3.1-pro|16": {
+        "n": 133,
+        "mean": 0.8451127819548873
+      },
+      "cli_gpt-5.4|15": {
+        "n": 228,
+        "mean": 0.9403508771929825
+      },
+      "cli_gpt-5.4|16": {
+        "n": 133,
+        "mean": 0.850375939849624
+      }
+    },
+    "passk_rows": 7180,
+    "paraphrase": {
+      "n": 150,
+      "judge_rows": 600,
+      "spearman_vs_current_ensemble": 0.9626410188376948,
+      "pearson_vs_current_ensemble": 0.9873327665170815,
+      "mean_shift": -0.115,
+      "within_one_point": 0.9133333333333333
+    },
+    "cross_language": {
+      "java": {
+        "n": 117,
+        "pearson_vs_python_ensemble": 0.99171864254807
+      },
+      "cpp": {
+        "n": 117,
+        "pearson_vs_python_ensemble": 0.9690901278309086
+      }
+    },
+    "task_type_counts_primary": {
+      "string_text": 617,
+      "numeric_math": 619,
+      "parsing_serialization": 215,
+      "data_structures_algorithms": 2005,
+      "other": 341,
+      "array_matrix_grid": 654,
+      "simulation_stateful": 276,
+      "api_library_orchestration": 83,
+      "logic_validation": 190
+    },
+    "timeframe": {
+      "generations": [
+        "2026-02-21T20:30:06.935315+00:00",
+        "2026-05-05T17:18:52.843521"
+      ],
+      "main_judge_scores": [
+        "2026-04-30T02:21:27.209241+00:00",
+        "2026-05-05T03:49:34.668830+00:00"
+      ]
+    }
+  },
+  "sanitization_scan": {
+    "sk-": {
+      "matches": 3,
+      "by_column": {
+        "generations.code": 3
+      },
+      "examples": [
+        {
+          "where": "generations.code",
+          "context": "lendar workday (15th, 20th, or 25th) provides 3 task-workdays.\n    \"\"\"\n    \n    # Constraint: If first_day_inde"
+        },
+        {
+          "where": "generations.code",
+          "context": "he\"\n    response.headers[\"X-Server\"] = \"Simple-Flask-Server\"\n    return response\n\n\n@app.route(\"/\", methods=[\""
+        }
+      ]
+    },
+    "key (case-insensitive, any)": {
+      "matches": 503858,
+      "by_column": {
+        "generations.code": 474188,
+        "passk_generations.code": 20169,
+        "prompts.prompt_text": 6261,
+        "prompts.unit_tests": 1474,
+        "extension_prompts.prompt_text": 997,
+        "cross_language_prompts.ported_prompt_text": 296,
+        "paraphrase_prompts.paraphrased_prompt_text": 190,
+        "paraphrase_prompts.original_prompt_text": 183,
+        "extension_prompts.unit_tests": 98,
+        "models.notes": 2
+      },
+      "examples": []
+    },
+    "credential-like literal": {
+      "matches": 2,
+      "by_column": {
+        "prompts.prompt_text": 1,
+        "generations.code": 1
+      },
+      "examples": [
+        {
+          "where": "prompts.prompt_text",
+          "context": "text to be analyzed.\n\n**Sample Input:**\n```python\napi_key = \"your_api_key_here\"\ntext = \"I love sunny days!\"\nlanguage = \"en\"\n```\n\n"
+        },
+        {
+          "where": "generations.code",
+          "context": "nexpected error occurred: {err}\"\n\n# Example usage\napi_key = \"your_api_key_here\"\ntext = \"I love sunny days!\"\nlanguage = \"en\"\n\nresu"
+        }
+      ]
+    },
+    "herna": {
+      "matches": 4,
+      "by_column": {
+        "prompts.unit_tests": 4
+      },
+      "examples": [
+        {
+          "where": "prompts.unit_tests",
+          "context": "\nassert format_person_info({'name': 'Daniel Hernandez', 'age': 45, 'city': 'Austin'}) == \"Name: Dan"
+        },
+        {
+          "where": "prompts.unit_tests",
+          "context": "person_info({'first_name': 'James', 'last_name': 'Hernandez', 'age': 29, 'city': 'San Jose', 'country': '"
+        }
+      ]
+    },
+    "Bearer": {
+      "matches": 24,
+      "by_column": {
+        "generations.code": 23,
+        "prompts.unit_tests": 1
+      },
+      "examples": [
+        {
+          "where": "prompts.unit_tests",
+          "context": "tent-Type': 'application/json', 'Authorization': 'Bearer token'}, 'payload': {'key': 'value'}, 'URL': 'htt"
+        },
+        {
+          "where": "generations.code",
+          "context": "\"\n    \n    headers = {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"Content-Type\": \"application/"
+        },
+        {
+          "where": "generations.code",
+          "context": "vents\"\n    headers = {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"Accept\": \"application/json\","
+        },
+        {
+          "where": "generations.code",
+          "context": "eaders\n    headers = {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"Content-Type\": \"application/"
+        },
+        {
+          "where": "generations.code",
+          "context": "vents\"\n    headers = {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"Content-Type\": \"application/"
+        },
+        {
+          "where": "generations.code",
+          "context": "ple.com/events\"\n    headers = {\"Authorization\": f\"Bearer {api_key}\"}\n    page_size = 1000  # Adjust as nee"
+        },
+        {
+          "where": "generations.code",
+          "context": "vents\"\n    headers = {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"Content-Type\": \"application/"
+        },
+        {
+          "where": "generations.code",
+          "context": "oken):\n    headers = {\n        \"Authorization\": f\"Bearer {token}\",\n        \"Accept\": \"application/vnd.gith"
+        }
+      ]
+    },
+    "azure.com": {
+      "matches": 0
+    },
+    "openrouter": {
+      "matches": 16,
+      "by_column": {
+        "models.access_routes": 10,
+        "models.documented_settings": 4,
+        "croissant.json": 1,
+        "README.md": 1
+      },
+      "examples": [
+        {
+          "where": "models.access_routes",
+          "context": "OpenRouter (free tier)"
+        },
+        {
+          "where": "models.access_routes",
+          "context": "Azure AI Foundry serverless (an OpenRouter route also appears in older configs)"
+        },
+        {
+          "where": "models.access_routes",
+          "context": "Azure AI Foundry serverless (an OpenRouter route also appears in older configs)"
+        },
+        {
+          "where": "models.access_routes",
+          "context": "Azure AI Foundry serverless (an OpenRouter route also appears in older configs)"
+        },
+        {
+          "where": "models.access_routes",
+          "context": "Azure AI Foundry serverless (an OpenRouter route also appears in older configs)"
+        },
+        {
+          "where": "models.access_routes",
+          "context": "Gemini API batch mode and OpenRouter"
+        },
+        {
+          "where": "models.access_routes",
+          "context": "Gemini API batch mode and OpenRouter"
+        },
+        {
+          "where": "models.access_routes",
+          "context": "Alibaba Cloud Model Studio (DashScope) batch; an OpenRouter route appears in older configs"
+        }
+      ]
+    },
+    "windows user path": {
+      "matches": 1,
+      "by_column": {
+        "generations.code": 1
+      },
+      "examples": [
+        {
+          "where": "generations.code",
+          "context": "        \n        # Windows-style paths\n        ([\"C:\\\\Users\\\\user\\\\doc.docx\", \"C:\\\\Windows\\\\System32\\\\notepad."
+        }
+      ]
+    },
+    "ProgD": {
+      "matches": 0
+    },
+    "gmail": {
+      "matches": 1,
+      "by_column": {
+        "generations.code": 1
+      },
+      "examples": [
+        {
+          "where": "generations.code",
+          "context": "nt with multiple domains\n    text5 = \"Reach alice@gmail.com, bob@yahoo.co.uk, or charlie@company.io today!\"\n "
+        }
+      ]
+    },
+    "batch/request ids": {
+      "matches": 0
+    },
+    "azure resource names": {
+      "matches": 0
+    }
+  },
+  "inventory": {
+    "prompts": {
+      "path": "prompts/test-00000-of-00001.parquet",
+      "rows": 5000,
+      "bytes": 2314470,
+      "sha256": "f21202cdaf3ea68b2d0302f52d7c3f4b7f62650713f93cb6dff2aa36f8301f51"
+    },
+    "judge_scores": {
+      "path": "judge_scores/test-00000-of-00001.parquet",
+      "rows": 19997,
+      "bytes": 336143,
+      "sha256": "8f89118efab6de59c79581aa746cab4134dfa6d450740832858df9ab3c35c15f"
+    },
+    "generations": {
+      "path": "generations/test-00000-of-00001.parquet",
+      "rows": 105000,
+      "bytes": 32890180,
+      "sha256": "a701c917b7326ea531dbaa15581b729842180fec8bc56e096d5ce2e551d831cd"
+    },
+    "extension_prompts": {
+      "path": "extension_prompts/test-00000-of-00001.parquet",
+      "rows": 365,
+      "bytes": 120484,
+      "sha256": "b030b262d5ef324877e23dfa0894bdccfa64c235f896b257b30ba72145fd22b6"
+    },
+    "extension_judge_scores": {
+      "path": "extension_judge_scores/test-00000-of-00001.parquet",
+      "rows": 1460,
+      "bytes": 25316,
+      "sha256": "451f5479356a12e13b8dc3c16ad08d0109e1c5f329f5c6ebb2d687b32fb856d9"
+    },
+    "extension_generations": {
+      "path": "extension_generations/test-00000-of-00001.parquet",
+      "rows": 2190,
+      "bytes": 12259,
+      "sha256": "75cb57aaac6b97763869b932e33299e20786e6446b95f4b8e83c4ea5bd3b7e09"
+    },
+    "fixed_version_generations": {
+      "path": "fixed_version_generations/test-00000-of-00001.parquet",
+      "rows": 1545,
+      "bytes": 14842,
+      "sha256": "1f3be7af67dfbe67fc1451c5675ac25c0b9608c2f8cfc3e28aa1e643fe99acc8"
+    },
+    "passk_generations": {
+      "path": "passk_generations/test-00000-of-00001.parquet",
+      "rows": 7180,
+      "bytes": 1763674,
+      "sha256": "9a801430cecf020cca9fac876775974d5afc38ce64e488fbbf6bea214c62da3b"
+    },
+    "human_calibration": {
+      "path": "human_calibration/test-00000-of-00001.parquet",
+      "rows": 250,
+      "bytes": 10255,
+      "sha256": "8dc8aae389c1bd85c33e5624fbe0f55419090258bd3142d402e9c34c7cc89c0d"
+    },
+    "task_type_labels": {
+      "path": "task_type_labels/test-00000-of-00001.parquet",
+      "rows": 6500,
+      "bytes": 106866,
+      "sha256": "222ecfed835a727fe45c106585f45e298f5fae9be0a801ec34acfd522d510e14"
+    },
+    "paraphrase_prompts": {
+      "path": "paraphrase_prompts/test-00000-of-00001.parquet",
+      "rows": 150,
+      "bytes": 71757,
+      "sha256": "e5e4e5d75cd0aac873a91bde02cc56f9f18022754c17f9773005513902c15c12"
+    },
+    "paraphrase_judge_scores": {
+      "path": "paraphrase_judge_scores/test-00000-of-00001.parquet",
+      "rows": 600,
+      "bytes": 13030,
+      "sha256": "84326692cd3fe5d2157b9bd482a10db6295861c24be274e7d4d6d2cab84e4825"
+    },
+    "cross_language_prompts": {
+      "path": "cross_language_prompts/test-00000-of-00001.parquet",
+      "rows": 234,
+      "bytes": 67214,
+      "sha256": "162c38d6225135cdd216cadc8e3669134abe7bb6bb5245d3e41efa63a33afea0"
+    },
+    "cross_language_judge_scores": {
+      "path": "cross_language_judge_scores/test-00000-of-00001.parquet",
+      "rows": 936,
+      "bytes": 16232,
+      "sha256": "798ca3504d8d9c06813ba85e4e223740d98f9ae3af98ea0c2c13bde4108806bb"
+    },
+    "models": {
+      "path": "models/test-00000-of-00001.parquet",
+      "rows": 30,
+      "bytes": 6340,
+      "sha256": "a335dccaedc95ab7fd18227789e0d078a0cfbfe4b66b2951273a467e4d35e6d3"
+    }
+  },
+  "release_total_bytes": 37949279,
+  "release_dir": "data/public_release"
+}

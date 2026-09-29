@@ -1,7 +1,8 @@
 # Revised manuscript source
 
-`Scratch-NeurIps.tex` is the current anonymous manuscript revision. It
-incorporates the additional analyses directly:
+`Scratch-NeurIps.tex` is the NeurIPS 2026 camera-ready manuscript (built with
+`\usepackage[eandd,final]{neurips_2026}`). It incorporates the review-period
+analyses directly:
 
 - The rubric composite is treated as a prompt-side index, not a validated
   causal instrument.
@@ -14,7 +15,7 @@ incorporates the additional analyses directly:
   explanation.
 
 The paper directory contains six referenced PNG figures. The original submitted
-source is not duplicated in this reviewer-facing snapshot. Aggregate numerical
+source is not duplicated in this snapshot. Aggregate numerical
 inputs for the two new figures are under `results/`, and the plotting code is
 in `scripts/generate_stage_d_paper_figures.py`. Rebuild the revised pipeline,
 tail-extension, and output-CC figures with:

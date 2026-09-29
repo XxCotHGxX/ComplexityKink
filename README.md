@@ -2,9 +2,16 @@
 
 **Prompt-side structural complexity and code-generation reliability**
 
-Anonymous authors. This repository is the source snapshot for a double-blind
-review artifact. The private GitHub URL is not the reviewer-facing anonymous
-URL.
+Code and analysis artifact for *The Complexity Kink: LLM Rubric Instruments for
+Causal Inference on Code Generation Reliability*, accepted at the NeurIPS 2026
+Evaluations & Datasets track.
+
+- Dataset: <https://huggingface.co/datasets/TODO/complexity-kink>
+  (archival copy: <https://doi.org/10.7910/DVN/TODO>)
+- Paper source: [`paper/Scratch-NeurIps.tex`](paper/Scratch-NeurIps.tex)
+
+<!-- TODO(camera-ready): replace dataset placeholders and add the BibTeX entry. -->
+
 
 ## What this project studies
 
@@ -34,7 +41,7 @@ which is compared with unit-test pass rate across 21 evaluated models.
 This snapshot contains the current manuscript revision and distinguishes
 the locked submitted results from the checks added during review:
 
-- `paper/Scratch-NeurIps.tex` is the anonymous revised manuscript source.
+- `paper/Scratch-NeurIps.tex` is the camera-ready manuscript source.
 - `results/analysis_summary.json` and
   `results/per_model_bootstrap_summary.{csv,json}` contain the locked Stage D
   analysis used for the submitted results.
