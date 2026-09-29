@@ -36,7 +36,8 @@ def main() -> None:
     assert len(files) == EXPECTED_MODELS, f"expected {EXPECTED_MODELS} scored files, found {len(files)}"
     case_ids = []
     tmp = out_dir / "audit_input.jsonl.partial"
-    with open(tmp, "w", encoding="utf-8") as out:
+    with open(tmp, "w", encoding="utf-8", newline="
+") as out:
         for path in files:
             model_key = path.stem
             seen = set()
@@ -68,7 +69,8 @@ def main() -> None:
     rng = random.Random(SEED)
     secondary = set(rng.sample(sorted(case_ids), round(len(case_ids) * args.secondary_fraction)))
     with open(final, encoding="utf-8") as f, \
-            open(out_dir / "audit_input_secondary_5pct.jsonl", "w", encoding="utf-8") as out:
+            open(out_dir / "audit_input_secondary_5pct.jsonl", "w", encoding="utf-8", newline="
+") as out:
         for line in f:
             if json.loads(line)["case_id"] in secondary:
                 out.write(line)
