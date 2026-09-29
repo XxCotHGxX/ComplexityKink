@@ -109,9 +109,10 @@ def audit_one(row: dict, cfg: dict) -> dict:
         f"TASK:\n{row.get('task') or ''}\n\n"
         f"CODE:\n```python\n{code}\n```\n\n"
         f"UNIT TESTS:\n{row.get('unit_tests') or ''}\n\n"
-        f"HARNESS PASS RATE: {float(row.get('harness_pass_rate') or 0.0):.2f}\n\n"
-        f"{REMINDER}"
+        f"HARNESS PASS RATE: {float(row.get('harness_pass_rate') or 0.0):.2f}"
     )
+    if cfg["reminder"]:
+        user += f"\n\n{cfg['reminder']}"
     body = {
         "model": cfg["deployment"],
         "messages": [{"role": "system", "content": cfg["system_prompt"]},
@@ -201,6 +202,9 @@ def main() -> None:
     ap.add_argument("--max-completion-tokens", type=int, default=16000)
     ap.add_argument("--request-timeout", type=int, default=900,
                     help="Seconds to wait for one response; long reasoning chains can exceed 5 minutes.")
+    ap.add_argument("--no-reminder", action="store_true",
+                    help="Send the original 06_audit_scoring.py user message with no format reminder "
+                         "(replicates the reviewed o4-mini audit).")
     ap.add_argument("--no-stream", action="store_true",
                     help="Use blocking requests (Azure drops these at ~680 s).")
     ap.add_argument("--max-wall-s", type=int, default=2400,
@@ -214,7 +218,8 @@ def main() -> None:
            "system_prompt": original_system_prompt(),
            "max_completion_tokens": args.max_completion_tokens,
            "request_timeout": args.request_timeout,
-           "stream": not args.no_stream, "max_wall_s": args.max_wall_s}
+           "stream": not args.no_stream, "max_wall_s": args.max_wall_s,
+           "reminder": "" if args.no_reminder else REMINDER}
 
     with open(args.input, encoding="utf-8") as f:
         rows = [json.loads(line) for line in f if line.strip()]
