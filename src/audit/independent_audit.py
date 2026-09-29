@@ -6,7 +6,8 @@ is loaded verbatim from 06_audit_scoring.py so every auditor sees the same
 instructions the original audit used.
 
 Input rows need: case_id, task, code, unit_tests, harness_pass_rate.
-Credentials come from the Azure CLI at start-up (nothing is written to disk).
+Azure credentials come from the Azure CLI at start-up; OpenRouter uses OPENROUTER_API_KEY.
+Nothing secret is written to disk.
 
 Usage:
     python src/audit/independent_audit.py --input known_answer_set.jsonl \
@@ -28,6 +29,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[2]
 API_VERSION = "2024-05-01-preview"
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 REMINDER = (
     'Respond with ONLY a JSON object of the form {"verdict": "correct" | "incorrect" | "uncertain", '
     '"reason": "<one short sentence>"} giving your verdict on the CODE above. '
@@ -113,24 +115,17 @@ def audit_one(row: dict, cfg: dict) -> dict:
     )
     if cfg["reminder"]:
         user += f"\n\n{cfg['reminder']}"
-    body = {
-        "model": cfg["deployment"],
-        "messages": [{"role": "system", "content": cfg["system_prompt"]},
-                     {"role": "user", "content": user}],
-        "max_completion_tokens": cfg["max_completion_tokens"],
-    }
-    url = f"{cfg['endpoint']}/models/chat/completions?api-version={API_VERSION}"
-    headers = {"Content-Type": "application/json", "api-key": cfg["key"]}
+    messages = [{"role": "system", "content": cfg["system_prompt"]},
+                {"role": "user", "content": user}]
+    url, headers, body = build_request(cfg, messages)
     last_error = ""
     for attempt in range(6):
         t0 = time.time()
         try:
-            if cfg["stream"]:
-                status, text, content, finish, usage = _post_streaming(url, headers, body, cfg)
-            else:
-                status, text, content, finish, usage = _post_blocking(url, headers, body, cfg)
-            if status in (429, 500, 502, 503, 504):
-                last_error = f"http {status}"
+            post = _post_streaming if cfg["stream"] else _post_blocking
+            status, text, content, finish, usage, provider = post(url, headers, body, cfg)
+            if status in (408, 429, 500, 502, 503, 504):
+                last_error = f"http {status}: {text[:200]}"
                 time.sleep(min(60, 2 ** attempt * 3))
                 continue
             if status != 200:
@@ -139,6 +134,7 @@ def audit_one(row: dict, cfg: dict) -> dict:
             return {**base, "status": "ok" if verdict else "parse_error", "verdict": verdict,
                     "reason": reason, "parse_status": parse_status, "finish_reason": finish,
                     "usage": usage, "transport": "stream" if cfg["stream"] else "blocking",
+                    "backend": cfg["backend"], "provider": provider,
                     "latency_s": round(time.time() - t0, 2), "raw_tail": content[-600:]}
         except (requests.RequestException, KeyError, ValueError, TimeoutError) as exc:
             last_error = f"{type(exc).__name__}: {exc}"
@@ -146,20 +142,39 @@ def audit_one(row: dict, cfg: dict) -> dict:
     return {**base, "status": "api_error", "error": last_error}
 
 
+def build_request(cfg: dict, messages: list[dict]) -> tuple[str, dict, dict]:
+    """Endpoint, headers, and body for the configured backend."""
+    if cfg["backend"] == "openrouter":
+        body = {"model": cfg["deployment"], "messages": messages,
+                "max_tokens": cfg["max_completion_tokens"], "usage": {"include": True}}
+        if cfg.get("provider"):  # pin the serving provider so runs are comparable
+            body["provider"] = {"order": [cfg["provider"]], "allow_fallbacks": False}
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {cfg['key']}",
+                   "X-Title": "ComplexityKink independent audit"}
+        return OPENROUTER_URL, headers, body
+    body = {"model": cfg["deployment"], "messages": messages,
+            "max_completion_tokens": cfg["max_completion_tokens"]}
+    url = f"{cfg['endpoint']}/models/chat/completions?api-version={API_VERSION}"
+    return url, {"Content-Type": "application/json", "api-key": cfg["key"]}, body
+
+
 def _post_blocking(url, headers, body, cfg):
     resp = requests.post(url, headers=headers, json=body, timeout=cfg["request_timeout"])
     if resp.status_code != 200:
-        return resp.status_code, resp.text, "", None, None
+        return resp.status_code, resp.text, "", None, None, None
     data = resp.json()
+    if data.get("error"):
+        raise ValueError(f"response error: {str(data['error'])[:200]}")
     choice = data["choices"][0]
-    return 200, "", choice["message"].get("content") or "", choice.get("finish_reason"), data.get("usage")
+    return (200, "", choice["message"].get("content") or "", choice.get("finish_reason"),
+            data.get("usage"), data.get("provider"))
 
 
 def _post_streaming(url, headers, body, cfg):
     """Stream the response. Transport only: the model computes the same thing, but the
     connection stays alive past the ~680 s cut-off Azure applies to blocking requests."""
     payload = {**body, "stream": True}
-    if cfg.get("stream_usage", True):
+    if cfg["backend"] == "azure" and cfg.get("stream_usage", True):
         payload["stream_options"] = {"include_usage": True}
     deadline = time.time() + cfg["max_wall_s"]
     with requests.post(url, headers=headers, json=payload, stream=True,
@@ -168,18 +183,21 @@ def _post_streaming(url, headers, body, cfg):
             text = resp.text
             if resp.status_code == 400 and "stream_options" in text and cfg.get("stream_usage", True):
                 cfg["stream_usage"] = False  # endpoint rejects usage-on-stream; retry without it
-                return 503, text, "", None, None
-            return resp.status_code, text, "", None, None
-        parts, finish, usage = [], None, None
+                return 503, text, "", None, None, None
+            return resp.status_code, text, "", None, None, None
+        parts, finish, usage, provider = [], None, None, None
         for raw in resp.iter_lines(decode_unicode=True):
             if time.time() > deadline:
                 raise TimeoutError(f"stream exceeded {cfg['max_wall_s']} s")
             if not raw or not raw.startswith("data:"):
-                continue
+                continue  # includes OpenRouter keep-alive comments
             data = raw[5:].strip()
             if data == "[DONE]":
                 break
             chunk = json.loads(data)
+            if chunk.get("error"):  # mid-stream failure reported in-band
+                raise ValueError(f"stream error: {str(chunk['error'])[:200]}")
+            provider = chunk.get("provider") or provider
             if chunk.get("usage"):
                 usage = chunk["usage"]
             for choice in chunk.get("choices") or []:
@@ -188,7 +206,7 @@ def _post_streaming(url, headers, body, cfg):
                     parts.append(delta["content"])
                 if choice.get("finish_reason"):
                     finish = choice["finish_reason"]
-        return 200, "", "".join(parts), finish, usage
+        return 200, "", "".join(parts), finish, usage, provider
 
 
 def main() -> None:
@@ -198,7 +216,12 @@ def main() -> None:
     ap.add_argument("--account", default=None,
                     help="Azure AI Services account; not needed when AUDIT_ENDPOINT/AUDIT_API_KEY are set.")
     ap.add_argument("--resource-group", default="ComplexityKinkResearch")
-    ap.add_argument("--deployment", required=True)
+    ap.add_argument("--backend", choices=["azure", "openrouter"], default="azure",
+                    help="openrouter reads its key from AUDIT_API_KEY or OPENROUTER_API_KEY.")
+    ap.add_argument("--provider", default=None,
+                    help="OpenRouter only: pin this serving provider (no fallbacks).")
+    ap.add_argument("--deployment", required=True,
+                    help="Azure deployment name, or OpenRouter model id (e.g. vendor/model:free).")
     ap.add_argument("--max-completion-tokens", type=int, default=16000)
     ap.add_argument("--request-timeout", type=int, default=900,
                     help="Seconds to wait for one response; long reasoning chains can exceed 5 minutes.")
@@ -213,8 +236,15 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0)
     args = ap.parse_args()
 
-    endpoint, key = azure_credentials(args.account, args.resource_group)
+    if args.backend == "openrouter":
+        endpoint = OPENROUTER_URL
+        key = os.environ.get("AUDIT_API_KEY") or os.environ.get("OPENROUTER_API_KEY")
+        if not key:
+            raise SystemExit("Set OPENROUTER_API_KEY (or AUDIT_API_KEY) for the openrouter backend.")
+    else:
+        endpoint, key = azure_credentials(args.account, args.resource_group)
     cfg = {"endpoint": endpoint, "key": key, "deployment": args.deployment,
+           "backend": args.backend, "provider": args.provider,
            "system_prompt": original_system_prompt(),
            "max_completion_tokens": args.max_completion_tokens,
            "request_timeout": args.request_timeout,

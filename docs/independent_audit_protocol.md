@@ -88,6 +88,39 @@ any further step.
 The other auditor re-audits a random 5% of the 105,000 production rows
 (seed 20260928) to report inter-auditor agreement (Cohen's kappa).
 
+## Amendment 2: extended candidate pool (2026-09-29, after the first pilot)
+
+**First pilot result.** Neither Azure candidate met the rule: Phi-4-reasoning
+had clean accuracy 0.900 and cosmetic rescue 0.473; MAI-Thinking-1 had clean
+accuracy 0.953 but cosmetic rescue 0.880 (threshold 0.90). Per the rule, no
+auditor was adopted and the result went to the authors, who chose to extend the
+candidate pool. The thresholds, prompt, parser, and known-answer set are
+unchanged.
+
+**Added candidates (OpenRouter).** Models from vendors not used anywhere in the
+study (evaluated panel, rubric judges, paraphraser), excluding anonymous
+"stealth" models, routers, safety/domain-specialized models, and models whose
+card names a base model from an excluded family:
+
+| Candidate | Vendor | Note |
+|---|---|---|
+| `nvidia/nemotron-3-ultra-550b-a55b` | NVIDIA | NVIDIA also released OpenCodeInstruct (task-exposure caveat) |
+| `poolside/laguna-s-2.1` | Poolside | coding specialist |
+| `thinkingmachines/inkling` | Thinking Machines | |
+| `nvidia/nemotron-3-super-120b-a12b` | NVIDIA | same caveat |
+| `thinkingmachines/inkling-small` | Thinking Machines | |
+
+Pilot runs may use the `:free` endpoints (daily request caps), in the order
+listed. The reviewed version's auditor, o4-mini, is also run on the
+known-answer set as a diagnostic of the reviewed outcome; it is not a
+candidate (it is a rubric judge).
+
+**Confirmation requirement.** Because this pool was chosen after the first
+pilot, an auditor selected under the rule on the original 450 cases is adopted
+only if it also meets the rule on a fresh known-answer set (seed 20260930,
+prompts disjoint from the first set), run at the exact endpoint and provider
+used for the production run.
+
 ## Reporting
 
 The camera-ready reports each auditor's pilot metrics, the selection, the
