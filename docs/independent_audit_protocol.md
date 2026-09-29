@@ -141,6 +141,34 @@ cosmetic labels are noisy for some prompts. Any label correction must come from
 blind human review of the disputed prompts, applied identically to every
 auditor; it is not made from auditor verdicts.
 
+## Amendment 4: MiMo-V2.6-Pro adopted by author decision (2026-09-29)
+
+**Amendment 3 result.** MiMo-V2.6-Pro (GMICloud, bf16): error rate 0.002,
+clean 0.933, cosmetic 0.947, bug wrong-rescue 0.013, overall 0.956. That is the
+highest overall accuracy of the six auditors tested and meets every criterion
+except clean accuracy, where it falls three cases short (140 of 150 against the
+required 143).
+
+**Decision.** The authors adopt MiMo-V2.6-Pro as the primary auditor. This is a
+departure from the rule, which no candidate met in full. The reasons: its clean
+rejections name specific defects in reference solutions that the unit tests do
+not catch, and at least one other auditor independently rejects 7 of its 9;
+35 references are rejected by at least one of the six auditors, so the clean
+labels are noisy and cap attainable clean accuracy; and, as a post hoc
+sensitivity only, excluding the 11 references rejected by both o4-mini and
+Nemotron gives MiMo clean 0.971 and cosmetic 0.986.
+
+**Still to report.** The fresh-set confirmation (seed 20260930) runs at the
+production endpoint and is reported whether or not it meets the thresholds. A
+blind human review of the 35 disputed references may follow; if run, it is
+reported whichever way it goes.
+
+**Production.** All 105,000 generations are audited by
+`xiaomi/mimo-v2.6-pro` through OpenRouter, pinned to GMICloud (bf16), with
+streamed responses and the same prompt and parser as the pilot.
+MAI-Thinking-1's audit of the seeded 5% sample is the second auditor for
+inter-auditor agreement.
+
 ## Reporting
 
 The camera-ready reports each auditor's pilot metrics, the selection, the

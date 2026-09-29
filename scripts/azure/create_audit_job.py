@@ -34,7 +34,9 @@ def az(*args: str) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--job", required=True)
-    ap.add_argument("--auditor-account", required=True)
+    ap.add_argument("--backend", choices=["azure", "openrouter"], default="azure")
+    ap.add_argument("--auditor-account", default=None, help="Azure backend: AI Services account.")
+    ap.add_argument("--provider", default=None, help="OpenRouter backend: provider to pin.")
     ap.add_argument("--deployment", required=True)
     ap.add_argument("--input", required=True)
     ap.add_argument("--output", required=True)
@@ -45,10 +47,18 @@ def main() -> None:
 
     env_id = az("containerapp", "env", "show", "-g", RG, "-n", ENV, "--query", "id", "-o", "tsv")
     location = az("containerapp", "env", "show", "-g", RG, "-n", ENV, "--query", "location", "-o", "tsv")
-    endpoint = az("cognitiveservices", "account", "show", "-g", RG, "-n", args.auditor_account,
-                  "--query", "properties.endpoint", "-o", "tsv").rstrip("/")
-    auditor_key = az("cognitiveservices", "account", "keys", "list", "-g", RG, "-n", args.auditor_account,
-                     "--query", "key1", "-o", "tsv")
+    if args.backend == "openrouter":
+        endpoint = ""
+        auditor_key = os.environ.get("OPENROUTER_API_KEY", "")
+        if not auditor_key:
+            raise SystemExit("Set OPENROUTER_API_KEY to store it as the job's auditor-key secret.")
+    else:
+        if not args.auditor_account:
+            raise SystemExit("--auditor-account is required for the azure backend.")
+        endpoint = az("cognitiveservices", "account", "show", "-g", RG, "-n", args.auditor_account,
+                      "--query", "properties.endpoint", "-o", "tsv").rstrip("/")
+        auditor_key = az("cognitiveservices", "account", "keys", "list", "-g", RG, "-n", args.auditor_account,
+                         "--query", "key1", "-o", "tsv")
     acr_password = az("acr", "credential", "show", "-n", ACR, "--query", "passwords[0].value", "-o", "tsv")
 
     spec = {
@@ -76,9 +86,10 @@ def main() -> None:
                         {"name": "AUDIT_INPUT", "value": args.input},
                         {"name": "AUDIT_OUTPUT", "value": args.output},
                         {"name": "AUDIT_WORKERS", "value": str(args.workers)},
-                        {"name": "AUDIT_ENDPOINT", "value": endpoint},
+                        {"name": "AUDIT_BACKEND", "value": args.backend},
                         {"name": "AUDIT_API_KEY", "secretRef": "auditor-key"},
-                    ],
+                    ] + ([{"name": "AUDIT_PROVIDER", "value": args.provider}] if args.provider else [])
+                      + ([{"name": "AUDIT_ENDPOINT", "value": endpoint}] if endpoint else []),
                     "volumeMounts": [{"volumeName": "ckr", "mountPath": "/mnt/ckr"}],
                 }],
                 "volumes": [{"name": "ckr", "storageType": "AzureFile", "storageName": STORAGE_NAME}],
