@@ -121,6 +121,26 @@ only if it also meets the rule on a fresh known-answer set (seed 20260930,
 prompts disjoint from the first set), run at the exact endpoint and provider
 used for the production run.
 
+## Amendment 3: MiMo-V2.6-Pro (2026-09-29, before its pilot)
+
+**Amendment 2 result.** On the original 450 cases, Nemotron-3-Ultra (Venice,
+fp8; clean 0.860, cosmetic 0.787, bug wrong-rescue 0.000) and Laguna-S-2.1
+(Poolside, fp4; error rate 0.047, clean 0.887, cosmetic 0.747) did not meet the
+rule. The reviewed o4-mini audit, run as a diagnostic with its original prompt
+and settings, scored clean 0.880, cosmetic 0.820, bug wrong-rescue 0.000.
+
+**Added candidate.** `xiaomi/mimo-v2.6-pro` (Xiaomi, released 2026-09-21;
+vendor not used elsewhere in the study), pinned to the GMICloud bf16 endpoint.
+Rule, prompt, parser, known-answer set, and the fresh-set confirmation
+requirement are unchanged.
+
+**Observation recorded before this pilot.** Several "clean" references pass
+their unit tests yet violate an explicit instruction in the task (for example,
+row-major instead of the required diagonal-major traversal), so the clean and
+cosmetic labels are noisy for some prompts. Any label correction must come from
+blind human review of the disputed prompts, applied identically to every
+auditor; it is not made from auditor verdicts.
+
 ## Reporting
 
 The camera-ready reports each auditor's pilot metrics, the selection, the
