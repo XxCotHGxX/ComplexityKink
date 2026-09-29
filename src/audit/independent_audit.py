@@ -61,6 +61,22 @@ def azure_credentials(account: str | None, resource_group: str) -> tuple[str, st
     return endpoint.rstrip("/"), key
 
 
+def read_records(path: Path) -> tuple[list[dict], int]:
+    """Parse a JSONL results file, skipping unreadable lines (for example a NUL-filled
+    tail seen over SMB while another client is still appending)."""
+    records, skipped = [], 0
+    with open(path, "rb") as f:
+        for raw in f:
+            text = raw.strip(b"\x00\r\n ")
+            if not text:
+                continue
+            try:
+                records.append(json.loads(text))
+            except ValueError:
+                skipped += 1
+    return records, skipped
+
+
 THINK_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 JSON_OBJECT = re.compile(r"\{[^{}]*\"verdict\"[^{}]*\}", re.DOTALL)
 VERDICT_FIELD = re.compile(r"\"verdict\"\s*:\s*\"(correct|incorrect|uncertain)\"", re.IGNORECASE)
@@ -206,11 +222,16 @@ def main() -> None:
         rows = rows[:args.limit]
     done = set()
     if args.output.exists():
-        with open(args.output, encoding="utf-8") as f:
-            for line in f:
-                r = json.loads(line)
-                if r.get("status") in ("ok", "parse_error"):
-                    done.add(r["case_id"])
+        records, skipped = read_records(args.output)
+        done = {r["case_id"] for r in records if r.get("status") in ("ok", "parse_error")}
+        if skipped:
+            print(f"skipped {skipped} unreadable line(s) in {args.output.name}", flush=True)
+        with open(args.output, "rb+") as f:  # a killed writer can leave a partial last line
+            f.seek(0, os.SEEK_END)
+            if f.tell():
+                f.seek(-1, os.SEEK_END)
+                if f.read(1) != b"\n":
+                    f.write(b"\n")
     pending = [r for r in rows if r["case_id"] not in done]
     print(f"{args.deployment}: {len(rows)} rows, {len(done)} done, {len(pending)} pending", flush=True)
 

@@ -43,11 +43,21 @@ def main() -> None:
                for line in open(args.data_root / "stage_d" / "stage_d_prompts.jsonl", encoding="utf-8")}
 
     verdicts: dict[str, dict] = {}
-    with open(audit_path, encoding="utf-8") as f:
-        for line in f:
-            rec = json.loads(line)
+    unreadable = 0
+    with open(audit_path, "rb") as f:
+        for raw in f:
+            text = raw.strip(b"\x00\r\n ")
+            if not text:
+                continue
+            try:
+                rec = json.loads(text)
+            except ValueError:
+                unreadable += 1
+                continue
             if rec.get("status") in ("ok", "parse_error"):
                 verdicts[rec["case_id"]] = rec  # last final record wins
+    if unreadable:
+        print(f"skipped {unreadable} unreadable line(s) in {audit_path.name}")
 
     out_dir.mkdir(parents=True, exist_ok=True)
     counts, by_frame = Counter(), Counter()
