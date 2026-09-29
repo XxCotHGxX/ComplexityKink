@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Iterable
@@ -104,7 +105,8 @@ def load_extension_metadata(data_root: Path) -> pd.DataFrame:
 
 def load_matched_frame(data_root: Path, extension_meta: pd.DataFrame) -> pd.DataFrame:
     tail_dir = data_root / "data/rebuttal/tail_topup/scored"
-    panel_dir = data_root / "data/stage_d/scored_combined"
+    # CK_SCORED_DIR selects the outcome definition, e.g. data/stage_d/scored_independent_audit.
+    panel_dir = Path(os.environ.get("CK_SCORED_DIR", data_root / "data/stage_d/scored_combined"))
     ensemble_path = (
         data_root / "data/stage_d/ensemble_scores_current_aggregated.jsonl"
     )

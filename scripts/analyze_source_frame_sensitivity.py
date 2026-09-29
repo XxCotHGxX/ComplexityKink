@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -300,7 +301,8 @@ def best_piecewise_fit(
 def load_analysis_frame(data_root: Path) -> tuple[pd.DataFrame, dict]:
     stage_d = data_root / "stage_d"
     rubric_path = stage_d / "ensemble_scores_current_aggregated.jsonl"
-    scored_dir = stage_d / "scored_combined"
+    # CK_SCORED_DIR selects the outcome definition, e.g. data/stage_d/scored_independent_audit.
+    scored_dir = Path(os.environ.get("CK_SCORED_DIR", stage_d / "scored_combined"))
     prompt_path = stage_d / "stage_d_prompts.jsonl"
 
     for path in (rubric_path, scored_dir, prompt_path):

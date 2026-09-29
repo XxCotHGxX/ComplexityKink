@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -34,7 +35,8 @@ from analyze_kink import RUBRIC_DIMS, build_combined_df, load_rubric_scores, loa
 from display_bins import half_open_integer_bin  # noqa: E402
 
 STAGE_D_DIR = ROOT / "data" / "stage_d"
-SCORED_DIR = STAGE_D_DIR / "scored_combined"
+# CK_SCORED_DIR selects the outcome definition, e.g. data/stage_d/scored_independent_audit.
+SCORED_DIR = Path(os.environ.get("CK_SCORED_DIR", STAGE_D_DIR / "scored_combined"))
 RUBRIC_PATH = STAGE_D_DIR / "ensemble_scores_current_aggregated.jsonl"
 SUMMARY_PATH = ROOT / "results" / "analysis_summary.json"
 PER_MODEL_SUMMARY_PATH = ROOT / "results" / "per_model_bootstrap_summary.csv"
