@@ -1,0 +1,9 @@
+.git
+data/
+paper/
+release/
+results/
+rebuttal/
+docs/
+**/__pycache__
+*.pyc

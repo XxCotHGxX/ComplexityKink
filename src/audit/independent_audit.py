@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import time
@@ -42,7 +43,14 @@ def original_system_prompt() -> str:
     return module.SYSTEM_PROMPT
 
 
-def azure_credentials(account: str, resource_group: str) -> tuple[str, str]:
+def azure_credentials(account: str | None, resource_group: str) -> tuple[str, str]:
+    """AUDIT_ENDPOINT/AUDIT_API_KEY (e.g. container secrets) win; else ask the Azure CLI."""
+    env_endpoint, env_key = os.environ.get("AUDIT_ENDPOINT"), os.environ.get("AUDIT_API_KEY")
+    if env_endpoint and env_key:
+        return env_endpoint.rstrip("/"), env_key
+    if not account:
+        raise SystemExit("Set AUDIT_ENDPOINT and AUDIT_API_KEY, or pass --account.")
+
     def az(*args: str) -> str:
         return subprocess.run(["az", *args, "-o", "tsv"], check=True, capture_output=True,
                               text=True, shell=True).stdout.strip()
@@ -100,7 +108,7 @@ def audit_one(row: dict, cfg: dict) -> dict:
     for attempt in range(6):
         t0 = time.time()
         try:
-            resp = requests.post(url, headers=headers, json=body, timeout=300)
+            resp = requests.post(url, headers=headers, json=body, timeout=cfg["request_timeout"])
             if resp.status_code in (429, 500, 502, 503, 504):
                 last_error = f"http {resp.status_code}"
                 time.sleep(min(60, 2 ** attempt * 3))
@@ -125,10 +133,13 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
-    ap.add_argument("--account", required=True)
+    ap.add_argument("--account", default=None,
+                    help="Azure AI Services account; not needed when AUDIT_ENDPOINT/AUDIT_API_KEY are set.")
     ap.add_argument("--resource-group", default="ComplexityKinkResearch")
     ap.add_argument("--deployment", required=True)
     ap.add_argument("--max-completion-tokens", type=int, default=16000)
+    ap.add_argument("--request-timeout", type=int, default=900,
+                    help="Seconds to wait for one response; long reasoning chains can exceed 5 minutes.")
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--limit", type=int, default=0)
     args = ap.parse_args()
@@ -136,7 +147,8 @@ def main() -> None:
     endpoint, key = azure_credentials(args.account, args.resource_group)
     cfg = {"endpoint": endpoint, "key": key, "deployment": args.deployment,
            "system_prompt": original_system_prompt(),
-           "max_completion_tokens": args.max_completion_tokens}
+           "max_completion_tokens": args.max_completion_tokens,
+           "request_timeout": args.request_timeout}
 
     with open(args.input, encoding="utf-8") as f:
         rows = [json.loads(line) for line in f if line.strip()]
