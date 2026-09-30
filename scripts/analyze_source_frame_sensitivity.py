@@ -573,7 +573,7 @@ def analyze(args: argparse.Namespace) -> dict:
             "rubric": (
                 "data/stage_d/ensemble_scores_current_aggregated.jsonl"
             ),
-            "scored_models": "data/stage_d/scored_combined/*.jsonl",
+            "scored_models": os.environ.get("CK_SCORED_DIR", "data/stage_d/scored_combined") + "/*.jsonl",
             "join_key": "prompt_id",
         },
         "validation": validation,
@@ -583,10 +583,11 @@ def analyze(args: argparse.Namespace) -> dict:
             "bootstrap_draws": args.n_boot,
             "bootstrap_seed": args.seed,
             "source_controlled_search": (
-                "Matches src/rebuttal/09_threshold_with_task_type.py: "
+                "By-side specification (as src/rebuttal/09_threshold_with_task_type.py): "
                 "the pooled null and both regime regressions include the "
-                "composite and source-frame dummy. The split alternative "
-                "therefore permits the source coefficient to differ by regime."
+                "composite and source-frame dummy, so the split alternative "
+                "lets the source coefficient differ by regime. The additive "
+                "(common-effect) search is in scripts/camera_ready/control_specs.py."
             ),
             "regime_means": (
                 "Reported regime means are raw summaries at each selected "

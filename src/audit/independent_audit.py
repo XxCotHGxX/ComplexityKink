@@ -82,6 +82,24 @@ def read_records(path: Path) -> tuple[list[dict], int]:
 THINK_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 JSON_OBJECT = re.compile(r"\{[^{}]*\"verdict\"[^{}]*\}", re.DOTALL)
 VERDICT_FIELD = re.compile(r"\"verdict\"\s*:\s*\"(correct|incorrect|uncertain)\"", re.IGNORECASE)
+# A response cut off by the token limit or a content filter is not a final answer:
+# a verdict-like string in it may come from unfinished reasoning (amendment 5).
+INCOMPLETE_FINISH = ("length", "content_filter")
+
+
+def final_verdict(rec: dict | None) -> str | None:
+    """The verdict a stored record contributes, or None if it does not count.
+
+    A record counts only if the request succeeded, a verdict was parsed, and the
+    response was complete. Records written before amendment 5 may carry a verdict
+    parsed from a truncated response, so every consumer applies this check
+    rather than trusting ``status`` alone.
+    """
+    if not rec or rec.get("status") != "ok":
+        return None
+    if rec.get("finish_reason") in INCOMPLETE_FINISH:
+        return None
+    return rec.get("verdict")
 
 
 def parse_verdict(content: str) -> tuple[str | None, str, str]:
@@ -131,11 +149,14 @@ def audit_one(row: dict, cfg: dict) -> dict:
             if status != 200:
                 return {**base, "status": "api_error", "error": f"http {status}: {text[:300]}"}
             verdict, reason, parse_status = parse_verdict(content)
+            if finish in INCOMPLETE_FINISH:
+                verdict, parse_status = None, f"incomplete:{finish}"
             return {**base, "status": "ok" if verdict else "parse_error", "verdict": verdict,
                     "reason": reason, "parse_status": parse_status, "finish_reason": finish,
                     "usage": usage, "transport": "stream" if cfg["stream"] else "blocking",
                     "backend": cfg["backend"], "provider": provider,
-                    "latency_s": round(time.time() - t0, 2), "raw_tail": content[-600:]}
+                    "latency_s": round(time.time() - t0, 2), "raw_tail": content[-600:],
+                    "raw": content}  # full response, so the parse can be replayed
         except (requests.RequestException, KeyError, ValueError, TimeoutError) as exc:
             last_error = f"{type(exc).__name__}: {exc}"
             time.sleep(min(60, 2 ** attempt * 3))

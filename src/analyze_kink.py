@@ -258,34 +258,25 @@ def run_2sls(df):
 
 
 def run_hausman(df):
-    """Hausman test comparing OLS-on-output-CC vs 2SLS."""
+    """Wu-Hausman endogeneity test for output CC, on the same IV2SLS model as run_2sls.
+
+    An earlier version contrasted OLS with a manual second stage whose covariance
+    ignored the estimated first stage, which is not a valid Hausman test. The
+    statistic is diagnostic only: the instruments fail overidentification.
+    """
     valid = df.dropna(subset=["kappa_cyclomatic"])
     if len(valid) < 100:
         return {"hausman_stat": np.nan, "hausman_pval": np.nan}
-
-    y = valid["pass_rate"]
-    X_ols = sm.add_constant(valid[["kappa_cyclomatic"]])
-    ols = sm.OLS(y, X_ols).fit()
-    beta_ols = ols.params["kappa_cyclomatic"]
-    var_ols = ols.cov_params().loc["kappa_cyclomatic", "kappa_cyclomatic"]
-
-    # Stage 1: regress kappa_cyclomatic on rubric dims
-    Z = sm.add_constant(valid[RUBRIC_DIMS])
-    s1 = sm.OLS(valid["kappa_cyclomatic"], Z).fit()
-    kappa_hat = s1.fittedvalues
-
-    # Stage 2: regress pass_rate on kappa_hat
-    X_2sls = sm.add_constant(pd.DataFrame({"kappa_hat": kappa_hat}))
-    s2 = sm.OLS(y, X_2sls).fit()
-    beta_2sls = s2.params["kappa_hat"]
-    var_2sls = s2.cov_params().loc["kappa_hat", "kappa_hat"]
-
-    var_diff = var_2sls - var_ols
-    if var_diff > 0:
-        H = (beta_2sls - beta_ols) ** 2 / var_diff
-        p = 1 - stats.chi2.cdf(H, df=1)
-        return {"hausman_stat": float(H), "hausman_pval": float(p)}
-    return {"hausman_stat": np.nan, "hausman_pval": np.nan}
+    try:
+        res = IV2SLS(dependent=valid["pass_rate"],
+                     exog=sm.add_constant(pd.DataFrame(index=valid.index)),
+                     endog=valid[["kappa_cyclomatic"]],
+                     instruments=valid[RUBRIC_DIMS]).fit(cov_type="unadjusted")
+        test = res.wu_hausman()
+        return {"hausman_stat": float(test.stat), "hausman_pval": float(test.pval)}
+    except Exception as e:
+        print(f"    Wu-Hausman failed: {e}")
+        return {"hausman_stat": np.nan, "hausman_pval": np.nan}
 
 
 def compute_wald(df, gamma, kappa_col="composite"):

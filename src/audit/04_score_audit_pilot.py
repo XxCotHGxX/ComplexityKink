@@ -1,16 +1,20 @@
 """Step 4 of the independent-audit pilot: score auditors and apply the rule.
 
 Implements the selection rule fixed in docs/independent_audit_protocol.md.
-Unparseable responses and API errors count as not matching the ground truth
-in every accuracy metric, and are reported separately.
+Unparseable responses, API errors, and responses cut off by the token limit or a
+content filter (amendment 5) count as not matching the ground truth in every
+accuracy metric, and are reported separately as errors.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from independent_audit import final_verdict  # noqa: E402
 RULE = {"max_error_rate": 0.02, "min_clean_accuracy": 0.95, "min_cosmetic_rescue": 0.90}
 
 
@@ -28,7 +32,9 @@ def score(cases: dict[str, dict], audits: list[dict]) -> dict:
     rows = []
     for cid, case in cases.items():
         a = latest.get(cid, {"status": "missing"})
-        rows.append((case["category"], case["ground_truth"], a.get("verdict") if a["status"] == "ok" else None, a["status"]))
+        verdict = final_verdict(a)
+        status = "ok" if verdict else ("incomplete" if a["status"] == "ok" else a["status"])
+        rows.append((case["category"], case["ground_truth"], verdict, status))
 
     def rate(pred, subset):
         return sum(1 for r in subset if pred(r)) / len(subset) if subset else float("nan")
@@ -62,6 +68,8 @@ def main() -> None:
     ap.add_argument("--auditors", nargs="+", default=["Phi-4-reasoning=audit_phi4_reasoning.jsonl",
                                                      "MAI-Thinking-1=audit_mai_thinking_1.jsonl"])
     ap.add_argument("--ga-open-weights", default="Phi-4-reasoning")
+    ap.add_argument("--out", type=Path, default=None,
+                    help="Decision file (default: <pilot-dir>/pilot_decision.json).")
     args = ap.parse_args()
 
     cases = {c["case_id"]: c for c in load_jsonl(args.pilot_dir / "known_answer_set.jsonl")}
@@ -78,7 +86,7 @@ def main() -> None:
         tied.sort(key=lambda n: (-results[n]["overall_accuracy"], n != args.ga_open_weights))
         primary = tied[0]
     decision = {"rule": RULE, "results": results, "eligible": eligible, "primary_auditor": primary}
-    (args.pilot_dir / "pilot_decision.json").write_text(json.dumps(decision, indent=2))
+    (args.out or args.pilot_dir / "pilot_decision.json").write_text(json.dumps(decision, indent=2))
 
     keys = ["error_rate", "uncertain_rate", "clean_accuracy", "cosmetic_rescue", "bug_wrong_rescue",
             "bug_detected", "overall_accuracy", "median_completion_tokens", "median_latency_s", "eligible"]

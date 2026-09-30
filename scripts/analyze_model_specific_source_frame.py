@@ -1,13 +1,14 @@
 """Audit construction-frame sensitivity for downward model-specific fits.
 
-The unadjusted original-benchmark analysis contains five models whose raw mean
-pass rate is lower above their selected breakpoint. This script applies the
-same construction-frame audit to all five. It does not select a preferred
-model after inspecting the source-specific results.
+The audit set is every model whose unadjusted original-benchmark fit has lower
+raw mean pass above its selected breakpoint (five under the reviewed outcome,
+two under the independent audit). This script applies the same
+construction-frame audit to each of them. It does not select a preferred model
+after inspecting the source-specific results.
 
 The output reports:
 
-1. the locked unadjusted fit used to define the five-model audit set;
+1. the locked unadjusted fit used to define the audit set;
 2. a construction-frame-controlled threshold search;
 3. separate threshold searches in the retained-earlier and later-candidate
    frames;
@@ -347,7 +348,7 @@ def analyze(args: argparse.Namespace) -> dict:
             "prompt_metadata": "data/stage_d/stage_d_prompts.jsonl",
             "source_mapping_field": "selection_source",
             "rubric": "data/stage_d/ensemble_scores_current_aggregated.jsonl",
-            "scored_models": "data/stage_d/scored_combined/*.jsonl",
+            "scored_models": os.environ.get("CK_SCORED_DIR", "data/stage_d/scored_combined") + "/*.jsonl",
             "join_key": "prompt_id",
         },
         "method": {
@@ -366,7 +367,7 @@ def analyze(args: argparse.Namespace) -> dict:
         },
         "validation": {
             "selected_model_count": len(selected),
-            "expected_selected_model_count": len(DISPLAY_NAMES),
+            "reviewed_outcome_selected_model_count": len(DISPLAY_NAMES),
             "analyzed_model_count": len(models),
             "expected_prompts_per_model": EXPECTED_N,
             "expected_source_counts": EXPECTED_SOURCES,

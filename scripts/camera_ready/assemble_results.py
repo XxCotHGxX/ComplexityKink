@@ -9,10 +9,15 @@ In --results-dir it writes:
                                     outcome-dependent section recomputed)
 
 Sections that do not depend on the outcome (human calibration, paraphrase and
-language checks) are carried over unchanged. The extension and repeated-sampling
-checks use raw harness outcomes, because those runs did not save generated
-code; the extension's matched-panel threshold is recomputed here on raw harness
-outcomes for both sources.
+language checks) are carried over unchanged. Every outcome-dependent section is
+rebuilt from this run's outputs; the few sections that cannot be recomputed for
+this outcome are carried over with an explicit ``outcome`` label saying which
+outcome they use (the repeated-sampling check uses raw harness outcomes because
+those generations were not included in the independent audit; the extension
+runs saved no code, so the extension's matched-panel threshold is recomputed
+here on raw harness outcomes for both sources; the library-mention diagnostic
+exists only for the reviewed outcome). The script fails if two sections
+disagree on the headline breakpoint.
 """
 from __future__ import annotations
 
@@ -94,12 +99,39 @@ def main() -> None:
         "per_model_threshold_range": breakpoints["per_model_threshold_range"],
         "per_model_threshold_median": breakpoints["per_model_threshold_median"],
     }
-    robustness["task_type_controls"] = {**robustness.get("task_type_controls", {}),
-                                        **breakpoints["task_type_controls"]}
+    reviewed_tt = robustness.get("task_type_controls", {})
+    robustness["task_type_controls"] = {
+        # Label reliability is a property of the prompts, not of the outcome.
+        **{k: reviewed_tt[k] for k in ("n_prompts", "n_categories", "reliability_subsample_n",
+                                       "krippendorff_alpha") if k in reviewed_tt},
+        "uncontrolled": {"threshold": c["kink_threshold"], "sup_wald": c["kink_sup_wald"],
+                         "regime_gap_percentage_points": 100 * (c["mean_pass_high"] - c["mean_pass_low"])},
+        **breakpoints["task_type_controls"],
+        "large_task_types_tested_for_overidentification": iv["within_task_type"]["categories_tested"],
+        "large_task_types_rejecting": iv["within_task_type"]["categories_rejecting_at_0_05"],
+    }
+    robustness["task_type_controls"]["fixed_effects"]["specification"] = (
+        "by_side: task-type effects may differ on each side of the break; see control_specs")
     robustness["source_frame_sensitivity"] = frame_sens
     robustness["model_specific_source_frame"] = model_frames
     robustness["overidentification"] = iv
+    robustness["output_cc_regression_diagnostics"] = iv["output_cc_regressions"]
     robustness["reverse_threshold"] = output_cc
+    for name, fname in (("control_specs", "control_specs.json"),
+                        ("no_response_sensitivity", "no_response_sensitivity.json"),
+                        ("auditor_agreement", "auditor_agreement.json"),
+                        ("frame_decomposition_at_headline", "frame_decomposition.json")):
+        path = out / fname
+        if path.exists():
+            robustness[name] = json.loads(path.read_text(encoding="utf-8"))
+    robustness["pass_at_k"] = {**robustness.get("pass_at_k", {}), "outcome": (
+        "raw unit-test harness: these 7,180 generations (code saved) were not included in the "
+        "independent audit")}
+    robustness["mechanism_diagnostic"] = {**robustness.get("mechanism_diagnostic", {}), "outcome": (
+        "reviewed version only: the diagnostic sample includes prompts outside the benchmark and "
+        "cannot be re-estimated under this outcome")}
+    robustness["submitted_baseline"] = {**robustness.get("submitted_baseline", {}), "outcome": (
+        "reviewed version (as submitted), kept for reference")}
     ext = robustness.setdefault("high_complexity_extension", {})
     matched = ext.setdefault("matched_five_model", {})
     matched.update(extension_threshold(args.data_root))
@@ -111,6 +143,12 @@ def main() -> None:
                                "original_pass_rate": float(orig["mean_pass"]),
                                "difference": float(extn["mean_pass"] - orig["mean_pass"]),
                                "welch_p": float(orig["welch_p"])}
+    # Consistency: every section that reports the headline breakpoint must agree.
+    headline = {c["kink_threshold"], breakpoints["pool_mean"]["threshold"],
+                robustness["task_type_controls"]["uncontrolled"]["threshold"],
+                frame_sens["unadjusted_threshold"]["threshold"]}
+    if len(headline) != 1:
+        raise SystemExit(f"sections disagree on the headline breakpoint: {sorted(headline)}")
     (out / "robustness_summary.json").write_text(json.dumps(robustness, indent=2), encoding="utf-8")
     print(f"assembled {out}: combined gamma {c['kink_threshold']}, "
           f"CI [{c['kink_ci_lower']}, {c['kink_ci_upper']}], extension gamma "

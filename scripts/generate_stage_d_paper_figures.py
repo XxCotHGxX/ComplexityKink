@@ -35,12 +35,13 @@ from analyze_kink import RUBRIC_DIMS, build_combined_df, load_rubric_scores, loa
 from display_bins import half_open_integer_bin  # noqa: E402
 
 STAGE_D_DIR = ROOT / "data" / "stage_d"
-# CK_SCORED_DIR selects the outcome definition, e.g. data/stage_d/scored_independent_audit.
-SCORED_DIR = Path(os.environ.get("CK_SCORED_DIR", STAGE_D_DIR / "scored_combined"))
+# CK_SCORED_DIR selects the outcome definition. The default is the camera-ready
+# primary outcome; data/stage_d/scored_combined gives the reviewed version's.
+SCORED_DIR = Path(os.environ.get("CK_SCORED_DIR", STAGE_D_DIR / "scored_independent_audit"))
 RUBRIC_PATH = STAGE_D_DIR / "ensemble_scores_current_aggregated.jsonl"
-# CK_RESULTS_DIR selects the result set the figures are drawn from, e.g.
-# results/camera_ready/independent_audit; it defaults to the reviewed results.
-RESULTS_DIR = Path(os.environ.get("CK_RESULTS_DIR", ROOT / "results"))
+# CK_RESULTS_DIR selects the result set the figures are drawn from. The default
+# is the camera-ready primary outcome; ROOT/results holds the reviewed version's.
+RESULTS_DIR = Path(os.environ.get("CK_RESULTS_DIR", ROOT / "results" / "camera_ready" / "independent_audit"))
 SUMMARY_PATH = RESULTS_DIR / "analysis_summary.json"
 PER_MODEL_SUMMARY_PATH = RESULTS_DIR / "per_model_bootstrap_summary.csv"
 TAIL_CURVE_PATH = RESULTS_DIR / "tail_extension_curve.csv"
@@ -151,7 +152,7 @@ def save_pipeline() -> None:
             0.365,
             0.23,
             "Prompt-side index",
-            "4 judges\n6 dimensions\nfixed before generation",
+            "4 judges\n6 dimensions\nprompt text only",
         ),
         (0.63, 0.21, "Model outcomes", "21-model panel\nunit tests +\nindependent audit"),
         (0.89, 0.19, "Analysis", "Index breakpoints\ntask and pooling\nsensitivity"),
@@ -254,7 +255,7 @@ def save_pipeline() -> None:
     ax.text(
         0.5,
         0.035,
-        "Primary complexity measure: the prompt-side index fixed before generation.",
+        "Primary complexity measure: the prompt-side index, scored from the prompt alone.",
         ha="center",
         va="center",
         color=GRAY,
@@ -768,8 +769,8 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
                 xref="paper",
                 yref="paper",
                 text=(
-                    f"Filtered to generations passing no unit tests (n={len(flow_df):,}). "
-                    "Red/orange flows have Lizard CC <= 10 but prompt rubric > 8 before generation."
+                    f"Generations with outcome 0 (failed) and computable Lizard CC (n={len(flow_df):,}). "
+                    "Red/orange flows have Lizard CC <= 10 but prompt rubric > 8."
                 ),
                 showarrow=False,
                 font=dict(size=12, color="#5b6472"),

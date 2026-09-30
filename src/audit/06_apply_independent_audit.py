@@ -7,10 +7,17 @@ all 105,000 generations (docs/independent_audit_protocol.md):
     verdict "incorrect" -> pass_rate 0.0
     anything else       -> the unit-test harness pass rate
 
+"Anything else" includes uncertain verdicts, unparseable responses, API errors,
+and responses cut off by the token limit or a content filter (amendment 5; see
+``final_verdict`` in independent_audit.py). Generations with no code at all are
+marked incorrect by rule without an auditor request.
+
 Writes data/stage_d/scored_independent_audit/<model>.jsonl with the same schema
 as data/stage_d/scored_combined/, so the analysis scripts run unchanged with
 CK_SCORED_DIR pointing there. Every row keeps the raw harness value and the
-reviewed-version (o4-mini, earlier frame only) value for provenance.
+reviewed-version (o4-mini, earlier frame only) value for provenance, and flags
+generations for which the model API returned no response at all
+(``generation_returned_no_response``), so sensitivity analyses can drop them.
 
 Usage:
     python src/audit/06_apply_independent_audit.py --data-root /srv/ckr/data \
@@ -20,11 +27,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from contextlib import nullcontext
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from independent_audit import INCOMPLETE_FINISH, final_verdict  # noqa: E402
 VERDICT_TO_PASS = {"correct": 1.0, "incorrect": 0.0}
 
 
@@ -67,7 +77,7 @@ def main() -> None:
         print(f"skipped {unreadable} unreadable line(s) in {args.audit_file}")
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    counts, by_frame = Counter(), Counter()
+    counts, by_frame, handling = Counter(), Counter(), Counter()
     sums = {"harness": 0.0, "reviewed": 0.0, "independent": 0.0}
     frame_sums: dict[str, dict[str, float]] = {}
     n_rows = 0
@@ -84,9 +94,15 @@ def main() -> None:
             case_id = f"{path.stem}:{r['id']}"
             harness = r.get("harness_pass_rate", r.get("pass_rate"))
             rec = verdicts.get(case_id)
-            verdict = rec.get("verdict") if rec and rec.get("status") == "ok" else None
+            verdict = final_verdict(rec)
             new_pass = VERDICT_TO_PASS.get(verdict, harness)
             counts[verdict if rec else "missing"] += 1
+            if rec and rec.get("parse_status") == "rule":
+                handling["empty_code_rule"] += 1
+            if rec and rec.get("status") == "ok" and rec.get("finish_reason") in INCOMPLETE_FINISH:
+                handling["incomplete_response_fallback"] += 1
+            no_response = not (r.get("output") or "").strip()
+            handling["model_api_returned_no_response"] += no_response
             frame = prompts[r["id"]]
             by_frame[(frame, "changed" if new_pass != harness else "same")] += 1
             fs = frame_sums.setdefault(frame, {"n": 0, "harness": 0.0, "reviewed": 0.0, "independent": 0.0})
@@ -99,6 +115,7 @@ def main() -> None:
             r["pass_rate"] = new_pass
             r["independent_audit_verdict"] = verdict
             r["independent_auditor"] = args.auditor
+            r["generation_returned_no_response"] = no_response
             rows.append(r)
         rows_by_file[path.name] = rows
 
@@ -106,7 +123,7 @@ def main() -> None:
     coverage = covered / n_rows if n_rows else 0.0
     summary = {
         "auditor": args.auditor, "audit_file": args.audit_file, "rows": n_rows,
-        "coverage": coverage, "verdicts": dict(counts),
+        "coverage": coverage, "verdicts": dict(counts), "handling": dict(handling),
         "changed_by_frame": {f"{k[0]}:{k[1]}": v for k, v in sorted(by_frame.items())},
         "mean_pass": {k: v / n_rows for k, v in sums.items()},
         "mean_pass_by_frame": {f: {k: fs[k] / fs["n"] for k in ("harness", "reviewed", "independent")}
