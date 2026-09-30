@@ -1,5 +1,14 @@
 # Post-submission robustness results
 
+> **Reviewed-version values.** This note records the checks as they stood during
+> the review period, under the reviewed version's outcome definition (an
+> `o4-mini` audit of the earlier frame only). The camera-ready paper uses an
+> independently audited outcome for all 105,000 generations, so its numbers
+> differ: see the manuscript and `results/camera_ready/independent_audit/`
+> (with `reviewed_outcome/` and `harness_outcome/` for the two alternatives).
+> Outcome-independent checks (human calibration, paraphrase, language, task
+> labels) are unchanged.
+
 This note records the checks completed during the review period. It keeps the
 submitted 5,000-prompt analysis separate from new evidence and states the
 limits directly. The machine-readable values are in

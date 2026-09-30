@@ -531,7 +531,7 @@ def save_output_cc_diagnostic() -> None:
     )
     ax_cell.set_yticks([0, 1])
     ax_cell.set_yticklabels([r"Prompt $\leq 8$", "Prompt > 8"])
-    ax_cell.set_title("(b) Zero-pass complete cases", loc="left")
+    ax_cell.set_title("(b) Failed complete cases (outcome 0)", loc="left")
     ax_cell.set_xlabel("Generated-output complexity")
     ax_cell.set_ylabel("Pre-generation prompt index")
 
@@ -745,7 +745,7 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
                 target=[idx[t] for t in flows["target"]],
                 value=flows["count"],
                 color=link_colors,
-                hovertemplate="%{source.label} -> %{target.label}<br>%{value:,} zero-pass generations<extra></extra>",
+                hovertemplate="%{source.label} -> %{target.label}<br>%{value:,} failed generations<extra></extra>",
             ),
         )
     )
@@ -755,7 +755,7 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
         margin=dict(l=35, r=210, t=85, b=35),
         font=dict(size=14, color="#1f2937"),
         title=dict(
-            text="Zero-pass generations: output CC can understate prompt complexity",
+            text="Failed generations: output CC can understate prompt complexity",
             x=0.5,
             xanchor="center",
             font=dict(size=22),

@@ -18,10 +18,10 @@ elsewhere in the study.
 Only models already deployed in the project's Azure accounts were considered.
 The two from families outside the evaluated panel and the rubric judges are:
 
-| Auditor | Azure account | Status |
+| Auditor | Access | Status |
 |---|---|---|
-| `Phi-4-reasoning` (Microsoft) | DataPipeline0 | GA, open weights (MIT) |
-| `MAI-Thinking-1` (Microsoft, 2026-06-01) | herna-mn98z78z-eastus2 | Preview; inference retires 2026-11-04 |
+| `Phi-4-reasoning` (Microsoft) | Azure AI Foundry | GA, open weights (MIT) |
+| `MAI-Thinking-1` (Microsoft, 2026-06-01) | Azure AI Foundry | Preview; inference retires 2026-11-04 |
 
 ## Audit prompt
 
@@ -55,7 +55,9 @@ computes the same thing.
 
 ## Known-answer pilot set
 
-Built by `src/audit/build_known_answer_set.py` from benchmark prompts whose
+Built by `src/audit/01_prepare_pilot_inputs.py`,
+`02_build_and_execute_variants.py` (run inside the `scorer` container with no
+network), and `03_select_known_answer_set.py` from benchmark prompts whose
 reference solution passes every unit test when run through the unmodified
 harness (`score_solution` in `03_execute_and_score.py`) inside the `scorer`
 container with no network. All code, including the reference, is normalized
@@ -86,7 +88,8 @@ auditor is adopted and the pilot results are reported to the authors before
 any further step.
 
 The other auditor re-audits a random 5% of the 105,000 production rows
-(seed 20260928) to report inter-auditor agreement (Cohen's kappa).
+(seed 20260928) to report inter-auditor agreement (Cohen's kappa). (In the
+event both Azure candidates re-audited the sample; both are reported.)
 
 ## Amendment 2: extended candidate pool (2026-09-29, after the first pilot)
 
@@ -177,16 +180,56 @@ overall 0.973. It therefore satisfies the amendment-2 confirmation requirement;
 the selection-set shortfall on clean accuracy remains disclosed.
 
 **Production result (2026-09-30).** MiMo-V2.6-Pro returned a final record for
-all 105,000 generations: 89,005 correct, 14,867 incorrect, 177 uncertain, and
-951 unparseable (the last two, 1.07%, keep the harness value). Of 65,350
-generations that pass every test it overturns 812; of 12,191 that pass none it
-judges 7,016 correct; of 27,459 partial passes it sets 17,466 to 1.0 and 9,229
-to 0.0. Mean pass: harness 0.792, reviewed (o4-mini, earlier frame only)
-0.820, independent audit 0.851. On the seeded 5% sample (5,250 rows), where
-both auditors return correct or incorrect, MAI-Thinking-1 agrees with
-MiMo-V2.6-Pro on 91.1% of 5,189 rows (Cohen's kappa 0.635) and
-Phi-4-reasoning on 80.9% of 5,140 (kappa 0.419). The disputed references were
-not reviewed by humans.
+all 105,000 generations. 208 generations contain no code; the audit client
+marks them incorrect by rule without a request (`audit_one` in
+`src/audit/independent_audit.py`; 10 of them are in the 5% sample). Counts
+after amendment 5: 88,999 correct, 14,864 incorrect, 177 uncertain, and 960
+unparseable or incomplete (the last two groups, 1.08%, keep the harness value).
+Mean pass: harness 0.792, reviewed (o4-mini, earlier frame only) 0.820,
+independent audit 0.851. On the seeded 5% sample, excluding the empty-code rule
+cases and counting only complete responses, MAI-Thinking-1 agrees with
+MiMo-V2.6-Pro on 91.1% of 5,178 rows (Cohen's kappa 0.631) and Phi-4-reasoning
+on 81.2% of 5,029 (kappa 0.425)
+(`scripts/camera_ready/auditor_agreement.py`). The disputed references were not
+reviewed by humans.
+
+## Amendment 5: incomplete responses do not count (2026-09-30, after production)
+
+Two independent audits of the camera-ready (a Codex audit and a blind Claude
+audit) found that the tolerant parser could read a verdict from a response that
+was cut off by the token limit, where the verdict-like string can come from
+unfinished reasoning. From this amendment on, a record counts only if the
+response finished normally: responses whose finish reason is `length` or
+`content_filter` are treated as unparseable and fall back to the harness value
+(`final_verdict` in `src/audit/independent_audit.py`, used by the pilot scoring,
+the apply step, the agreement script, and the release). Effect: 9 of MiMo's
+105,000 production verdicts now fall back to the harness value; on known-answer
+set A only Phi-4-reasoning's row changes (error 0.009, clean 0.887, cosmetic
+0.467, wrong rescue 0.053, overall 0.764), so no selection outcome changes. The
+original decision files are kept; the re-scored ones are
+`pilot_decision_amendment5.json`.
+
+## Departures from the protocol, collected
+
+For readers who want every departure in one place:
+
+1. **Candidate order.** Amendment 2 listed five added candidates to be run in
+   order. Only the first two (Nemotron-3-Ultra, Laguna-S-2.1) were run; their
+   free endpoints hit daily caps partway through (final records for 118 and 111
+   of 450 cases), and the runs reported here used paid providers. The authors then added MiMo-V2.6-Pro, which
+   was not on the list (amendment 3), and adopted it after its pilot
+   (amendment 4). Inkling, Nemotron-3-Super, and Inkling-small were never run.
+2. **Adoption before confirmation.** Amendment 2 made adoption conditional on a
+   fresh-set confirmation. Amendment 4 adopted MiMo-V2.6-Pro by author decision
+   before that result existed and made the confirmation report-only. It passed
+   (clean accuracy exactly at the 143/150 minimum), but it did not gate the
+   adoption.
+3. **Selection rule not met.** MiMo-V2.6-Pro missed the clean-accuracy
+   threshold on set A by three cases.
+4. **Empty-code rule.** Generations with no code are marked incorrect without an
+   auditor request. This was in the client from the start but was not written
+   into the protocol.
+5. **Amendment 5** changed how incomplete responses count after production.
 
 ## Reporting
 

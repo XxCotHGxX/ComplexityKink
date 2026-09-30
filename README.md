@@ -8,14 +8,18 @@ Zhao (University of Wisconsin–Milwaukee), accepted at the NeurIPS 2026
 Evaluations & Datasets track. Preprint:
 [arXiv:2609.19616](https://arxiv.org/abs/2609.19616).
 
-- Paper source: [`paper/Scratch-NeurIps.tex`](paper/Scratch-NeurIps.tex)
+- Paper source: [`paper/Scratch-NeurIps.tex`](paper/Scratch-NeurIps.tex) (camera-ready)
 - Benchmark data: the release (prompts, per-judge rubric scores, all 105,000
-  generations with unit-test outcomes and Lizard complexity, human calibration
-  grades, and the 365-prompt extension, with Croissant metadata) will be linked
-  here; its dataset card is in [`release/`](release/).
+  generations with three outcome definitions, audit verdicts, and Lizard
+  complexity, the outcome audit's known-answer sets, human calibration grades,
+  and the 365-prompt extension, with Croissant metadata) will be linked here;
+  its dataset card and builder are in [`release/`](release/) and
+  [`scripts/build_public_release.py`](scripts/build_public_release.py).
 - Outcome audit: [`docs/independent_audit_protocol.md`](docs/independent_audit_protocol.md)
-  documents how the unit-test outcome is audited and the pre-declared auditor
-  selection rule.
+  documents how every unit-test verdict was reviewed by an independent LLM
+  auditor, the pre-declared selection rule, its amendments, and every
+  departure from it.
+- Reproduction: [`docs/reproduction_guide.md`](docs/reproduction_guide.md).
 
 
 ## What this project studies
@@ -25,8 +29,9 @@ produces. That creates a measurement problem: a failed answer to a difficult
 prompt can be a short stub or partial program, so an output-side metric can make
 the failure look artificially simple.
 
-This project measures intended solution structure from the prompt before
-generation. Each prompt is scored on six fixed dimensions:
+This project scores intended solution structure from the prompt alone, never
+from generated code or test results. Each prompt is scored on six fixed
+dimensions:
 
 - branching
 - iteration
@@ -39,84 +44,56 @@ The prompt set was stratified across six bands of a preliminary single-rater
 rubric score, then locked and rescored by four out-of-panel LLM judges. The
 four-judge stage yields 19,997 score rows: 4,998 prompts have four ratings, one
 has three, and one has two. All reported analyses use the ensemble composite,
-which is compared with unit-test pass rate across 21 evaluated models.
+which is compared with pass rate across 21 evaluated models.
 
-## Artifact status
+## Camera-ready result
 
-This snapshot contains the current manuscript revision and distinguishes
-the locked submitted results from the checks added during review:
-
-- `paper/Scratch-NeurIps.tex` is the camera-ready manuscript source.
-- `results/analysis_summary.json` and
-  `results/per_model_bootstrap_summary.{csv,json}` contain the locked Stage D
-  analysis used for the submitted results.
-- `docs/robustness_results.md` and `results/robustness_summary.json` record the
-  additional robustness checks.
-
-The old Stage C result JSON, duplicate Stage C manuscript, and stale derived
-figures were removed from this snapshot.
-
-## Submitted result
+The primary outcome is the unit-test pass rate as reviewed by an independent
+LLM auditor (MiMo-V2.6-Pro): a `correct` verdict sets pass rate to 1.0 and
+`incorrect` to 0.0; uncertain, unparseable, or cut-off responses keep the
+harness value.
 
 | Quantity | Value |
 | :-- | --: |
-| Prompts | 5,000 |
-| Evaluated models | 21 |
-| Model-prompt generations | 105,000 |
-| Rubric judges | 4 out-of-panel LLMs |
+| Prompts / evaluated models / generations | 5,000 / 21 / 105,000 |
 | Composite inter-rater reliability | ICC = 0.872 |
-| Combined threshold | $\hat{\gamma}=13.75$ |
-| 95% bootstrap interval | $[7.75,14.0]$ |
-| Sup-Wald statistic | 121.70 |
+| Mean pass: audited / reviewed version / raw harness | 0.851 / 0.820 / 0.792 |
+| Pooled threshold | $\hat{\gamma}=14.0$ (sup-Wald 151.15) |
+| 95% pairs-bootstrap percentile interval | $[10.5,14.25]$ |
 | Wild bootstrap and placebo | 0 of 2,000 exceedances each; $p_{\mathrm{MC}}<0.001$ |
-| Mean pass rate at or below threshold | 79.9% |
-| Mean pass rate above threshold | 87.6% |
+| Mean pass at or below / above the threshold | 83.4% / 90.1% |
+| Task-adjusted jump at 14.0 (additive task fixed effects) | +0.4 points ($p=0.66$) |
+| Later-frame break (change) / earlier frame | 14.25 (+1.8 points) / no significant break |
+| Models with lower pass above their own break | 2 (Kimi K2.5; Gemini 3.1 Pro Preview, driven by 156 API no-response generations) |
 
-The unadjusted mean-pooled curve is nonlinear, not a universal "harder means
-worse" collapse. Pass rates fall through a mid-complexity region and rebound in
-the better-supported part of the high region. This is a descriptive feature of
-the constructed benchmark. Its location, direction, and size vary across
-construction frames, task controls, pooling choices, and models.
+The pooled curve is nonlinear, not a universal "harder means worse" collapse,
+and its jump is mostly composition: task type removes nearly all of it, and the
+two construction frames (which also differ in generation run and test quality)
+explain the rebound. Kimi K2.5's later-frame decline at 14.25 holds under every
+outcome definition. The pooled breakpoint is 11.25 on raw unit-test outcomes
+and 13.75 under the reviewed version's partial audit.
 
-## What changed after review
+## Robustness checks
 
-The additional checks make the interpretation narrower and more useful:
-
-- The full six-dimension overidentification test rejects strongly. At
-  $n=5{,}000$, $J=411.3$ and $J/N=0.082$. Random subsamples still reject in
-  97.5% of draws at $n=250$, so this is not explained by sample size alone. We
-  treat the composite primarily as a pre-generation complexity index. The 2SLS
-  estimates are secondary diagnostics, not clean causal estimates.
-- Task-type fixed effects reduce the sup-Wald statistic from 121.7 to 19.6 and
-  the regime gap from 7.6 to 2.1 percentage points, while the break remains
-  significant. Task composition explains a substantial part of the pooled
-  shape, but not all of it.
-- Construction-frame sensitivity is more consequential. Adding an indicator
-  for the 2,246 retained earlier prompts versus 2,754 later candidates moves the
-  selected threshold to 8.50 and the raw regime gap to -3.48 points. The earlier
-  frame has no significant breakpoint. The later frame selects 14.25, but its
-  raw gap is only +0.87 points. Neither frame reproduces the pooled +7.6-point
-  increase, so we treat the large rebound as source-composition-sensitive.
-- A contract-audited extension adds 365 prompt-side-selected prompts, with
-  218/133/11/3 prompts in display bins 15/16/17/18. At bins 15 and 16,
-  matched-five-model pass rates are 0.880 and 0.799, compared with 0.894 and
-  0.808 in the original panel. The differences are -0.014 and -0.009 and are
-  not significant ($p=0.377$ and $p=0.765$). Evidence above bin 16 remains too
-  sparse for a strong endpoint claim.
-- Human calibration shows meaningful signal and meaningful disagreement. On a
+- The six-dimension overidentification test rejects strongly ($J=552.2$ at
+  $n=5{,}000$; every random subsample rejects at $n=250$), so the composite is
+  treated as an index and the 2SLS estimates as diagnostics only.
+- A 365-prompt audit-clean extension (raw harness outcomes on both sides,
+  generated under a slightly different protocol) matches the original data at
+  bins 15 and 16 (0.880 vs 0.890; 0.799 vs 0.795) but adds only 14 prompts
+  above bin 16.
+- Human calibration shows meaningful signal and meaningful disagreement: on a
   deliberately difficult 200-prompt sample, human-LLM Pearson correlation is
-  0.41 and ICC(2,1) is 0.40. On the 50-prompt overlap, the two human graders
-  correlate at 0.56.
+  0.41 and ICC(2,1) is 0.40; the two human graders correlate at 0.56 on their
+  50-prompt overlap.
 - A five-draw check on 359 prompts gives single-draw versus five-draw
-  correlation $r=0.960$, with the same estimated threshold of 14.25. This is a
-  part-whole comparison because the first draw contributes to the mean.
-- Prompt paraphrases preserve the ordering well
-  (Spearman $\rho=0.963$, 91% within one composite point).
-- Java and C++ prompt re-expressions preserve the prompt-side score ordering
-  ($r=0.992$ and $r=0.969$); generation and execution remain Python-only.
+  correlation $r=0.960$, with the same threshold of 14.25 (part-whole).
+- Prompt paraphrases preserve the ordering (Spearman $\rho=0.963$, 91% within
+  one point); Java and C++ re-expressions preserve the prompt-side scores
+  ($r=0.992$ and $0.969$); generation and execution remain Python-only.
 
-Full definitions, sample sizes, and limitations are in
-`docs/robustness_results.md`.
+`docs/robustness_results.md` records the review-period values (reviewed
+outcome). Camera-ready values are in `results/camera_ready/`.
 
 ## Repository layout
 
@@ -134,8 +111,11 @@ Full definitions, sample sizes, and limitations are in
 |   |-- README.md
 |   |-- Scratch-NeurIps.tex
 |   `-- *.png
+|-- release/            (dataset card, Croissant RAI fields, license notes)
 |-- results/
-|   |-- analysis_summary.json
+|   |-- camera_ready/    (every camera-ready result, one folder per outcome definition)
+|   |-- independent_audit/
+|   |-- analysis_summary.json   (reviewed version, kept for reference)
 |   |-- mechanism_diagnostic.json
 |   |-- pass_vs_output_cc.csv
 |   |-- per_model_bootstrap_summary.csv
@@ -148,7 +128,9 @@ Full definitions, sample sizes, and limitations are in
 |   |-- tail_extension_replication.csv
 |   `-- tail_extension_source_split.csv
 |-- scripts/
+|   `-- camera_ready/    (reanalysis for any outcome definition)
 `-- src/
+    `-- audit/           (independent outcome audit)
 ```
 
 Large prompt bundles, generated model outputs, provider request logs, API keys,
@@ -167,8 +149,11 @@ Install the Python dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Run the combined analysis with the scored model directory, aggregated rubric
-scores, and prompt file from the packaged benchmark artifact:
+Run the combined analysis with the scored model directory
+(`data/stage_d/scored_independent_audit` for the camera-ready primary outcome),
+aggregated rubric scores, and prompt file from the packaged benchmark artifact.
+`scripts/camera_ready/run_reanalysis.sh` runs this and every other analysis
+for one outcome definition:
 
 ```bash
 python src/analyze_kink.py \
@@ -205,7 +190,7 @@ map.
 | DeepSeek | DeepSeek V3.2 |
 | Moonshot | Kimi K2.5 |
 | Alibaba | Qwen 3.6 Plus, Qwen 3.5-9B |
-| Mistral | Mistral Large-3, Mistral Small 2412, Ministral-3-14B-reasoning |
+| Mistral | Mistral Large-3, Devstral Small 2505, Ministral-3-14B-reasoning |
 | Meta | Llama 3.3-70B |
 | Zhipu | GLM 4.7-flash |
 | Arcee | Trinity-large |
@@ -215,8 +200,9 @@ The four rubric judges are excluded from the evaluated model panel.
 One additional locally served, quantized AuroraGPT-IT-v4 run covered only the
 earlier prompt frame and was not generated for the 2,754 newly added prompts.
 It was excluded before the final panel analysis in a post hoc decision without
-a prespecified eligibility rule. Its pass rate on the earlier frame was 20.6%,
-and performance was not a documented exclusion criterion. All claims are
+a prespecified eligibility rule. Its pass rate was 20.6% on that run's 5,000
+prompts (23.2% on the 2,246 retained earlier-frame prompts) under the reviewed
+outcome, and performance was not a documented exclusion criterion. All claims are
 limited to the reported 21-model panel.
 
 ## License

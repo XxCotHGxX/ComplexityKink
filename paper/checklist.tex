@@ -5,7 +5,7 @@
 \item {\bf Claims}
     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The abstract and Introduction present the work as prompt-side measurement and model-specific, benchmark-conditional breakpoint estimation, not causal identification or a universal cutoff. Claims are scoped to the 5,000-prompt selection-stratified benchmark and reported 21-model panel, with construction-frame, task-type, pooling, human-calibration, model-exclusion, and extreme-tail limitations stated directly.
+    \item[] Justification: The abstract and Introduction present the work as prompt-side measurement and model-specific, benchmark-conditional breakpoint estimation, not causal identification or a universal cutoff. Claims are scoped to the 5,000-prompt selection-stratified benchmark and reported 21-model panel, with construction-frame, task-type, pooling, outcome-definition, human-calibration, model-exclusion, and extreme-tail limitations stated directly.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the abstract and introduction do not include the claims made in the paper.
@@ -17,7 +17,7 @@
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper contains a dedicated Limitations section covering the constructed sampling frame, source and task composition, scorer and human-rater disagreement, pooling sensitivity, sparse support above bin 16, Python-only execution, failed IV restrictions, post hoc robustness checks, and cross-sectional scope.
+    \item[] Justification: The paper contains a dedicated Limitations section covering the constructed sampling frame, source and task composition, scorer and human-rater disagreement, pooling sensitivity, dependence on one LLM outcome auditor, sparse support above bin 16, Python-only execution, failed IV restrictions, post hoc robustness checks, and cross-sectional scope.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper.
@@ -70,7 +70,7 @@
 \item {\bf Experimental setting/details}
     \item[] Question: Does the paper specify all the training and test details (e.g., data splits, hyperparameters, how they were chosen, type of optimizer) necessary to understand the results?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper does not train a new model. It specifies the preliminary-score sampling design, four-judge analysis index, model panel, primary one-generation setting, repeated-sampling subset and temperature, audit-clean extension, unit-test execution, outcome audit, Lizard measurement, and statistical estimators. Additional version and execution details are in the artifact.
+    \item[] Justification: The paper does not train a new model. It specifies the preliminary-score sampling design, four-judge analysis index, model panel, primary one-generation setting, repeated-sampling subset and temperature, audit-clean extension, unit-test execution, outcome audit, Lizard measurement, and statistical estimators. Main-run generation settings (routes, token limits, system-prompt variants) varied by model and frame and are reported in the released models table and per-row fields where recorded; the paper states that the two frames were generated in separate runs.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
@@ -127,7 +127,7 @@
 \item {\bf Safeguards}
     \item[] Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse?
     \item[] Answer: \answerNA{}
-    \item[] Justification: The paper does not release a trained model or public code-generation service. The appendix nevertheless states execution safeguards for generated code: unit-test harness isolation, timeouts, and release of benchmark artifacts rather than an interactive model.
+    \item[] Justification: The paper does not release a trained model or public code-generation service. The appendix nevertheless states the execution safeguards actually used for generated code (one assertion per fresh isolated-mode Python process with a timeout; network-isolated containers for the audit's known-answer runs) and notes that the harness itself does not isolate the file system or network.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper poses no such risks.
@@ -139,7 +139,7 @@
 \item {\bf Licenses for existing assets}
     \item[] Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper cites OpenCodeInstruct, Lizard, linearmodels, and the evaluated model families where used. The appendix names CC BY 4.0 for OpenCodeInstruct and for the derived benchmark, the MIT License for Lizard 1.21.0, and the NCSA License for linearmodels 7.0.
+    \item[] Justification: The paper cites OpenCodeInstruct, Lizard, and linearmodels, and names every evaluated model, judge, and auditor with its version; the released models table records each one's developer, access route, and served model string. The appendix names CC BY 4.0 for OpenCodeInstruct and for the derived benchmark, the MIT License for Lizard 1.21.0, and the NCSA License for linearmodels 7.0.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not use existing assets.
@@ -187,7 +187,7 @@
 \item {\bf Declaration of LLM usage}
     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does not impact the core methodology, scientific rigor, or originality of the research, declaration is not required.
     \item[] Answer: \answerYes{}
-    \item[] Justification: LLM usage is central: out-of-panel LLMs score prompts, a 21-model panel is evaluated, and LLMs support paraphrase and task-label robustness checks. The appendix also declares LLM-assisted drafting and editing under author supervision.
+    \item[] Justification: LLM usage is central: out-of-panel LLMs score prompts, a 21-model panel is evaluated, an independent LLM auditor defines the primary outcome, and LLMs support paraphrase and task-label robustness checks. The appendix also declares LLM-assisted drafting, editing, and code auditing under author supervision.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the core method development in this research does not involve LLMs as any important, original, or non-standard components.

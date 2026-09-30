@@ -23,7 +23,7 @@ can be joined without relying on display names.
 | `gpt-5-mini` | GPT-5-mini | OpenAI |
 | `gpt-oss-20b` | GPT-OSS-20B | Local or hosted worker |
 | `ministral-3-14b-reasoning` | Ministral-3-14B-reasoning | Local or hosted worker |
-| `mistral-small-2412` | Mistral Small 2412 | Local or hosted worker |
+| `mistral-small-2412` | Devstral Small 2505 (served as Devstral-Small-2505 Q4_K_M; the key is historical) | Local worker |
 | `openai_gpt-5.4` | GPT-5.4 | OpenAI |
 | `qwen_qwen3.6-plus` | Qwen 3.6 Plus | Alibaba DashScope |
 | `qwen3.5-9b` | Qwen 3.5-9B | Local or hosted worker |

@@ -91,6 +91,37 @@ def main() -> None:
     print("kappa map", {k: km.get(k) for k in ("intercept", "slope", "r2", "n_passing")})
     print("mapping at threshold:", json.dumps(oc.get("passing_generation_mapping"))[:300])
 
+    print("== control specifications (additive vs by side; adjusted jumps in points)")
+    cs = j("control_specs.json")
+    for name, fit in cs["mean_pooled"].items():
+        if name.startswith("adjusted"):
+            print("  adjusted jumps at", fit["threshold"],
+                  {k: round(100 * v["jump"], 2) for k, v in fit.items() if k != "threshold"})
+            continue
+        adj = fit["adjusted_jump_at_selected"]
+        print(f"  {name}: gamma {fit['threshold']} supW {fit['sup_wald']:.2f} "
+              f"exc {fit['wild_bootstrap']['exceedances']}/{fit['wild_bootstrap']['draws']} "
+              f"raw {100 * fit['raw_regime_gap']:+.2f} adjusted {100 * adj['jump']:+.2f} (p {adj['p_value']:.3g})")
+    for model, fits in cs["model_specific"].items():
+        print("  ", model, {k: (v["threshold"], round(v["sup_wald"], 2)) for k, v in fits.items()})
+
+    print("== no-response generations treated as missing")
+    nr = j("no_response_sensitivity.json")
+    print("  counts", nr["no_response_generations"])
+    for label, v in nr["variants"].items():
+        p = v["mean_pooled"]
+        print(f"  {label}: pooled {p['threshold']} {p['mean_pass_low']:.4f}->{p['mean_pass_high']:.4f}; "
+              f"down {v['downward_models']}")
+
+    print("== frame composition at the headline breakpoint")
+    print(" ", j("frame_decomposition.json"))
+    if (out / "auditor_agreement.json").exists():
+        print("== inter-auditor agreement (rule cases excluded)")
+        ag = j("auditor_agreement.json")
+        for name in ("MAI-Thinking-1", "Phi-4-reasoning"):
+            x = ag[name]["excluding_rule_cases"]
+            print(f"  {name}: n {x['n']} agreement {x['agreement']:.4f} kappa {x['cohen_kappa']:.4f}")
+
     print("== extension (raw harness both sides)")
     print(json.dumps(rob["high_complexity_extension"]["matched_five_model"])[:600])
     for name in ("tail_extension_replication.csv", "tail_extension_source_split.csv"):
