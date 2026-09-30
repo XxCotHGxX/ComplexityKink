@@ -428,7 +428,7 @@ Keyword loop count                & 0.07 & 0.04 & $-0.02$ & n.s. \\
 
 \subsection{First-stage relevance}
 
-The first-stage regression (\ref{eq:stage1}) on the combined dataset yields a heteroscedasticity-robust Wald statistic of $\chi^2(6)=13{,}611.3$ and a classical joint $F(6,4993)=2{,}265.4$. Partial $R^2$ on generated-output complexity is $0.681$. Per-model robust Wald statistics range from $\chi^2(6)=6{,}053.7$ (GPT-5-mini) to 14{,}693.2 (Devstral Small 2505). The dimensions are strongly relevant to output CC, but relevance does not establish exclusion validity.
+The first-stage regression (\ref{eq:stage1}) on the combined dataset yields a heteroscedasticity-robust Wald statistic of $\chi^2(6)=13{,}611.3$ and an HC1-robust joint $F(6,4993)=2{,}265.4$ (classical $F=1{,}779.4$). Partial $R^2$ on generated-output complexity is $0.681$. Per-model robust Wald statistics range from $\chi^2(6)=6{,}053.7$ (GPT-5-mini) to 14{,}693.2 (Devstral Small 2505). The dimensions are strongly relevant to output CC, but relevance does not establish exclusion validity.
 
 \begin{table}[h]
 \centering
@@ -447,7 +447,7 @@ Composition      & $-0.766^{**}$  & $(0.291)$ \\
 Constant         & $-4.924^{***}$ & $(0.311)$ \\
 \midrule
 Partial $R^2$                & \multicolumn{2}{c}{0.681} \\
-Classical joint $F$          & \multicolumn{2}{c}{2{,}265.4} \\
+HC1-robust joint $F$         & \multicolumn{2}{c}{2{,}265.4} \\
 Robust Wald $\chi^2(6)$      & \multicolumn{2}{c}{13{,}611.3} \\
 $N$                          & \multicolumn{2}{c}{5{,}000} \\
 \bottomrule
@@ -490,7 +490,7 @@ The post hoc subset search finds five Sargan-nonrejecting specifications: branch
 
 \begin{table}[h]
 \centering
-\caption{Descriptive OLS and candidate-IV 2SLS fits of pass rate on prompt-level mean generated-output CC, averaged over model generations with computable CC. Of 5{,}000 prompts, 4{,}294 have all 21 model values and 706 use fewer. OLS uses HC1 standard errors and 2SLS uses heteroscedasticity-robust standard errors. Because the full instrument set fails overidentification, the 2SLS coefficient is not causal.}
+\caption{Descriptive OLS and candidate-IV 2SLS fits of prompt-level mean pass rate, averaged over all 21 generations, on prompt-level mean generated-output CC, averaged over the generations with computable CC. Of 5{,}000 prompts, 4{,}294 have all 21 model values and 706 use fewer. OLS uses HC1 standard errors and 2SLS uses heteroscedasticity-robust standard errors. Because the full instrument set fails overidentification, the 2SLS coefficient is not causal.}
 \label{tab:ols-vs-2sls}
 \begin{tabular}{@{}lcc@{}}
 \toprule

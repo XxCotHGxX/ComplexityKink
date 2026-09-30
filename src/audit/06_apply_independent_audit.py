@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import Counter
+from contextlib import nullcontext
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -30,21 +31,27 @@ VERDICT_TO_PASS = {"correct": 1.0, "incorrect": 0.0}
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--data-root", type=Path, default=ROOT / "data")
-    ap.add_argument("--audit-file", required=True, help="File under independent_audit/production/.")
-    ap.add_argument("--auditor", required=True)
+    ap.add_argument("--audit-file", help="File under independent_audit/production/.")
+    ap.add_argument("--auditor", default="none (raw harness)")
+    ap.add_argument("--harness-only", action="store_true",
+                    help="Write data/stage_d/scored_harness/ with the raw harness pass rate for every "
+                         "row (for comparisons with runs whose code was not saved, e.g. the extension).")
     ap.add_argument("--min-coverage", type=float, default=0.99,
                     help="Refuse to write unless this share of rows has a final verdict record.")
     args = ap.parse_args()
+    if not args.harness_only and not args.audit_file:
+        ap.error("--audit-file is required unless --harness-only is given")
 
     scored_dir = args.data_root / "stage_d" / "scored_combined"
-    out_dir = args.data_root / "stage_d" / "scored_independent_audit"
-    audit_path = args.data_root / "independent_audit" / "production" / args.audit_file
+    out_dir = args.data_root / "stage_d" / ("scored_harness" if args.harness_only else "scored_independent_audit")
     prompts = {json.loads(line)["prompt_id"]: json.loads(line).get("selection_source")
                for line in open(args.data_root / "stage_d" / "stage_d_prompts.jsonl", encoding="utf-8")}
 
     verdicts: dict[str, dict] = {}
     unreadable = 0
-    with open(audit_path, "rb") as f:
+    audit_source = (nullcontext([]) if args.harness_only else
+                    open(args.data_root / "independent_audit" / "production" / args.audit_file, "rb"))
+    with audit_source as f:
         for raw in f:
             text = raw.strip(b"\x00\r\n ")
             if not text:
@@ -57,7 +64,7 @@ def main() -> None:
             if rec.get("status") in ("ok", "parse_error"):
                 verdicts[rec["case_id"]] = rec  # last final record wins
     if unreadable:
-        print(f"skipped {unreadable} unreadable line(s) in {audit_path.name}")
+        print(f"skipped {unreadable} unreadable line(s) in {args.audit_file}")
 
     out_dir.mkdir(parents=True, exist_ok=True)
     counts, by_frame = Counter(), Counter()
@@ -106,7 +113,7 @@ def main() -> None:
                                for f, fs in frame_sums.items()},
     }
     print(json.dumps(summary, indent=2))
-    if coverage < args.min_coverage:
+    if not args.harness_only and coverage < args.min_coverage:
         raise SystemExit(f"coverage {coverage:.4f} < {args.min_coverage}; not writing outputs")
 
     for name, rows in rows_by_file.items():

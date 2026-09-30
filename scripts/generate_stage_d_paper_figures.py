@@ -38,14 +38,17 @@ STAGE_D_DIR = ROOT / "data" / "stage_d"
 # CK_SCORED_DIR selects the outcome definition, e.g. data/stage_d/scored_independent_audit.
 SCORED_DIR = Path(os.environ.get("CK_SCORED_DIR", STAGE_D_DIR / "scored_combined"))
 RUBRIC_PATH = STAGE_D_DIR / "ensemble_scores_current_aggregated.jsonl"
-SUMMARY_PATH = ROOT / "results" / "analysis_summary.json"
-PER_MODEL_SUMMARY_PATH = ROOT / "results" / "per_model_bootstrap_summary.csv"
-TAIL_CURVE_PATH = ROOT / "results" / "tail_extension_curve.csv"
-TAIL_SPLIT_PATH = ROOT / "results" / "tail_extension_source_split.csv"
-TAIL_REPLICATION_PATH = ROOT / "results" / "tail_extension_replication.csv"
-OUTPUT_CC_CURVE_PATH = ROOT / "results" / "pass_vs_output_cc.csv"
-REVERSE_CELL_PATH = ROOT / "results" / "reverse_threshold_zero_pass_cells.csv"
-ROBUSTNESS_SUMMARY_PATH = ROOT / "results" / "robustness_summary.json"
+# CK_RESULTS_DIR selects the result set the figures are drawn from, e.g.
+# results/camera_ready/independent_audit; it defaults to the reviewed results.
+RESULTS_DIR = Path(os.environ.get("CK_RESULTS_DIR", ROOT / "results"))
+SUMMARY_PATH = RESULTS_DIR / "analysis_summary.json"
+PER_MODEL_SUMMARY_PATH = RESULTS_DIR / "per_model_bootstrap_summary.csv"
+TAIL_CURVE_PATH = RESULTS_DIR / "tail_extension_curve.csv"
+TAIL_SPLIT_PATH = RESULTS_DIR / "tail_extension_source_split.csv"
+TAIL_REPLICATION_PATH = RESULTS_DIR / "tail_extension_replication.csv"
+OUTPUT_CC_CURVE_PATH = RESULTS_DIR / "pass_vs_output_cc.csv"
+REVERSE_CELL_PATH = RESULTS_DIR / "reverse_threshold_zero_pass_cells.csv"
+ROBUSTNESS_SUMMARY_PATH = RESULTS_DIR / "robustness_summary.json"
 PAPER_DIR = ROOT / "paper"
 
 FIG_DPI = 220
