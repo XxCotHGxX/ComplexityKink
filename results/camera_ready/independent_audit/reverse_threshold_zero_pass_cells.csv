@@ -1,0 +1,5 @@
+prompt_group,output_group,n
+Prompt composite <= 8,Output CC <= 10,3645
+Prompt composite <= 8,Output CC > 10,837
+Prompt composite > 8,Output CC <= 10,3562
+Prompt composite > 8,Output CC > 10,6204

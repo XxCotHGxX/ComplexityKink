@@ -1,0 +1,17 @@
+{
+  "threshold": 14.0,
+  "later_share_at_or_below": 0.40966783688900893,
+  "later_share_above": 0.9537393986121819,
+  "earlier": {
+    "pass_at_or_below": 0.7952141332287718,
+    "pass_above": 0.7946825396825398,
+    "n_at_or_below": 2186,
+    "n_above": 60
+  },
+  "later": {
+    "pass_at_or_below": 0.8896066798505823,
+    "pass_above": 0.9066058436309042,
+    "n_at_or_below": 1517,
+    "n_above": 1237
+  }
+}

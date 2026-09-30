@@ -62,7 +62,7 @@ def main() -> None:
     for summary_path in sorted((out / "per_model").glob("*/analysis_summary.json")):
         data = json.loads(summary_path.read_text(encoding="utf-8"))
         (model_id, fit), = [(k, v) for k, v in data.items() if not k.startswith("_")]
-        rows.append({"model_id": model_id, "summary_path": str(summary_path.relative_to(ROOT)),
+        rows.append({"model_id": model_id, "summary_path": str(summary_path.resolve().relative_to(ROOT)),
                      **{k: v for k, v in fit.items() if k != "model"}})
     if len(rows) != 21:
         raise SystemExit(f"expected 21 per-model summaries, found {len(rows)}")
@@ -101,7 +101,16 @@ def main() -> None:
     robustness["overidentification"] = iv
     robustness["reverse_threshold"] = output_cc
     ext = robustness.setdefault("high_complexity_extension", {})
-    ext.setdefault("matched_five_model", {}).update(extension_threshold(args.data_root))
+    matched = ext.setdefault("matched_five_model", {})
+    matched.update(extension_threshold(args.data_root))
+    replication = pd.read_csv(out / "tail_extension_replication.csv")
+    for b in (15, 16):
+        rows_b = replication[replication["bin"] == b].set_index("source")
+        orig, extn = rows_b.loc["Original benchmark"], rows_b.loc["Audit-clean extension"]
+        matched[f"bin_{b}"] = {"extension_pass_rate": float(extn["mean_pass"]),
+                               "original_pass_rate": float(orig["mean_pass"]),
+                               "difference": float(extn["mean_pass"] - orig["mean_pass"]),
+                               "welch_p": float(orig["welch_p"])}
     (out / "robustness_summary.json").write_text(json.dumps(robustness, indent=2), encoding="utf-8")
     print(f"assembled {out}: combined gamma {c['kink_threshold']}, "
           f"CI [{c['kink_ci_lower']}, {c['kink_ci_upper']}], extension gamma "
