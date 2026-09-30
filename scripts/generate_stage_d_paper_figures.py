@@ -153,7 +153,7 @@ def save_pipeline() -> None:
             "Prompt-side index",
             "4 judges\n6 dimensions\nfixed before generation",
         ),
-        (0.63, 0.19, "Model outcomes", "21-model panel\nunit-test pass/fail"),
+        (0.63, 0.21, "Model outcomes", "21-model panel\nunit tests +\nindependent audit"),
         (0.89, 0.19, "Analysis", "Index breakpoints\ntask and pooling\nsensitivity"),
     ]
     fig, ax = plt.subplots(figsize=(5.5, 2.2))

@@ -176,6 +176,18 @@ rate 0.000, clean 0.953, cosmetic 0.973, bug wrong-rescue 0.007 (1 of 150),
 overall 0.973. It therefore satisfies the amendment-2 confirmation requirement;
 the selection-set shortfall on clean accuracy remains disclosed.
 
+**Production result (2026-09-30).** MiMo-V2.6-Pro returned a final record for
+all 105,000 generations: 89,005 correct, 14,867 incorrect, 177 uncertain, and
+951 unparseable (the last two, 1.07%, keep the harness value). Of 65,350
+generations that pass every test it overturns 812; of 12,191 that pass none it
+judges 7,016 correct; of 27,459 partial passes it sets 17,466 to 1.0 and 9,229
+to 0.0. Mean pass: harness 0.792, reviewed (o4-mini, earlier frame only)
+0.820, independent audit 0.851. On the seeded 5% sample (5,250 rows), where
+both auditors return correct or incorrect, MAI-Thinking-1 agrees with
+MiMo-V2.6-Pro on 91.1% of 5,189 rows (Cohen's kappa 0.635) and
+Phi-4-reasoning on 80.9% of 5,140 (kappa 0.419). The disputed references were
+not reviewed by humans.
+
 ## Reporting
 
 The camera-ready reports each auditor's pilot metrics, the selection, the

@@ -45,7 +45,7 @@
 \item {\bf Experimental result reproducibility}
     \item[] Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The Methodology distinguishes the preliminary single-rater sampling score from the four-judge analysis index and specifies the source scan, candidate pooling, exact sampling bands, scoring rubric, evaluated panel, unit-test outcome, Lizard complete-case definition, breakpoint search, construction-frame and task controls, diagnostic IV specification, and robustness designs. The appendix describes the public dataset release, the code repository, and the source tables for every figure.
+    \item[] Justification: The Methodology distinguishes the preliminary single-rater sampling score from the four-judge analysis index and specifies the source scan, candidate pooling, exact sampling bands, scoring rubric, evaluated panel, unit-test outcome and its independent audit (with the auditor-selection protocol and known-answer validation), Lizard complete-case definition, breakpoint search, construction-frame and task controls, diagnostic IV specification, and robustness designs. The appendix describes the public dataset release, the code repository, and the source tables for every figure.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.
@@ -58,7 +58,7 @@
 \item {\bf Open access to data and code}
     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The benchmark prompts, per-judge and ensemble rubric scores, all 105{,}000 generations with unit-test outcomes and Lizard complexity, human calibration grades, and the audit-clean extension are publicly released on Hugging Face with an archival Harvard Dataverse copy and Croissant metadata; the analysis code, rubric prompt, and figure source tables are public on GitHub (Section~\ref{app:artifact}). Re-running model inference additionally requires provider access.
+    \item[] Justification: The benchmark prompts, per-judge and ensemble rubric scores, all 105{,}000 generations with unit-test outcomes, audit verdicts, and Lizard complexity, the audit's known-answer sets, human calibration grades, and the audit-clean extension are publicly released on Hugging Face with an archival Harvard Dataverse copy and Croissant metadata; the analysis code, rubric prompt, and figure source tables are public on GitHub (Section~\ref{app:artifact}). Re-running model inference additionally requires provider access.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments requiring code.
@@ -70,7 +70,7 @@
 \item {\bf Experimental setting/details}
     \item[] Question: Does the paper specify all the training and test details (e.g., data splits, hyperparameters, how they were chosen, type of optimizer) necessary to understand the results?
     \item[] Answer: \answerYes{}
-    \item[] Justification: The paper does not train a new model. It specifies the preliminary-score sampling design, four-judge analysis index, model panel, primary one-generation setting, repeated-sampling subset and temperature, audit-clean extension, unit-test execution, Lizard measurement, and statistical estimators. Additional version and execution details are in the artifact.
+    \item[] Justification: The paper does not train a new model. It specifies the preliminary-score sampling design, four-judge analysis index, model panel, primary one-generation setting, repeated-sampling subset and temperature, audit-clean extension, unit-test execution, outcome audit, Lizard measurement, and statistical estimators. Additional version and execution details are in the artifact.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer NA means that the paper does not include experiments.

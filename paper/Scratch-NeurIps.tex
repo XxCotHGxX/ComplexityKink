@@ -43,7 +43,7 @@
 \maketitle
 
 \begin{abstract}
-Complexity measured from generated code is failure-dependent: a difficult prompt can produce a short failing program and then be assigned low output complexity. We introduce a six-dimension prompt-side structural-complexity index that is scored before generation and kept separate from functional correctness. We first select 5{,}000 Python prompts across six bands of a preliminary single-rater rubric score. Four out-of-panel LLM raters then rescore the locked prompts, providing 19{,}997 score rows; composite inter-rater reliability is ICC $=0.872$ on the 4{,}998 prompts with all four ratings. We evaluate 21 models on every prompt, yielding 105{,}000 model-prompt generations. In the unadjusted mean-pooled analysis, pass rate has a nonmonotone breakpoint at composite $\hat{\gamma}=13.75$, with 79.9\% at or below and 87.6\% above. This pooled pattern is not a universal failure cutoff. Task-type fixed effects shift the breakpoint to 10.75 and reduce the regime gap from 7.6 to 2.1 percentage points. A post hoc construction-frame control shifts it to 8.50 with a raw regime gap of $-3.5$ points, and neither frame alone reproduces the pooled $+7.6$-point change. In the unadjusted model-specific fits, 16 models have higher raw mean pass above their selected breakpoint and five have lower raw mean pass. Among the downward fits, Kimi K2.5 is the clearest benchmark-conditional example: construction-frame-controlled and separate later-frame searches both select $\hat{\gamma}=14.25$, with later-frame raw mean pass of 0.808 at or below and 0.760 above and a 95\% pairs-bootstrap interval of $[14.00,14.75]$. A 365-prompt audit-clean extension closely matches the original matched-five-model point estimates at the well-supported bins 15 and 16, but adds only 14 prompts above bin 16. Among zero-pass generations with computable Lizard complexity, 28.5\% pair a prompt composite above 8 with generated-output complexity at most 10, illustrating the measurement problem. Part of the outcome was defined by an LLM audit of the test harness; on raw unit-test outcomes the pooled breakpoint moves to 11.25 and one rather than five models has lower pass above its breakpoint, while the Kimi K2.5 later-frame result is unchanged. Human agreement is moderate and rater-dependent on a disagreement-enriched calibration set, while paraphrase and cross-language rescoring preserve score ordering. Overidentification tests strongly reject the joint restrictions on the six rubric dimensions, so we treat the composite as an index and make no causal interpretation of the 2SLS estimates. The contribution is a pre-generation framework for estimating model-specific, benchmark-conditional reliability breakpoints and auditing their sensitivity to prompt composition.
+Complexity measured from generated code is failure-dependent: a difficult prompt can produce a short failing program and then be assigned low output complexity. We introduce a six-dimension prompt-side structural-complexity index that is scored before generation and kept separate from functional correctness. We first select 5{,}000 Python prompts across six bands of a preliminary single-rater rubric score. Four out-of-panel LLM raters then rescore the locked prompts, providing 19{,}997 score rows; composite inter-rater reliability is ICC $=0.872$ on the 4{,}998 prompts with all four ratings. We evaluate 21 models on every prompt, yielding 105{,}000 model-prompt generations, and an independent LLM auditor, validated on known-answer cases, reviews every unit-test verdict. In the unadjusted mean-pooled analysis, pass rate has a nonmonotone breakpoint at composite $\hat{\gamma}=14.0$, with 83.4\% at or below and 90.1\% above. This pooled pattern is not a universal failure cutoff. Task-type fixed effects shift the breakpoint to 11.5 and reduce the regime gap from 6.8 to 2.1 percentage points, and neither construction frame alone reproduces the pooled change: the later frame breaks at 14.25 with a 1.8-point change, and the earlier frame shows no significant break. In the unadjusted model-specific fits, 19 models have higher raw mean pass above their selected breakpoint and two have lower. Kimi K2.5 is the clearest benchmark-conditional downward example: construction-frame-controlled and separate later-frame searches both select $\hat{\gamma}=14.25$, with later-frame raw mean pass of 0.848 at or below and 0.808 above and a 95\% pairs-bootstrap interval of $[14.00,14.75]$. A 365-prompt audit-clean extension closely matches the original matched-five-model estimates at the well-supported bins 15 and 16, but adds only 14 prompts above bin 16. Among zero-pass generations with computable Lizard complexity, 25.0\% pair a prompt composite above 8 with generated-output complexity at most 10, illustrating the measurement problem. The pooled breakpoint is 11.25 on raw unit-test outcomes and 13.75 under the reviewed version's partial audit, with one and five downward models. Human agreement is moderate and rater-dependent on a disagreement-enriched calibration set, while paraphrase and cross-language rescoring preserve score ordering. Overidentification tests strongly reject the joint restrictions on the six rubric dimensions, so we treat the composite as an index and make no causal interpretation of the 2SLS estimates. The contribution is a pre-generation framework for estimating model-specific, benchmark-conditional reliability breakpoints and auditing their sensitivity to prompt composition and outcome definition.
 \end{abstract}
 
 \section{Introduction}
@@ -53,17 +53,17 @@ Code-generating LLMs are evaluated functionally: does the generated program pass
 
 The difficulty is that task complexity is often measured after generation, from the program the model produced. When a model fails, the output is often a short stub, partial solution, or broken program with low measured cyclomatic complexity, so a structurally demanding prompt can enter a low-complexity bin precisely because the model failed. This failure-dependent measurement can flatten, shift, or hide the relationship between task structure and pass rate. We call this the \emph{Reverse Threshold Problem}: the apparent unreliability of simple generated code may partly reflect more complex code that was never produced. Keyword counts over the instruction avoid the timing problem but reduce interacting structure to surface cues; we instead use a rubric that asks separate questions about branching, iteration, state, data structures, edge cases, and composition. It is still a proxy, but it is measured at the right time: before the evaluated model answers.
 
-We present the Complexity Kink benchmark, which keeps intended solution structure separate from generated-output complexity and functional correctness. From OpenCodeInstruct~\cite{opencodeinst} we construct 5{,}000 Python prompts stratified on a preliminary single-rater rubric score; four out-of-panel LLM judges rescore the locked prompts, and 21 models each generate one solution per prompt. We estimate model-specific and pooled reliability breakpoints on the unbinned ensemble index, each conditional on the model or pooling rule, prompt frame, scoring index, generation settings, and test protocol. We also report output-side complexity comparisons and 2SLS diagnostics, but the candidate instruments fail their joint exclusion restrictions and receive no causal interpretation.
+We present the Complexity Kink benchmark, which keeps intended solution structure separate from generated-output complexity and functional correctness. From OpenCodeInstruct~\cite{opencodeinst} we construct 5{,}000 Python prompts stratified on a preliminary single-rater rubric score; four out-of-panel LLM judges rescore the locked prompts, 21 models each generate one solution per prompt, and an independent auditor reviews every unit-test verdict. We estimate model-specific and pooled reliability breakpoints on the unbinned ensemble index, each conditional on the model or pooling rule, prompt frame, scoring index, generation settings, and test protocol. We also report output-side complexity comparisons and 2SLS diagnostics, but the candidate instruments fail their joint exclusion restrictions and receive no causal interpretation.
 
-The empirical results do not support a universal cutoff. The mean-pooled curve declines through the middle of the index and rebounds in the denser high region, but task type and construction frame substantially change the gap and its estimated location. In particular, the two prompt-source frames differ sharply in both score and pass rate, and neither reproduces the pooled $+7.6$-point change on its own. In the unadjusted original benchmark, five model-specific fits have lower raw mean pass above their selected split and 16 have higher raw mean pass. These are descriptive regime contrasts, not five construction-frame-stable failure onsets. Kimi K2.5 provides the clearest downward example after construction-frame control and separate analysis of the later frame. A matched five-model extension closely matches the original point estimates at bins 15 and 16, where it materially increases support, but the region above 16 remains too thin for a strong endpoint claim.
+The empirical results do not support a universal cutoff. The mean-pooled curve declines through the middle of the index and rebounds in the denser high region, but task type and construction frame account for much of the gap. In particular, the two prompt-source frames differ sharply in both score and pass rate, and neither reproduces the pooled $+6.8$-point change on its own. In the unadjusted original benchmark, two model-specific fits have lower raw mean pass above their selected split and 19 have higher raw mean pass; these are descriptive regime contrasts, not construction-frame-stable failure onsets. Kimi K2.5 provides the clearest downward example after construction-frame control and separate analysis of the later frame. A matched five-model extension closely matches the original estimates at bins 15 and 16, where it materially increases support, but the region above 16 remains too thin for a strong endpoint claim.
 
 \vspace{2pt}
 \noindent\textbf{Contributions.}
 \begin{itemize}
-\item We formalize failure-dependent output complexity and illustrate it in this sample: 28.5\% of zero-pass complete cases combine a structurally nontrivial prompt with generated-output cyclomatic complexity at most 10.
+\item We formalize failure-dependent output complexity and illustrate it in this sample: 25.0\% of zero-pass complete cases combine a structurally nontrivial prompt with generated-output cyclomatic complexity at most 10.
 \item We introduce an ensemble-scored prompt-side index and examine its reliability against human ratings, plain-language paraphrases, and Java and C++ re-expressions.
 \item We construct and publicly release a 5{,}000-prompt Python benchmark with all judge scores, 105{,}000 generations, and test outcomes,\footnote{Code and data: \codeurl{}.} and use it to estimate model-specific reliability breakpoints conditional on the scoring index, prompt frame, generation settings, and unit-test protocol.
-\item We audit those estimates under pooling, repeated sampling, task type, construction frame, and an audit-clean tail extension, and report when an apparent breakpoint is composition-sensitive.
+\item We audit those estimates under pooling, repeated sampling, task type, construction frame, outcome definition, and an audit-clean tail extension, and report when an apparent breakpoint is composition-sensitive.
 \end{itemize}
 
 % =====================================================================
@@ -76,7 +76,7 @@ The empirical results do not support a universal cutoff. The mean-pooled curve d
 
 \textbf{Instrumental variables and threshold estimation.} IVs are a standard response to endogenous regressors~\cite{wooldridge2010econometric}, with weak-instrument and overidentification tests as essential diagnostics~\cite{stock2005testing,hansen1982large,bowsher2002reject}, and are increasingly used in empirical software engineering~\cite{grafvlachy2024cleaning,siebert2023applications}. Our rubric-dimension IV fits fail these diagnostics and are retained only as such; the primary analysis adapts Hansen's threshold regression and bootstrap sup-Wald test~\cite{hansen2000sample} to the composite directly.
 
-\textbf{LLMs as judges.} G-Eval~\cite{liu2023geval}, AlpacaEval~\cite{alpacaeval}, and MT-Bench~\cite{zheng2023judging} use LLMs to evaluate model outputs, building on rubric-based automatic evaluation in NLP~\cite{hashimoto2019unifying}. Our rubric judges score the input prompt before generation against a published structural rubric and are excluded from the evaluated panel, making them a measurement layer for a latent input property rather than an outcome evaluator; the one exception, an \texttt{o4-mini} audit of part of the outcome, is disclosed in Section~\ref{sec:data}.
+\textbf{LLMs as judges.} G-Eval~\cite{liu2023geval}, AlpacaEval~\cite{alpacaeval}, and MT-Bench~\cite{zheng2023judging} use LLMs to evaluate model outputs, building on rubric-based automatic evaluation in NLP~\cite{hashimoto2019unifying}. Our rubric judges score the input prompt before generation against a published structural rubric and are excluded from the evaluated panel, making them a measurement layer for a latent input property rather than an outcome evaluator. A separate LLM auditor reviews unit-test verdicts (Section~\ref{sec:data}).
 
 % =====================================================================
 \section{Background: Failure-Dependent Output Complexity}
@@ -99,7 +99,7 @@ We use 5{,}000 Python tasks from OpenCodeInstruct~\cite{opencodeinst}: 2{,}246 p
 
 After the prompt set was locked, the four-judge ensemble rescored every prompt, and all analyses use that ensemble mean. On the bands $[0,3]$, $(3,6]$, $(6,9]$, $(9,12]$, $(12,15]$, $(15,24]$ the analyzed index has 319, 943, 940, 898, 1{,}425, and 475 prompts, so the benchmark is stratified by the preliminary score but not balanced on the final index; neither matches the natural OpenCodeInstruct distribution. Reference-solution cyclomatic complexity shaped the upstream pool and is used only for alignment checks.
 
-The evaluated panel has 21 models: Claude Opus 4.6, Opus 4.7, and Sonnet 4.6; GPT-5.4, GPT-5-mini, GPT-4.1, GPT-OSS-20B, and GPT-OSS-120B; Gemini 3.1 Pro Preview and Gemini 3 Flash; Grok-3; DeepSeek V3.2; Kimi K2.5; Qwen 3.6 Plus and Qwen 3.5-9B; Mistral Large-3, Devstral Small 2505 (4-bit quantized), and Ministral-3-14B-reasoning; Llama 3.3-70B; GLM 4.7-flash; and Trinity-large. No rubric judge is in the panel. A locally served, quantized AuroraGPT-IT-v4 run covered only the earlier frame and was excluded in a post hoc decision without a prespecified eligibility rule; its earlier-frame pass rate was 20.6\%, and performance was not a documented exclusion criterion. Each model generated one solution per prompt ($21\times5{,}000=105{,}000$ generations). Pass rate is the fraction of Nvidia-supplied unit tests passed, except that for the 2{,}246 earlier-frame prompts an \texttt{o4-mini} audit of the harness verdict replaced it with 1.0 or 0.0 on 23{,}848 of 47{,}166 generations; later-frame outcomes are raw harness values, and Appendix~\ref{app:outcome-audit} repeats the main analyses on raw harness outcomes throughout. The combined analysis averages pass rate across the 21 models within prompt ($N=5{,}000$), and per-model analyses use the same 5{,}000 rows. Generated-output complexity is McCabe cyclomatic complexity from Lizard~\cite{lizard}, summed over the functions in the cleaned generated code; it is available for 103{,}948 generations, and analyses using it report complete-case denominators.
+The evaluated panel has 21 models: Claude Opus 4.6, Opus 4.7, and Sonnet 4.6; GPT-5.4, GPT-5-mini, GPT-4.1, GPT-OSS-20B, and GPT-OSS-120B; Gemini 3.1 Pro Preview and Gemini 3 Flash; Grok-3; DeepSeek V3.2; Kimi K2.5; Qwen 3.6 Plus and Qwen 3.5-9B; Mistral Large-3, Devstral Small 2505 (4-bit quantized), and Ministral-3-14B-reasoning; Llama 3.3-70B; GLM 4.7-flash; and Trinity-large. No rubric judge is in the panel. A locally served, quantized AuroraGPT-IT-v4 run covered only the earlier frame and was excluded in a post hoc decision without a prespecified eligibility rule; its earlier-frame pass rate was 20.6\%, and performance was not a documented exclusion criterion. Each model generated one solution per prompt ($21\times5{,}000=105{,}000$ generations). Pass rate starts from the fraction of Nvidia-supplied unit tests passed. Because tests can reject valid code (e.g., a renamed function) or miss defects, MiMo-V2.6-Pro, an auditor from a vendor used nowhere else in the study, reviewed every generation's task, code, tests, and harness result: ``correct'' sets pass rate to 1.0, ``incorrect'' to 0.0, and uncertain or unparseable verdicts (1.1\%) keep the harness value, raising mean pass from 0.792 to 0.851. Appendix~\ref{app:outcome-audit} gives its known-answer validation, departures from the selection protocol, and second-auditor agreement, and repeats the main analyses on raw harness outcomes and under the reviewed version's partial \texttt{o4-mini} audit. The combined analysis averages pass rate across the 21 models within prompt ($N=5{,}000$), and per-model analyses use the same 5{,}000 rows. Generated-output complexity is McCabe cyclomatic complexity from Lizard~\cite{lizard}, summed over the functions in the cleaned generated code; it is available for 103{,}948 generations, and analyses using it report complete-case denominators.
 
 \subsection{Rubric Scoring}
 
@@ -144,7 +144,7 @@ For a candidate breakpoint $\gamma$, we fit separate linear relationships on the
 \end{cases}
 \label{eq:threshold}
 \end{equation}
-The mean-pooled outcome averages pass rate across the 21 models within prompt ($N=5{,}000$); model-specific fits use the same index and test harness, and we also report median pooling and 21 leave-one-model-out fits. Regime means are descriptive summaries of a selection-stratified sample. A model-specific $\hat{\gamma}$ estimates where the conditional pass-rate relationship changes for one named model under this benchmark and protocol; it does not by itself identify a causal, universal, or deployment-level failure threshold, and direction is read from the raw regime means rather than from breakpoint significance. Because construction combines two prompt-source frames, we also add a frame indicator to the pooled and split regressions (for the mean-pooled fit and, post hoc, for the five models with downward unadjusted contrasts), compare frame-specific linear slopes, and repeat the search within each frame.
+The mean-pooled outcome averages pass rate across the 21 models within prompt ($N=5{,}000$); model-specific fits use the same index and test harness, and we also report median pooling and 21 leave-one-model-out fits. Regime means are descriptive summaries of a selection-stratified sample. A model-specific $\hat{\gamma}$ estimates where the conditional pass-rate relationship changes for one named model under this benchmark and protocol; it does not by itself identify a causal, universal, or deployment-level failure threshold, and direction is read from the raw regime means rather than from breakpoint significance. Because construction combines two prompt-source frames, we also add a frame indicator to the pooled and split regressions (for the mean-pooled fit and, post hoc, for the models with downward unadjusted contrasts), compare frame-specific linear slopes, and repeat the search within each frame.
 
 To locate the breakpoint, we adapt Hansen's threshold-regression procedure~\cite{hansen2000sample}:
 \begin{enumerate}
@@ -181,33 +181,33 @@ Two checks probe whether the index follows presentation rather than structure. A
 
 \subsection{Generated-Output Complexity Misses the Prompt-Side Pattern}
 
-Figure~\ref{fig:output-cc} compares reliability against Lizard complexity measured on the generated output: the curve is nonmonotone and shows no clean decline. Among 14{,}776 zero-pass generations with a computable Lizard value, 4{,}216 (28.5\%) have prompt composite $>8$ but output CC $\leq10$; the shares are 26.8\%, 24.9\%, and 24.1\% for pass rate at most 0.25, 0.50, and 0.65. In an automated evaluation pipeline with no human in the loop, these structurally demanding prompts would be silently binned as simple tasks. A further 977 zero-pass rows have no computable output CC and are excluded from these denominators.
+Figure~\ref{fig:output-cc} compares reliability against Lizard complexity measured on the generated output: the curve is nonmonotone and shows no clean decline. Among 14{,}248 zero-pass generations with a computable Lizard value, 3{,}562 (25.0\%) have prompt composite $>8$ but output CC $\leq10$; the shares are 25.1\%, 25.2\%, and 25.4\% for pass rate at most 0.25, 0.50, and 0.65. In an automated evaluation pipeline with no human in the loop, these structurally demanding prompts would be silently binned as simple tasks. A further 968 zero-pass rows have no computable output CC and are excluded from these denominators.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{pass_vs_output_cc.png}
-\caption{Generated-output complexity is failure-dependent. (a) Across 103{,}948 complete-case generations, points show mean pass rate by integer Lizard output CC; the shaded descriptive band is $\pm1.96$ generation-row standard errors and does not adjust for repeated prompts or models. Here 40 denotes CC $\geq40$. The dashed blue line is the conditional mean prompt composite, read on the right axis. (b) Among zero-pass complete cases, the outlined cell contains 4{,}216 of 14{,}776 generations (28.5\%): the prompt composite is $>8$ while generated-output CC is $\leq10$.}
+\caption{Generated-output complexity is failure-dependent. (a) Across 103{,}948 complete-case generations, points show mean pass rate by integer Lizard output CC; the shaded descriptive band is $\pm1.96$ generation-row standard errors and does not adjust for repeated prompts or models. Here 40 denotes CC $\geq40$. The dashed blue line is the conditional mean prompt composite, read on the right axis. (b) Among zero-pass complete cases, the outlined cell contains 3{,}562 of 14{,}248 generations (25.0\%): the prompt composite is $>8$ while generated-output CC is $\leq10$.}
 \label{fig:output-cc}
 \end{figure}
 
-Among passing generations only, where output CC is less contaminated by failed stubs, a descriptive linear mapping has $R^2=0.623$ and maps prompt $\hat{\gamma}=13.75$ to output CC about 22.9. This is a selection-conditioned scale translation, not a second threshold estimate. The OLS and 2SLS comparisons are reported in Appendix~\ref{app:econ-diagnostics}.
+Among passing generations only, where output CC is less contaminated by failed stubs, a descriptive linear mapping has $R^2=0.614$ and maps prompt $\hat{\gamma}=14.0$ to output CC about 23.6. This is a selection-conditioned scale translation, not a second threshold estimate. The OLS and 2SLS comparisons are reported in Appendix~\ref{app:econ-diagnostics}.
 
 \subsection{The Mean-Pooled Breakpoint}
 
-On the unadjusted mean-pooled benchmark, the sup-Wald search selects $\hat{\gamma}=13.75$ on the prompt composite, with sup-Wald $=121.70$. None of 2{,}000 wild-bootstrap draws or 2{,}000 shuffled-index placebo draws reaches the observed statistic; with the finite Monte Carlo correction, each gives $p_{\mathrm{MC}}\leq1/2001<0.001$. At or below $\hat{\gamma}$, $n=3{,}617$ prompts have mean pass rate 79.9\%; above it, $n=1{,}383$ have mean pass rate 87.6\%. The relationship is not a monotone collapse: pass rate declines through the middle of the index, reaches a trough near composite 10, and rebounds in the denser high region. A model comparison selects the piecewise form over linear and cubic specifications by BIC (1{,}243 versus 1{,}464 and 1{,}305).
+On the unadjusted mean-pooled benchmark, the sup-Wald search selects $\hat{\gamma}=14.0$ on the prompt composite, with sup-Wald $=151.10$. None of 2{,}000 wild-bootstrap draws or 2{,}000 shuffled-index placebo draws reaches the observed statistic; with the finite Monte Carlo correction, each gives $p_{\mathrm{MC}}\leq1/2001<0.001$. At or below $\hat{\gamma}$, $n=3{,}703$ prompts have mean pass rate 83.4\%; above it, $n=1{,}297$ have mean pass rate 90.1\%. The relationship is not a monotone collapse: pass rate declines through the middle of the index, reaches a trough near composite 10, and rebounds in the denser high region. A model comparison selects the piecewise form over linear and cubic specifications by BIC ($-69$ versus 208 and 32).
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{complexity_kink.png}
-\caption{Unadjusted mean-pooled relationship in the original 5{,}000-prompt benchmark. Pass rate is first averaged across 21 models within prompt. Display bin $b$ contains $C_i\in[b-0.5,b+0.5)$, so exact half-point boundaries enter the higher bin. The dashed line marks the threshold $\hat{\gamma}=13.75$ estimated from the unbinned composite; the shaded vertical band is the 95\% pairs-bootstrap interval. Bin 17 contains only 45 prompts and is descriptive; bins 0, 18, and 19 (3, 6, and 5 prompts) are omitted. This figure does not include task-type or construction-frame controls, or the separate 365-prompt extension.}
+\caption{Unadjusted mean-pooled relationship in the original 5{,}000-prompt benchmark. Pass rate is first averaged across 21 models within prompt. Display bin $b$ contains $C_i\in[b-0.5,b+0.5)$, so exact half-point boundaries enter the higher bin. The dashed line marks the threshold $\hat{\gamma}=14.0$ estimated from the unbinned composite; the shaded vertical band is the 95\% pairs-bootstrap interval. Bin 17 contains only 45 prompts and is descriptive; bins 0, 18, and 19 (3, 6, and 5 prompts) are omitted. This figure does not include task-type or construction-frame controls, or the separate 365-prompt extension.}
 \label{fig:kink}
 \end{figure}
 
-The 95\% pairs-bootstrap interval is $[7.75,14.0]$. Its width reflects the broad trough visible in Figure~\ref{fig:kink}. The estimate summarizes an observational breakpoint in this constructed benchmark, not a universal point at which harder prompts become easier.
+The 95\% pairs-bootstrap interval is $[10.5,14.25]$, spanning the region between the trough and the rebound in Figure~\ref{fig:kink}. The estimate summarizes an observational breakpoint in this constructed benchmark, not a universal point at which harder prompts become easier.
 
 \subsection{Task-Type and Construction-Frame Sensitivity}\label{sec:frame}
 
-We label all 5{,}000 prompts using a nine-category taxonomy fixed before labeling. One out-of-panel judge labels the full set; three more label a shared 500-prompt subset, with Krippendorff $\alpha=0.787$. Adding task-type fixed effects shifts $\hat{\gamma}$ from 13.75 to 10.75, reduces sup-Wald from 121.7 to 19.6, and reduces the raw regime gap from 7.6 to 2.1 percentage points. None of 300 wild-bootstrap draws reaches the observed controlled statistic ($p_{\mathrm{MC}}\leq1/301<0.01$). Task composition therefore explains a substantial part of the pooled pattern.
+We label all 5{,}000 prompts using a nine-category taxonomy fixed before labeling. One out-of-panel judge labels the full set; three more label a shared 500-prompt subset, with Krippendorff $\alpha=0.787$. Adding task-type fixed effects shifts $\hat{\gamma}$ from 14.0 to 11.5, reduces sup-Wald from 151.1 to 26.9, and reduces the raw regime gap from 6.8 to 2.1 percentage points. None of 300 wild-bootstrap draws reaches the observed controlled statistic ($p_{\mathrm{MC}}\leq1/301<0.01$). Task composition therefore explains a substantial part of the pooled pattern.
 
 \begin{table}[h]
 \centering
@@ -217,37 +217,35 @@ We label all 5{,}000 prompts using a nine-category taxonomy fixed before labelin
 \toprule
 Specification & $\hat{\gamma}$ & sup-Wald & Pass $C\leq\hat{\gamma}$ & Pass $C>\hat{\gamma}$ \\
 \midrule
-Unadjusted & 13.75 & 121.7 & 0.799 & 0.876 \\
-Task-type fixed effects & 10.75 & 19.6 & 0.811 & 0.832 \\
-Construction-frame fixed effect & 8.50 & 47.4 & 0.841 & 0.806 \\
+Unadjusted & 14.00 & 151.1 & 0.834 & 0.901 \\
+Task-type fixed effects & 11.50 & 26.9 & 0.843 & 0.864 \\
+Construction-frame fixed effect & 14.25 & 59.0 & 0.836 & 0.904 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-A piecewise composite term at 10.75 raises predictive $R^2$ from 0.084 for task type alone to 0.136; the piecewise term alone has $R^2=0.045$. This is incremental predictive fit, not causal independence. Four of five sufficiently large task categories still reject the full IV restrictions, so task type does not explain away the overidentification failure.
+A piecewise composite term at 11.5 raises predictive $R^2$ from 0.093 for task type alone to 0.160; the piecewise term alone has $R^2=0.045$. This is incremental predictive fit, not causal independence. Four of five sufficiently large task categories still reject the full IV restrictions, so task type does not explain away the overidentification failure.
 
-The construction-frame sensitivity is more consequential. The 2{,}246 retained earlier-frame prompts have mean composite 7.92 and mean pass rate 0.747, while the 2{,}754 later candidates have mean composite 11.42 and mean pass rate 0.880. With a common construction-frame fixed effect in every threshold regression, the selected breakpoint moves to 8.50 and the raw regime means move from 0.841 to 0.806. None of 300 wild-bootstrap draws reaches the controlled sup-Wald statistic of 47.4 ($p_{\mathrm{MC}}\leq1/301$). However, a simpler model with frame-specific linear slopes has lower BIC than the source-controlled breakpoint model (963 versus 977) with nearly the same $R^2$ (0.0991 versus 0.0997).
+The construction-frame sensitivity is more consequential. The 2{,}246 retained earlier-frame prompts have mean composite 7.92 and mean pass rate 0.795, while the 2{,}754 later candidates have mean composite 11.42 and mean pass rate 0.897. A common construction-frame fixed effect leaves the breakpoint near the pooled value (14.25; sup-Wald 59.0, none of 300 wild-bootstrap draws exceeds it), and this breakpoint model has lower BIC than frame-specific linear slopes ($-247$ versus $-209$), so nonlinearity survives the control, although its raw regime means still mix the two frames.
 
-The within-frame fits explain why we narrow the claim. The earlier frame selects 7.75, but the break is not significant (sup-Wald 3.43, bootstrap $p=0.19$), and a linear decline has lower BIC. The later candidate frame selects 14.25 and supports nonlinearity (sup-Wald 36.71, $p_{\mathrm{MC}}\leq1/301$), but its raw regime change is only $+0.87$ points (0.8766 to 0.8853). At the pooled threshold, later candidates make up 39.9\% of prompts below but 94.7\% above. Thus the pooled trough and rebound remain features of the constructed benchmark, while the large upward regime gap is largely construction-frame composition rather than evidence that increasing prompt complexity improves reliability.
+The within-frame fits explain why we narrow the claim. The earlier frame selects 9.50, but the break is not significant (sup-Wald 4.01, bootstrap $p=0.14$), and a linear decline has lower BIC. The later candidate frame selects 14.25 and supports nonlinearity (sup-Wald 93.70, $p_{\mathrm{MC}}\leq1/301$), but its raw regime change is only $+1.8$ points (0.890 to 0.908). At the pooled threshold, later candidates make up 41.0\% of prompts at or below but 95.4\% above. Thus the pooled trough and rebound remain features of the constructed benchmark, while the large upward regime gap is largely construction-frame composition rather than evidence that increasing prompt complexity improves reliability.
 
 \subsection{Model and Pooling Heterogeneity}
 
-Model-specific thresholds in the unadjusted original benchmark range from 7.75 to 14.25, with median 11.25. Sixteen models have higher raw mean pass above their selected breakpoint and five have lower raw mean pass: Grok-3, Kimi K2.5, Gemini 3.1 Pro Preview, GPT-5.4, and Qwen 3.6 Plus. These five contrasts are not equally stable under construction-frame sensitivity, and on raw harness outcomes only Gemini 3.1 Pro Preview remains downward (Appendix~\ref{app:outcome-audit}).
+Model-specific thresholds in the unadjusted original benchmark range from 10.0 to 14.25, with median 10.75. Nineteen models have higher raw mean pass above their selected breakpoint and two have lower raw mean pass: Kimi K2.5 (0.817 to 0.801 at 14.0) and Gemini 3.1 Pro Preview (0.872 to 0.793 at 10.75). That count depends on the outcome definition: five models are downward under the reviewed version's partial audit and one on raw harness outcomes (Appendix~\ref{app:outcome-audit}).
 
-Kimi K2.5 is the clearest downward case. Its construction-frame-controlled search retains $\hat{\gamma}=14.25$ with sup-Wald 29.72 and zero exceedances in 300 wild-bootstrap draws ($p_{\mathrm{MC}}\leq1/301$). Within the later candidate frame, it separately selects 14.25 with sup-Wald 37.52, a 95\% pairs-bootstrap interval of $[14.00,14.75]$, and raw mean pass of 0.808 at or below versus 0.760 above. Piecewise BIC is 2{,}456 versus 2{,}515 for a linear fit. The earlier Kimi frame has no significant breakpoint ($p_{\mathrm{MC}}=0.382$), and linear BIC is lower. Gemini 3.1 Pro Preview also has a downward later-frame contrast at 14.75, but its interval $[9.50,14.75]$ localizes the breakpoint poorly. Grok-3, GPT-5.4, and Qwen 3.6 Plus have upward later-frame raw contrasts, so their unadjusted downward contrasts should not be read as stable failure onsets.
+Kimi K2.5 is the clearest downward case. Its construction-frame-controlled search selects $\hat{\gamma}=14.25$ with sup-Wald 32.03 and zero exceedances in 300 wild-bootstrap draws ($p_{\mathrm{MC}}\leq1/301$). Within the later candidate frame, it separately selects 14.25 with sup-Wald 41.62, a 95\% pairs-bootstrap interval of $[14.00,14.75]$, and raw mean pass of 0.848 at or below versus 0.808 above. Piecewise BIC is 2{,}284 versus 2{,}350 for a linear fit. The earlier Kimi frame has no significant breakpoint ($p_{\mathrm{MC}}=0.226$), and linear BIC is lower. Both 14.25 selections also hold on raw harness outcomes and under the reviewed version's audit. Gemini 3.1 Pro Preview's downward later-frame contrast at 14.75 (0.857 to 0.768) is poorly localized (interval $[8.00,14.75]$; linear BIC lower).
 
-The same prompt set, scores, and test harness are reused, so these are comparative model fits rather than independent replications. The mean-pooled threshold remains exactly 13.75 in all 21 leave-one-model-out fits. Median pooling selects 10.75 and narrows the raw gap to 2.3 points (0.839 to 0.862). Full results appear in Appendix~\ref{app:per-model}.
-
-A 459-prompt diagnostic at display bins 13 and 17 tags case-insensitive whole-word matches to a fixed list of library, framework, and standard-library names. An HC1 regression of prompt-level mean pass on that tag controls for source-pool membership, prompt characters and words, unit-test count and length, reference-solution CC, scorer disagreement, and the composite. The mention-tag coefficient is $-0.0501$ (robust SE $=0.0978$, $p=0.608$). This provides no support for a library or framework explanation within the diagnostic sample, while the construction-frame analysis above shows that source composition is material.
+The same prompt set, scores, and test harness are reused, so these are comparative model fits rather than independent replications. The mean-pooled threshold remains exactly 14.0 in all 21 leave-one-model-out fits. Median pooling selects 10.5 and narrows the raw gap to 2.9 points (0.879 to 0.908). Full results appear in Appendix~\ref{app:per-model}; a library-mention diagnostic on a separate sample is in Appendix~\ref{app:library}.
 
 \subsection{Audit-Clean High-Complexity Extension}
 
-We independently selected high-composite candidates on the prompt side, audited their contracts, and retained only prompts whose reference solution passes every supplied test. This yields 365 new prompts: 218/133/11/3 at display bins 15/16/17/18. To avoid changing model composition, Figure~\ref{fig:tail-extension} uses the five models present in both the original and extension runs. At bin 15, the extension and original means are 0.880 and 0.894; at bin 16 they are 0.799 and 0.808. The differences are $-0.014$ and $-0.009$ (Welch $p=0.377$ and $p=0.765$). Combined support rises to 1{,}068 and 390 prompts, and the matched-panel threshold, estimated from the unbinned composite, remains 14.0, with mean pass 0.783 at or below and 0.859 above. That combined contrast pools both construction frames, so, as in Section~\ref{sec:frame}, its upward gap reflects prompt composition and is not evidence that complexity itself causes a rebound.
+We independently selected high-composite candidates on the prompt side, audited their contracts, and retained only prompts whose reference solution passes every supplied test. This yields 365 new prompts: 218/133/11/3 at display bins 15/16/17/18. The extension's generated code was not saved and cannot be audited, so this comparison uses raw harness outcomes on both sides. To avoid changing model composition, Figure~\ref{fig:tail-extension} uses the five models present in both the original and extension runs. At bin 15, the extension and original means are 0.880 and 0.890; at bin 16 they are 0.799 and 0.795. The differences are $-0.009$ and $+0.004$ (Welch $p=0.554$ and $p=0.906$). Combined support rises to 1{,}068 and 390 prompts, and the matched-panel threshold, estimated from the unbinned composite, is 11.0, with mean pass 0.745 at or below and 0.810 above. That combined contrast pools both construction frames, so, as in Section~\ref{sec:frame}, its upward gap reflects prompt composition and is not evidence that complexity itself causes a rebound.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{tail_extension.png}
-\caption{Audit-clean extension in a matched five-model frame. (a) Pass rate is first averaged over the five models shared by the original benchmark and extension, then over prompts within display bins, where bin $b$ contains $C_i\in[b-0.5,b+0.5)$. Error bars and the shaded band are prompt-level normal-approximation intervals using $\pm1.96$ standard errors. The dashed line is the matched-panel threshold estimated on the unbinned composite. (b) The 365 additions materially raise support at bins 15 and 16. Only 14 additions lie above 16, so bins 17 and 18 remain descriptive.}
+\caption{Audit-clean extension in a matched five-model frame, on raw harness outcomes. (a) Pass rate is first averaged over the five models shared by the original benchmark and extension, then over prompts within display bins, where bin $b$ contains $C_i\in[b-0.5,b+0.5)$. Error bars and the shaded band are prompt-level normal-approximation intervals using $\pm1.96$ standard errors. The dashed line is the matched-panel threshold estimated on the unbinned composite. (b) The 365 additions materially raise support at bins 15 and 16. Only 14 additions lie above 16, so bins 17 and 18 remain descriptive.}
 \label{fig:tail-extension}
 \end{figure}
 
@@ -255,15 +253,15 @@ A separate fixed-version three-model check gives similar bin-15 and bin-16 rates
 
 \subsection{Repeated-Sampling Robustness}
 
-On a 359-prompt, four-model subset with five draws per prompt-model cell at temperature 0.8 (7{,}180 scored generations), the mean within-cell standard deviation is 0.064 and the median is zero. The first draw and five-draw mean both select $\hat{\gamma}=14.25$. Their Pearson correlation is 0.960, but this is a part-whole comparison because the first draw contributes to the mean. This local check supports threshold-location stability for the sampled subset; it does not establish universal single-draw reliability.
+On a 359-prompt, four-model subset with five draws per prompt-model cell at temperature 0.8 (7{,}180 generations, raw harness outcomes), the mean within-cell standard deviation is 0.064 and the median is zero. The first draw and five-draw mean both select $\hat{\gamma}=14.25$. Their Pearson correlation is 0.960, but this is a part-whole comparison because the first draw contributes to the mean. This local check supports threshold-location stability for the sampled subset; it does not establish universal single-draw reliability.
 
 % =====================================================================
 \section{Discussion}
 % =====================================================================
 
-\textbf{The IV diagnostics.} The six-dimension IV specification does not support causal identification. Sargan $J=411.32$ on five degrees of freedom and the robust Wooldridge statistic (350.59) reject at machine precision, and not because of sample size: mean $J$ is already 25.5 at $n=250$ (null expectation about five), where 97.5\% of random subsamples reject. Just-identified coefficients conflict in sign (data structures $+0.00213$; state $-0.00378$; composition $-0.00416$), principal-component rotations do not repair the disagreement, and the few non-rejecting post hoc subsets are multiplicity-sensitive (Appendix~\ref{app:econ-diagnostics}). What survives is the composite as a pre-generation index: its timing avoids the failure dependence of output CC, and its agreement with reference CC, human ratings, paraphrases, and re-expressions can be checked directly. None of those checks makes it a causal instrument.
+\textbf{The IV diagnostics.} The six-dimension IV specification does not support causal identification. Sargan $J=551.97$ on five degrees of freedom and the robust Wooldridge statistic (408.33) reject at machine precision, and not because of sample size: mean $J$ is already 33.3 at $n=250$ (null expectation about five), where every random subsample rejects. Just-identified coefficients conflict in sign (data structures $+0.00220$; state $-0.00402$; composition $-0.00452$), principal-component rotations do not repair the disagreement, and the few non-rejecting post hoc subsets are multiplicity-sensitive (Appendix~\ref{app:econ-diagnostics}). What survives is the composite as a pre-generation index: its timing avoids the failure dependence of output CC, and its agreement with reference CC, human ratings, paraphrases, and re-expressions can be checked directly. None of those checks makes it a causal instrument.
 
-\textbf{What the breakpoint means.} The unadjusted mean-pooled breakpoint compactly describes a nonmonotone curve in a selection-stratified benchmark; it is not a universal difficulty limit. Task-type controls shrink its gap from 7.6 to 2.1 points, construction-frame control reverses the raw regime gap and neither frame alone reproduces the pooled increase, median pooling moves it to 10.75, and model-specific directions and their frame sensitivities differ. Leave-one-model-out stability shows that no single model drives the pooled estimate, but not independence from the pooling rule or prompt composition. Kimi K2.5 is the clearest downward, benchmark-conditional example; Gemini's downward later-frame change is poorly localized, and Grok-3, GPT-5.4, and Qwen 3.6 Plus reverse direction within the later frame. A model-specific $\hat{\gamma}$ is therefore a candidate reliability breakpoint for a named model under this frame, index, generation setting, and test protocol. The 365-prompt extension adds evidence only where it adds support: rates closely match at bins 15 and 16, and the tail beyond them remains unresolved.
+\textbf{What the breakpoint means.} The unadjusted mean-pooled breakpoint compactly describes a nonmonotone curve in a selection-stratified benchmark; it is not a universal difficulty limit. Task-type controls shrink its gap from 6.8 to 2.1 points, neither construction frame alone reproduces the pooled increase, median pooling moves it to 10.5, the outcome definition moves it between 11.25 and 14.0, and model-specific directions and their frame sensitivities differ. Leave-one-model-out stability shows that no single model drives the pooled estimate, but not independence from the pooling rule, prompt composition, or outcome definition. Kimi K2.5 is the clearest downward, benchmark-conditional example: its later-frame breakpoint and decline hold under all three outcome definitions. Gemini's downward later-frame change is poorly localized. A model-specific $\hat{\gamma}$ is therefore a candidate reliability breakpoint for a named model under this frame, index, generation setting, and test protocol. The 365-prompt extension adds evidence only where it adds support: rates closely match at bins 15 and 16, and the tail beyond them remains unresolved.
 
 \textbf{Why a prompt-side index, and implications.} The central design choice is temporal: measure the input before the evaluated system acts. A lexical proxy shares that advantage and may be preferable when transparency or cost dominates; the rubric trades cost for interpretable structural dimensions and measurable rater disagreement, and the two-grader calibration argues for reporting that uncertainty rather than trusting any single rater. The principle may transfer beyond Python, but the evidence here covers only score transfer to Java and C++. Analyses that stratify by output complexity should report how failed and missing outputs enter the metric; prompt-side scores can supplement them when the sampling frame, rater reliability, bin support, alternative pooling, and task-adjusted results are shown. Such scores are diagnostic summaries, not deployment rules without prospective validation.
 
@@ -275,9 +273,9 @@ On a 359-prompt, four-model subset with five draws per prompt-model cell at temp
 
 \textbf{Constructed sampling frame.} The benchmark is balanced on a preliminary single-rater score, not the final index, and inherits a 200{,}000-record prefix scan and deliberate high-reference-complexity supplementation. The two construction frames differ sharply in score and pass rate, and their changing mixture explains much of the pooled rebound. The benchmark does not estimate performance under the natural OpenCodeInstruct distribution, and all estimates are conditional on the model or pooling rule, frame, index, generation settings, and test protocol.
 
-\textbf{Composition and pooling.} Task-type and construction-frame controls substantially alter the breakpoint, and median pooling moves it; the mean-pooled 13.75 should not be read without those sensitivities.
+\textbf{Composition and pooling.} Task-type controls and within-frame analysis substantially alter the breakpoint or its gap, and median pooling moves it; the mean-pooled 14.0 should not be read without those sensitivities.
 
-\textbf{Outcome definition.} The reported outcome mixes an \texttt{o4-mini}-audited pass rate in the earlier frame with raw harness values in the later frame. On a known-answer set that audit accepted no injected bug but judged 12\% of correct reference solutions incorrect, and on raw harness outcomes the pooled breakpoint moves to 11.25 (Appendix~\ref{app:outcome-audit}).
+\textbf{Outcome definition.} The outcome depends on one LLM auditor, adopted by author decision after no candidate met our pre-declared rule in full; it fell three cases short on clean accuracy during selection but met every threshold on a fresh set, and agrees with a second auditor at $\kappa=0.635$. The extension and repeated-sampling checks use raw harness outcomes (Appendix~\ref{app:outcome-audit}).
 
 \textbf{Scorer dependence and human disagreement.} Common-mode LLM-rater bias can propagate into the index; the ensemble makes disagreement observable but cannot remove it. Human-LLM agreement is only moderate on the disagreement-enriched sample and varies by rater.
 
@@ -289,10 +287,10 @@ On a 359-prompt, four-model subset with five draws per prompt-model cell at temp
 \section{Conclusion}
 % =====================================================================
 
-Generated-output cyclomatic complexity is a poor stand-in for prompt structure when failures produce short or unscorable programs. A prompt-side index avoids that timing problem and supports model-specific breakpoint estimation; the clearest downward example is Kimi K2.5 near 14.25, after construction-frame control and within the later frame. The mean-pooled result is less stable: task type shrinks its gap, the large rebound is mostly compositional, median pooling moves it, and model directions differ. The audit-clean extension closely matches bins 15 and 16, human calibration is moderate, paraphrase, language, and repeated-sampling checks preserve ordering and location, and the candidate instruments fail their joint restrictions, so the contribution is measurement and observational analysis, not causal identification. For benchmark designers the lesson is modest: supplement output-derived metrics with pre-generation measures, publish the rubric and rater uncertainty, show support counts, and report how composition and pooling alter the curve.
+Generated-output cyclomatic complexity is a poor stand-in for prompt structure when failures produce short or unscorable programs. A prompt-side index avoids that timing problem and supports model-specific breakpoint estimation; the clearest downward example is Kimi K2.5 near 14.25, after construction-frame control and within the later frame. The mean-pooled result is less stable: task type shrinks its gap, the large rebound is mostly compositional, median pooling and the outcome definition move it, and model directions differ. The audit-clean extension closely matches bins 15 and 16, human calibration is moderate, paraphrase, language, and repeated-sampling checks preserve ordering and location, and the candidate instruments fail their joint restrictions, so the contribution is measurement and observational analysis, not causal identification. For benchmark designers the lesson is modest: supplement output-derived metrics with pre-generation measures, publish the rubric and rater uncertainty, show support counts, and report how composition and pooling alter the curve.
 
 \vspace{4pt}
-\noindent\textbf{Data and code availability.} Analysis code, the rubric, and the source tables for every figure are at \codeurl{}, which also links the benchmark release: prompts, all judge scores, 105{,}000 generations with test outcomes and Lizard complexity, human calibration grades, and the 365-prompt extension, with Croissant metadata. See Appendix~\ref{app:artifact}.
+\noindent\textbf{Data and code availability.} Code, the rubric, and figure source tables are at \codeurl{}, which links the benchmark release with Croissant metadata: prompts, judge scores, all 105{,}000 generations with outcomes, audit verdicts, and Lizard complexity, and every supporting set (Appendix~\ref{app:artifact}).
 
 % =====================================================================
 % Acknowledgments and funding disclosure: required in the camera-ready version;
@@ -375,7 +373,7 @@ Figure~\ref{fig:pipeline} summarizes the measurement and analysis workflow.
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{pipeline.png}
-\caption{Measurement and analysis workflow. The prompt-side composite is computed before generation and is primary in the breakpoint analysis. Generated-output complexity and 2SLS fits are retained as diagnostic comparisons.}
+\caption{Measurement and analysis workflow. The prompt-side composite is computed before generation and is primary in the breakpoint analysis. Unit-test verdicts are reviewed by an independent auditor (Appendix~\ref{app:outcome-audit}). Generated-output complexity and 2SLS fits are retained as diagnostic comparisons.}
 \label{fig:pipeline}
 \end{figure}
 
@@ -459,7 +457,7 @@ All six dimensions are individually significant first-stage predictors. \emph{Ed
 
 \subsection{Overidentification diagnostics}
 
-The Sargan statistic is $411.32$ on $\chi^2(5)$ and the robust Wooldridge statistic is $350.59$; both reject at machine precision. The same pattern appears in every model-specific fit. The restrictions fail well before the full sample size. Table~\ref{tab:overid-subsamples} summarizes 200 random draws at each $n$.
+The Sargan statistic is $551.97$ on $\chi^2(5)$ and the robust Wooldridge statistic is $408.33$; both reject at machine precision. The same pattern appears in every model-specific fit. The restrictions fail well before the full sample size. Table~\ref{tab:overid-subsamples} summarizes 200 random draws at each $n$.
 
 \begin{table}[h]
 \centering
@@ -469,22 +467,22 @@ The Sargan statistic is $411.32$ on $\chi^2(5)$ and the robust Wooldridge statis
 \toprule
 $n$ & Mean $J$ & Mean $J/n$ & Share rejecting at 0.05 \\
 \midrule
-250   & 25.46  & 0.1018 & 0.975 \\
-500   & 45.61  & 0.0912 & 1.000 \\
-1{,}000 & 86.87  & 0.0869 & 1.000 \\
-2{,}000 & 167.48 & 0.0837 & 1.000 \\
-3{,}000 & 247.78 & 0.0826 & 1.000 \\
-4{,}000 & 329.83 & 0.0825 & 1.000 \\
-5{,}000 & 411.32 & 0.0823 & 1.000 \\
+250   & 33.33  & 0.1333 & 1.000 \\
+500   & 61.02  & 0.1220 & 1.000 \\
+1{,}000 & 114.52 & 0.1145 & 1.000 \\
+2{,}000 & 224.49 & 0.1122 & 1.000 \\
+3{,}000 & 332.66 & 0.1109 & 1.000 \\
+4{,}000 & 443.37 & 0.1108 & 1.000 \\
+5{,}000 & 551.97 & 0.1104 & 1.000 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The just-identified coefficients disagree in sign: branching $-0.00083$ ($p=0.043$), iteration $-0.00035$ ($p=0.519$), state $-0.00378$ ($p=2.1\times10^{-12}$), data structures $+0.00213$ ($p=3.2\times10^{-6}$), edge cases $-0.00084$ ($p=0.035$), and composition $-0.00416$ ($p<10^{-15}$). The sign disagreement is consistent with the failed joint restrictions.
+The just-identified coefficients disagree in sign: branching $-0.00174$ ($p=9.8\times10^{-7}$), iteration $-0.00092$ ($p=0.062$), state $-0.00402$ ($p=1.9\times10^{-18}$), data structures $+0.00220$ ($p=5.5\times10^{-9}$), edge cases $-0.00170$ ($p=7.0\times10^{-7}$), and composition $-0.00452$ ($p<10^{-15}$). The sign disagreement is consistent with the failed joint restrictions.
 
-Principal-component rotation preserves the same disagreement. PC1 explains 78.5\% of the dimension variance and, as the sole instrument in the prompt-level pass-rate-on-mean-output-CC diagnostic, gives $\hat{\beta}=-0.000588$ (SE $=0.000387$, $p=0.129$) with robust first-stage Wald $\chi^2(1)=8{,}489$. Because that fit is just-identified, it has no overidentification test and is a robustness specification rather than a repair. Adding PC2 raises cumulative explained variance to 87.7\% and already rejects ($J=24.44$, $p=7.65\times10^{-7}$); every larger leading-PC specification also rejects, and the full six-PC fit reproduces $J=411.32$ exactly. Under the reported component orientation, PC1 loads broadly across all six dimensions, while PC2 contrasts branching ($+0.54$) and edge cases ($+0.48$) against data structures ($-0.54$) and iteration ($-0.41$).
+Principal-component rotation preserves the same disagreement. PC1 explains 78.5\% of the dimension variance and, as the sole instrument in the prompt-level pass-rate-on-mean-output-CC diagnostic, gives $\hat{\beta}=-0.00110$ (SE $=0.00032$, $p=0.0007$) with robust first-stage Wald $\chi^2(1)=8{,}489$. Because that fit is just-identified, it has no overidentification test and is a robustness specification rather than a repair. Adding PC2 raises cumulative explained variance to 87.7\% and already rejects ($J=66.21$, $p=4.0\times10^{-16}$); every larger leading-PC specification also rejects, and the full six-PC fit reproduces $J=551.97$ exactly. Under the reported component orientation, PC1 loads broadly across all six dimensions, while PC2 contrasts branching ($+0.54$) and edge cases ($+0.48$) against data structures ($-0.54$) and iteration ($-0.41$).
 
-The post hoc subset search finds five Sargan-nonrejecting specifications: branching plus iteration ($p=0.260$), branching plus edge cases ($p=0.968$), iteration plus edge cases ($p=0.279$), state plus composition ($p=0.282$), and branching plus iteration plus edge cases ($p=0.525$). Their first-stage statistics range from 4{,}652 to 7{,}768. These subsets were selected after examining the same data and are multiplicity-sensitive diagnostics, not validation of the original instrument set.
+The post hoc search over 56 subsets of two to five dimensions finds four Sargan-nonrejecting specifications: branching plus edge cases ($p=0.822$), iteration plus edge cases ($p=0.052$), state plus composition ($p=0.111$), and branching plus iteration plus edge cases ($p=0.098$). Their first-stage statistics range from 4{,}652 to 7{,}768. These subsets were selected after examining the same data and are multiplicity-sensitive diagnostics, not validation of the original instrument set.
 
 \subsection{Output-CC regression diagnostics}
 
@@ -496,18 +494,18 @@ The post hoc subset search finds five Sargan-nonrejecting specifications: branch
 \toprule
 Regressor: generated-output CC & OLS & Candidate-IV 2SLS \\
 \midrule
-$\hat{\beta}$ & $+0.00087^{**}$ & $-0.00014$ \\
-              & $(0.00033)$ & $(0.00038)$ \\
+$\hat{\beta}$ & $+0.00036$ & $-0.00071^{*}$ \\
+              & $(0.00029)$ & $(0.00032)$ \\
 \midrule
 Robust first-stage Wald $\chi^2(6)$ & n/a & 13{,}611.3 \\
 Partial $R^2$ & n/a & 0.681 \\
 $N$ & \multicolumn{2}{c}{5{,}000} \\
 \bottomrule
-\multicolumn{3}{l}{\footnotesize $^{**}p<0.01$}
+\multicolumn{3}{l}{\footnotesize $^{*}p<0.05$}
 \end{tabular}
 \end{table}
 
-The direct output-CC slope is small and positive, while the invalid candidate-IV fit is near zero. The failed exclusion restrictions prevent a causal reading of their difference. Separately, a fractional-probit fit of pass rate on the prompt composite gives a marginal effect at the mean of $-0.00193$ (SE $=0.00480$, $p=0.124$); linear OLS on the prompt composite gives $-0.00186$ ($R^2=0.0008$, $p=0.022$). These small global prompt-index slopes are compatible with the visibly nonmonotone conditional curve.
+The direct output-CC slope is near zero and not significant ($p=0.21$), while the invalid candidate-IV fit is small and negative ($p=0.025$). The failed exclusion restrictions prevent a causal reading of their difference. Separately, a fractional-probit fit of pass rate on the prompt composite gives a marginal effect at the mean of $-0.00304$ (coefficient $p=0.009$); linear OLS on the prompt composite gives $-0.00290$ ($R^2=0.0026$, $p=2.0\times10^{-5}$). These small global prompt-index slopes are compatible with the visibly nonmonotone conditional curve.
 
 \subsection{Keyword-feature baseline}
 
@@ -531,6 +529,7 @@ Scorer disagreement       & n/a     & observable \\
 \end{tabular}
 \end{table}
 
+\clearpage
 \section{Per-model Details}
 \label{app:per-model}
 
@@ -543,40 +542,41 @@ Scorer disagreement       & n/a     & observable \\
 
 \begin{table}[h]
 \centering
-\caption{Unadjusted original-benchmark model-specific breakpoint estimates. $\Delta$ is Pass$_{C>\hat{\gamma}}-$Pass$_{C\leq\hat{\gamma}}$ in percentage points. Boot and placebo columns report exceedances out of 500 resamples; zero exceedances imply finite Monte Carlo $p_{\mathrm{MC}}\leq1/501\approx0.002$, not $p=0$. The combined row uses 2{,}000 resamples. These raw regime summaries do not by themselves establish construction-frame-stable failure onsets.}
+\caption{Unadjusted original-benchmark model-specific breakpoint estimates. $\Delta$ is Pass$_{C>\hat{\gamma}}-$Pass$_{C\leq\hat{\gamma}}$ in percentage points. Boot and placebo columns report exceedances out of 500 resamples; zero exceedances imply finite Monte Carlo $p_{\mathrm{MC}}\leq1/501\approx0.002$, not $p=0$, and two give $p_{\mathrm{MC}}=3/501\approx0.006$. The combined row uses 2{,}000 resamples. These raw regime summaries do not by themselves establish construction-frame-stable failure onsets.}
 \label{tab:per-model}
 \small
 \begin{tabular}{@{}lrrrrrr@{}}
 \toprule
 Model & $\hat{\gamma}$ & Pass $C\leq\hat{\gamma}$ & Pass $C>\hat{\gamma}$ & $\Delta$ & Boot exc. & Plcb exc. \\
 \midrule
-Claude Opus 4.6          & 10.50 & 82.7\% & 86.7\% & +3.9 & 0/500 & 0/500 \\
-Claude Opus 4.7          & 10.00 & 84.8\% & 86.7\% & +1.9 & 0/500 & 0/500 \\
-Claude Sonnet 4.6        & 10.00 & 84.0\% & 85.3\% & +1.3 & 0/500 & 0/500 \\
-Trinity-large            & 10.50 & 82.6\% & 85.0\% & +2.4 & 0/500 & 0/500 \\
-DeepSeek V3.2            & 10.50 & 78.4\% & 82.3\% & +3.9 & 0/500 & 0/500 \\
-GPT-OSS-120B             & 13.75 & 81.4\% & 89.8\% & +8.4 & 0/500 & 0/500 \\
-Grok-3                   & 8.25  & 83.6\% & 80.8\% & -2.8 & 0/500 & 0/500 \\
-Kimi K2.5                & 14.25 & 77.1\% & 75.3\% & -1.8 & 0/500 & 0/500 \\
-Llama 3.3-70B            & 14.00 & 75.2\% & 86.2\% & +11.0 & 0/500 & 0/500 \\
-Mistral Large-3          & 13.75 & 80.5\% & 90.4\% & +9.9 & 0/500 & 0/500 \\
-GLM 4.7-flash            & 13.75 & 75.7\% & 85.9\% & +10.2 & 0/500 & 0/500 \\
-Gemini 3 Flash           & 13.75 & 80.3\% & 89.9\% & +9.6 & 0/500 & 0/500 \\
-Gemini 3.1 Pro Preview   & 11.25 & 81.8\% & 74.8\% & -7.0 & 0/500 & 0/500 \\
-GPT-4.1                  & 11.25 & 82.8\% & 87.7\% & +4.8 & 0/500 & 0/500 \\
-GPT-5-mini               & 10.75 & 85.2\% & 88.4\% & +3.2 & 0/500 & 0/500 \\
-GPT-OSS-20B              & 13.75 & 80.4\% & 89.0\% & +8.6 & 0/500 & 0/500 \\
-Ministral-3-14B-reasoning & 14.00 & 76.7\% & 84.1\% & +7.4 & 0/500 & 0/500 \\
-Devstral Small 2505      & 13.75 & 77.9\% & 86.6\% & +8.6 & 0/500 & 0/500 \\
-GPT-5.4                  & 7.75  & 87.4\% & 84.3\% & -3.1 & 0/500 & 0/500 \\
-Qwen 3.5-9B              & 14.00 & 75.3\% & 84.5\% & +9.2 & 0/500 & 0/500 \\
-Qwen 3.6 Plus            & 7.75  & 85.9\% & 82.1\% & -3.8 & 0/500 & 0/500 \\
+Claude Opus 4.6          & 10.00 & 88.6\% & 91.5\% & +2.8 & 0/500 & 0/500 \\
+Claude Opus 4.7          & 10.50 & 88.8\% & 92.6\% & +3.8 & 0/500 & 0/500 \\
+Claude Sonnet 4.6        & 10.50 & 86.5\% & 91.3\% & +4.7 & 0/500 & 0/500 \\
+Trinity-large            & 14.00 & 83.4\% & 90.3\% & +7.0 & 0/500 & 0/500 \\
+DeepSeek V3.2            & 10.75 & 81.0\% & 85.7\% & +4.7 & 0/500 & 0/500 \\
+GPT-OSS-120B             & 10.50 & 85.9\% & 90.5\% & +4.6 & 0/500 & 0/500 \\
+Grok-3                   & 10.50 & 83.2\% & 83.3\% & +0.1 & 0/500 & 0/500 \\
+Kimi K2.5                & 14.00 & 81.7\% & 80.1\% & $-1.6$ & 0/500 & 0/500 \\
+Llama 3.3-70B            & 14.00 & 79.0\% & 86.0\% & +7.0 & 0/500 & 0/500 \\
+Mistral Large-3          & 14.25 & 84.1\% & 91.1\% & +6.9 & 0/500 & 0/500 \\
+GLM 4.7-flash            & 14.00 & 77.0\% & 85.9\% & +8.9 & 0/500 & 0/500 \\
+Gemini 3 Flash           & 14.00 & 85.4\% & 92.0\% & +6.6 & 0/500 & 0/500 \\
+Gemini 3.1 Pro Preview   & 10.75 & 87.2\% & 79.3\% & $-7.9$ & 2/500 & 0/500 \\
+GPT-4.1                  & 10.75 & 86.7\% & 91.2\% & +4.6 & 0/500 & 0/500 \\
+GPT-5-mini               & 10.75 & 87.9\% & 92.8\% & +4.9 & 0/500 & 0/500 \\
+GPT-OSS-20B              & 10.50 & 84.3\% & 88.1\% & +3.7 & 0/500 & 0/500 \\
+Ministral-3-14B-reasoning & 14.00 & 78.1\% & 84.6\% & +6.4 & 0/500 & 0/500 \\
+Devstral Small 2505      & 14.00 & 78.7\% & 84.5\% & +5.8 & 0/500 & 0/500 \\
+GPT-5.4                  & 10.00 & 87.8\% & 91.2\% & +3.4 & 0/500 & 0/500 \\
+Qwen 3.5-9B              & 14.00 & 77.3\% & 81.7\% & +4.4 & 0/500 & 0/500 \\
+Qwen 3.6 Plus            & 13.75 & 85.2\% & 94.5\% & +9.3 & 0/500 & 0/500 \\
 \midrule
-Combined (21 models)     & 13.75 & 79.9\% & 87.6\% & +7.6 & 0/2{,}000 & 0/2{,}000 \\
+Combined (21 models)     & 14.00 & 83.4\% & 90.1\% & +6.8 & 0/2{,}000 & 0/2{,}000 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\clearpage
 \section{Reverse-threshold and Robustness Details}
 \label{app:robustness}
 
@@ -591,17 +591,17 @@ Figure~\ref{fig:sankey} expands the 2-by-2 diagnostic in Figure~\ref{fig:output-
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{sankey.png}
-\caption{Reverse Threshold Problem among 14{,}776 zero-pass generations with computable Lizard CC. Generated-output complexity is on the left and the pre-generation prompt composite is on the right. Highlighted flows have output CC $\leq10$ and prompt composite $>8$.}
+\caption{Reverse Threshold Problem among 14{,}248 zero-pass generations with computable Lizard CC. Generated-output complexity is on the left and the pre-generation prompt composite is on the right. Highlighted flows have output CC $\leq10$ and prompt composite $>8$.}
 \label{fig:sankey}
 \end{figure}
 
-In the revised combined analysis, none of 2{,}000 wild-bootstrap or 2{,}000 shuffled-index placebo statistics reaches the observed $W^*=121.70$. With the standard plus-one correction, each gives $p_{\mathrm{MC}}\leq1/2001<0.001$. For each unadjusted model-specific fit, the observed statistic exceeds all 500 bootstrap and 500 placebo draws, corresponding to $p_{\mathrm{MC}}\leq1/501\approx0.002$.
+In the combined analysis, none of 2{,}000 wild-bootstrap or 2{,}000 shuffled-index placebo statistics reaches the observed $W^*=151.10$. With the standard plus-one correction, each gives $p_{\mathrm{MC}}\leq1/2001<0.001$. For each unadjusted model-specific fit, the observed statistic exceeds all 500 placebo draws and all 500 bootstrap draws ($p_{\mathrm{MC}}\leq1/501\approx0.002$), except that two bootstrap draws exceed it for Gemini 3.1 Pro Preview ($p_{\mathrm{MC}}=3/501\approx0.006$).
 
 \subsection{Task-type controls}
 
 The nine fixed categories contain 2{,}005 data-structures/algorithms prompts, 654 array/matrix/grid, 619 numeric/math, 617 string/text, 341 other, 276 stateful simulation, 215 parsing/serialization, 190 logic/validation, and 83 API/library orchestration prompts. On the shared 500-prompt reliability set, pairwise Cohen $\kappa$ ranges from 0.737 to 0.856 and Krippendorff $\alpha=0.787$.
 
-The piecewise composite at 10.75 has $R^2=0.04537$ alone. Task-type fixed effects have $R^2=0.08387$ alone, and their combination has $R^2=0.13640$. Thus the piecewise term adds 0.05253 in-sample predictive $R^2$ beyond the labels. Table~\ref{tab:within-type-j} shows that the IV failure is not localized to one task category.
+The piecewise composite at 11.5 has $R^2=0.04526$ alone. Task-type fixed effects have $R^2=0.09292$ alone, and their combination has $R^2=0.16016$. Thus the piecewise term adds 0.06725 in-sample predictive $R^2$ beyond the labels. Table~\ref{tab:within-type-j} shows that the IV failure is not localized to one task category.
 
 \begin{table}[h]
 \centering
@@ -611,18 +611,18 @@ The piecewise composite at 10.75 has $R^2=0.04537$ alone. Task-type fixed effect
 \toprule
 Task category & $n$ & $J$ & $p$ & $J/n$ \\
 \midrule
-Data structures/algorithms & 2{,}005 & 129.48 & $<10^{-15}$ & 0.0646 \\
-Numeric/math               & 619     & 67.52  & $3.4\times10^{-13}$ & 0.1091 \\
-Array/matrix/grid          & 654     & 58.90  & $2.1\times10^{-11}$ & 0.0901 \\
-String/text                & 617     & 41.59  & $7.1\times10^{-8}$  & 0.0674 \\
-Other                      & 341     & 9.58   & 0.088 & 0.0281 \\
+Data structures/algorithms & 2{,}005 & 208.91 & $<10^{-15}$ & 0.1042 \\
+Array/matrix/grid          & 654     & 85.96  & $4.7\times10^{-17}$ & 0.1314 \\
+Numeric/math               & 619     & 62.39  & $3.9\times10^{-12}$ & 0.1008 \\
+String/text                & 617     & 39.70  & $1.7\times10^{-7}$  & 0.0643 \\
+Other                      & 341     & 10.89  & 0.054 & 0.0319 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Construction-frame sensitivity}
 
-All 5{,}000 prompts map to the recorded construction frame. The retained earlier frame contains 2{,}246 prompts and the later candidate frame contains 2{,}754. At the pooled $\hat{\gamma}=13.75$, later candidates account for 39.9\% of the lower regime and 94.7\% of the upper regime. Within the earlier frame, raw pass rate is 0.749 below versus 0.691 above that pooled threshold, with only 73 prompts above. Within the later frame, it is 0.875 versus 0.886. The overlap limitation makes reweighting unstable, so we report the controlled and within-frame fits rather than treating a standardized contrast as definitive.
+All 5{,}000 prompts map to the recorded construction frame. The retained earlier frame contains 2{,}246 prompts and the later candidate frame contains 2{,}754. At the pooled $\hat{\gamma}=14.0$, later candidates account for 41.0\% of the lower regime and 95.4\% of the upper regime. Within the earlier frame, raw pass rate is 0.795 at or below versus 0.795 above that pooled threshold, with only 60 prompts above. Within the later frame, it is 0.890 versus 0.907. The overlap limitation makes reweighting unstable, so we report the controlled and within-frame fits rather than treating a standardized contrast as definitive.
 
 \begin{table}[h]
 \centering
@@ -632,17 +632,17 @@ All 5{,}000 prompts map to the recorded construction frame. The retained earlier
 \toprule
 Frame & $n$ & $\hat{\gamma}$ & sup-Wald & Bootstrap $p$ & Pass low & Pass high \\
 \midrule
-Retained earlier & 2{,}246 & 7.75 & 3.43 & 0.19 & 0.825 & 0.666 \\
-Later candidate & 2{,}754 & 14.25 & 36.71 & $\leq1/301$ & 0.877 & 0.885 \\
+Retained earlier & 2{,}246 & 9.50 & 4.01 & 0.14 & 0.835 & 0.704 \\
+Later candidate & 2{,}754 & 14.25 & 93.70 & $\leq1/301$ & 0.890 & 0.908 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-For the earlier frame, linear BIC is 1{,}216.0 versus 1{,}224.6 for the piecewise fit. For the later frame, piecewise BIC is $-674.6$ versus $-617.8$ for linear. Across both frames, a model with frame-specific linear slopes has $R^2=0.0991$ and BIC 963.2, compared with $R^2=0.0997$ and BIC 976.9 for the common-frame-effect breakpoint model. Thus nonlinearity remains in the later frame, but the data do not support a common within-frame transition of the pooled magnitude.
+For the earlier frame, linear BIC is 776.3 versus 783.7 for the piecewise fit. For the later frame, piecewise BIC is $-1{,}626.4$ versus $-1{,}460.6$ for linear. Across both frames, a model with frame-specific linear slopes has $R^2=0.0855$ and BIC $-209.0$, compared with $R^2=0.0955$ and BIC $-246.9$ for the frame-controlled breakpoint model; frame-specific slopes plus a common piecewise term at 14.25 fit best ($R^2=0.1089$, BIC $-321.7$). Thus nonlinearity survives frame control, but the within-frame regime changes are far smaller than the pooled gap.
 
 \subsection{Pooling and repeated sampling}
 
-Every leave-one-model-out mean-pooled fit selects 13.75. Median pooling selects 10.75, with 0.839 at or below and 0.862 above. Table~\ref{tab:passk} gives the repeated-sampling subset. The subset has 359 prompts, four models, five draws, and 7{,}180 executed generations.
+Every leave-one-model-out mean-pooled fit selects 14.0. Median pooling selects 10.5, with 0.879 at or below and 0.908 above. Table~\ref{tab:passk} gives the repeated-sampling subset. The subset has 359 prompts, four models, five draws, and 7{,}180 executed generations; its code was not saved, so outcomes are raw harness values.
 
 \begin{table}[h]
 \centering
@@ -658,29 +658,34 @@ Mean of five draws & 14.25 & 11.42 & 0.785 & 0.750 \\
 \end{tabular}
 \end{table}
 
+\subsection{Library-mention diagnostic}
+\label{app:library}
+
+A 459-prompt diagnostic at display bins 13 and 17 tags case-insensitive whole-word matches to a fixed list of library, framework, and standard-library names. An HC1 regression of prompt-level mean pass on that tag controls for source-pool membership, prompt characters and words, unit-test count and length, reference-solution CC, scorer disagreement, and the composite. The mention-tag coefficient is $-0.0501$ (robust SE $=0.0978$, $p=0.608$). This sample is not a subset of the analyzed benchmark: it combines 267 benchmark prompts with 192 prompts from a separate candidate pool that was mined on generated-output CC, and it uses the reviewed version's outcomes, so it cannot be re-estimated under the independent audit. Within the benchmark, too few prompts at these bins carry the tag to analyze. The diagnostic therefore offers no support for a library or framework explanation, but it is weak evidence either way.
+
 \subsection{High-complexity extension}
 \label{app:tail}
 
-Table~\ref{tab:tail-detail} keeps the original and extension sources separate. Pass rate is first averaged over the five matched models within prompt. The two well-supported comparisons differ by about one percentage point and are not statistically distinguishable. Bins 17 and 18 remain too small for stable comparisons.
+Table~\ref{tab:tail-detail} keeps the original and extension sources separate. Pass rate is first averaged over the five matched models within prompt, using raw harness outcomes for both sources. The two well-supported comparisons differ by about one percentage point or less and are not statistically distinguishable. Bins 17 and 18 remain too small for stable comparisons.
 
 \begin{table}[h]
 \centering
-\caption{Matched-five-model high-bin support and pass rates. Parentheses contain prompt counts.}
+\caption{Matched-five-model high-bin support and raw-harness pass rates. Parentheses contain prompt counts.}
 \label{tab:tail-detail}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
 Source & Bin 15 & Bin 16 & Bin 17 & Bin 18 \\
 \midrule
-Original & 0.894 (850) & 0.808 (257) & 0.718 (45) & 0.450 (6) \\
+Original & 0.890 (850) & 0.795 (257) & 0.729 (45) & 0.450 (6) \\
 Audit-clean extension & 0.880 (218) & 0.799 (133) & 0.682 (11) & 0.627 (3) \\
-Combined & 0.891 (1{,}068) & 0.805 (390) & 0.711 (56) & 0.509 (9) \\
+Combined & 0.888 (1{,}068) & 0.797 (390) & 0.720 (56) & 0.509 (9) \\
 \midrule
-Welch $p$, original vs extension & 0.377 & 0.765 & n/a & n/a \\
+Welch $p$, original vs extension & 0.554 & 0.906 & n/a & n/a \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The separate fixed-version three-model check analyzes 515 prompts per model: 150 midrange anchors plus 365 audit-clean additions. Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro Preview have bin-15 pass rates 0.941, 0.940, and 0.936, and bin-16 rates 0.871, 0.850, and 0.845. The 11 and three prompts in bins 17 and 18 are descriptive only.
+The separate fixed-version three-model check, also on raw harness outcomes, analyzes 515 prompts per model: 150 midrange anchors plus 365 audit-clean additions. Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro Preview have bin-15 pass rates 0.941, 0.940, and 0.936, and bin-16 rates 0.871, 0.850, and 0.845. The 11 and three prompts in bins 17 and 18 are descriptive only.
 
 \subsection{Human, paraphrase, and language checks}
 
@@ -705,52 +710,81 @@ C++ & Python vs C++ composite & 117 & 0.969 & C++ ICC $=0.882$ \\
 
 The paraphrases have median character length 46.3\% of the originals. Their mean composite shift is $-0.115$ (paired $p=0.031$), with 91.3\% within one point and 99.3\% within two. On the same 117 prompts used for language re-expression, Python inter-judge ICC is 0.912.
 
-\section{Outcome definition and raw-harness sensitivity}
+\clearpage
+\section{Outcome audit}
 \label{app:outcome-audit}
 
-For the 2{,}246 earlier-frame prompts, the pipeline asked \texttt{o4-mini} whether each unit-test verdict was correct on the merits, given the task, code, tests, and harness pass rate, and to treat function-name mismatches, script-style input and output, and formatting differences as correct. A ``correct'' verdict set the pass rate to 1.0, ``incorrect'' to 0.0, and ``uncertain'' kept the harness value. The audit covered 46{,}706 of the 47{,}166 earlier-frame generations and changed 23{,}848 of them: 15{,}725 rose to 1.0 and 8{,}123 fell to 0.0. Earlier-frame mean pass is 0.747 with the audit and 0.683 on raw harness values. The 2{,}754 later-frame prompts were never audited, and their mean pass is 0.880 under either definition, so the outcome definition coincides with the construction-frame indicator.
+\textbf{Why the outcome is audited.} A unit-test verdict can err in both directions: the supplied tests call specific function names and expect exact output formats, so valid code can fail them, while weak tests can pass defective code. The reviewed version of this paper asked \texttt{o4-mini} whether each harness verdict was correct on the merits, given the task, code, tests, and harness pass rate, and to treat function-name mismatches, script-style input and output, and formatting differences as correct; ``correct'' set the pass rate to 1.0, ``incorrect'' to 0.0, and ``uncertain'' kept the harness value. That audit covered only the 2{,}246 earlier-frame prompts (46{,}706 of 47{,}166 generations, of which 15{,}725 rose to 1.0 and 8{,}123 fell to 0.0), so the outcome definition coincided with the construction-frame indicator, and \texttt{o4-mini} is also a rubric judge. For this version, one auditor from a vendor used nowhere else in the study (not a rubric judge, an evaluated model, or the paraphraser) audited all 105{,}000 generations with the same system prompt, inputs, and verdict mapping; uncertain and unparseable verdicts keep the harness value.
 
-We measured this audit on a 450-case known-answer set built from 150 benchmark prompts whose reference solution passes every unit test: the reference itself, a copy with the test-called functions renamed, and a single-mutation bug that the tests detect, all executed in the benchmark harness. With its original prompt and settings, \texttt{o4-mini} judged 88.0\% of the references correct, rescued 82.0\% of the renamed copies, and accepted none of the bugs; 1.8\% of responses were unparseable. Some references pass their tests while violating an explicit instruction in the task, so the first two rates understate audit accuracy.
+\textbf{Selection protocol.} A protocol written before any auditor was scored fixed a known-answer set and a selection rule. The set draws 150 benchmark prompts, stratified across display bins, whose reference solution passes every unit test, and builds three cases from each, all executed in the benchmark harness inside a network-isolated container: the normalized reference (clean; correct), a copy with the test-called functions renamed so that the harness fails it (cosmetic; correct), and the most subtle single AST mutation that the tests detect (bug; incorrect). An auditor is eligible if at most 2\% of its responses are unparseable or failed, it judges at least 95\% of clean cases correct, and it rescues at least 90\% of cosmetic cases; among eligible auditors, the lowest wrong-rescue rate on bugs wins.
+
+\textbf{Amendments and selection.} Four dated amendments are recorded in the repository. Before any pilot case was scored, the closing format reminder was reworded identically for all auditors after a smoke test in which one candidate misread it. Neither Azure-deployed candidate was eligible (Table~\ref{tab:auditor-pilot}), so the pool was extended to hosted models from unused vendors, with a new requirement that a selected auditor also meet the rule on a fresh, disjoint known-answer set at the production endpoint. Two further candidates failed, and MiMo-V2.6-Pro was then added. It had the highest overall accuracy and the best cosmetic rescue but judged 140 of 150 clean references correct against the required 143, so no candidate met the rule in full, and we adopted it by author decision. The clean labels are themselves noisy: 35 of the 150 references are rejected by at least one auditor in Table~\ref{tab:auditor-pilot}, some for violating an explicit task instruction that the tests do not check, and at least one other auditor also rejects 7 of the 9 references that MiMo-V2.6-Pro rejects. On the fresh set, MiMo-V2.6-Pro met every threshold. No human review of the disputed references was performed.
 
 \begin{table}[h]
 \centering
-\caption{Main breakpoint analyses under the reported outcome and under raw unit-test harness outcomes. Regime means are raw summaries at each specification's selected breakpoint.}
-\label{tab:outcome-sensitivity}
+\caption{Auditors on the 450-case known-answer set. Error is the share of unparseable or failed responses, which count as mismatches in every rate. Clean and cosmetic are shares judged correct; wrong rescue is the share of bugs judged correct. \texttt{o4-mini}, run with the reviewed version's prompt and settings, is a diagnostic of that audit, not a candidate. The last auditor row is the fresh confirmation set.}
+\label{tab:auditor-pilot}
 \small
-\begin{tabular}{@{}lrrrrrrrr@{}}
+\begin{tabular}{@{}llrrrrr@{}}
 \toprule
-& \multicolumn{4}{c}{Reported outcome} & \multicolumn{4}{c}{Raw harness outcome} \\
-\cmidrule(lr){2-5}\cmidrule(l){6-9}
-Specification & $\hat{\gamma}$ & sup-Wald & Low & High & $\hat{\gamma}$ & sup-Wald & Low & High \\
+Auditor & Endpoint & Error & Clean & Cosmetic & Wrong rescue & Overall \\
 \midrule
-Unadjusted & 13.75 & 121.7 & 0.799 & 0.876 & 11.25 & 155.3 & 0.760 & 0.833 \\
-Task-type fixed effects & 10.75 & 19.6 & 0.811 & 0.832 & 9.50 & 31.9 & 0.781 & 0.801 \\
-Construction-frame fixed effect & 8.50 & 47.4 & 0.841 & 0.806 & 8.50 & 32.9 & 0.793 & 0.790 \\
-Earlier frame only & 7.75 & 3.4 & 0.825 & 0.666 & 9.50 & 3.5 & 0.723 & 0.591 \\
-Later frame only & 14.25 & 36.7 & 0.877 & 0.885 & 14.25 & 36.7 & 0.877 & 0.885 \\
+Phi-4-reasoning & Azure & 0.000 & 0.900 & 0.473 & 0.060 & 0.771 \\
+MAI-Thinking-1 & Azure & 0.000 & 0.953 & 0.880 & 0.033 & 0.933 \\
+Nemotron-3-Ultra & OpenRouter, fp8 & 0.004 & 0.860 & 0.787 & 0.000 & 0.878 \\
+Laguna-S-2.1 & OpenRouter, fp4 & 0.047 & 0.887 & 0.747 & 0.033 & 0.864 \\
+MiMo-V2.6-Pro & OpenRouter, bf16 & 0.002 & 0.933 & 0.947 & 0.013 & 0.956 \\
+\texttt{o4-mini} (reviewed audit) & Azure & 0.018 & 0.880 & 0.820 & 0.000 & 0.891 \\
 \midrule
-Models with lower pass above $\hat{\gamma}$ & \multicolumn{4}{c}{5 of 21} & \multicolumn{4}{c}{1 of 21} \\
+MiMo-V2.6-Pro, fresh set & OpenRouter, bf16 & 0.000 & 0.953 & 0.973 & 0.007 & 0.973 \\
+\midrule
+Selection rule & & $\leq0.02$ & $\geq0.95$ & $\geq0.90$ & lowest & \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-On raw harness outcomes every pooled specification except the earlier frame alone still rejects the no-threshold null (0 of 300 wild-bootstrap draws exceed the observed statistic; 50 of 300 within the earlier frame), the task-type-controlled gap stays at 2.1 points, and the construction-frame-controlled gap shrinks from $-3.5$ to $-0.3$ points. Grok-3, GPT-5.4, Kimi K2.5, and Qwen 3.6 Plus change direction in the unadjusted model-specific contrast, leaving Gemini 3.1 Pro Preview as the only downward fit. Kimi K2.5's construction-frame-controlled search still selects 14.25 (sup-Wald 28.5, 0 of 300 exceedances), and its later-frame result is identical because no later-frame outcome was audited. The analyses are in \texttt{scripts/analyze\_harness\_outcome\_sensitivity.py} and \texttt{scripts/analyze\_harness\_outcome\_downward\_models.py}.
+\textbf{Production audit.} Pinned to a single bf16 provider endpoint with streamed responses, MiMo-V2.6-Pro returned a response for all 105{,}000 generations: 89{,}005 correct, 14{,}867 incorrect, 177 uncertain, and 951 unparseable. Of 65{,}350 generations that pass every test, it confirms 64{,}523 and overturns 812; of 12{,}191 that pass none, it judges 7{,}016 correct; and of 27{,}459 partial passes, it sets 17{,}466 to 1.0 and 9{,}229 to 0.0. Mean pass is 0.851, against 0.792 on raw harness values and 0.820 under the reviewed version's audit; it is 0.795 in the earlier frame (harness 0.683) and 0.897 in the later frame (harness 0.880). The two Azure candidates also audited a seeded 5\% sample (5{,}250 generations). Where both auditors return correct or incorrect, MAI-Thinking-1 agrees with MiMo-V2.6-Pro on 91.1\% of 5{,}189 generations (Cohen $\kappa=0.635$), and Phi-4-reasoning on 80.9\% of 5{,}140 ($\kappa=0.419$). The known-answer cases are synthetic renamings and single mutations, which may be easier than real model failures, and an auditor that rescues renamed or reformatted code can also rescue code the tests correctly reject (1.3\% and 0.7\% of bugs on the two sets).
+
+\begin{table}[h]
+\centering
+\caption{Main breakpoint analyses under three outcome definitions: the independent audit (primary), the reviewed version's \texttt{o4-mini} audit of the earlier frame only, and raw unit-test harness outcomes. $\Delta$ is the raw regime change in percentage points at each selected breakpoint. Every search rejects the no-threshold null with zero of 300 wild-bootstrap exceedances, except within the earlier frame ($^\dagger$; $p_{\mathrm{MC}}$ from 0.14 to 0.19).}
+\label{tab:outcome-sensitivity}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{Independent audit} & \multicolumn{2}{c}{Reviewed audit} & \multicolumn{2}{c}{Raw harness} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-7}
+Specification & $\hat{\gamma}$ & $\Delta$ & $\hat{\gamma}$ & $\Delta$ & $\hat{\gamma}$ & $\Delta$ \\
+\midrule
+Unadjusted & 14.00 & $+6.8$ & 13.75 & $+7.6$ & 11.25 & $+7.4$ \\
+Task-type fixed effects & 11.50 & $+2.1$ & 10.75 & $+2.1$ & 9.50 & $+2.1$ \\
+Construction-frame fixed effect & 14.25 & $+6.8$ & 8.50 & $-3.5$ & 8.50 & $-0.3$ \\
+Earlier frame only$^\dagger$ & 9.50 & $-13.0$ & 7.75 & $-15.8$ & 9.50 & $-13.2$ \\
+Later frame only & 14.25 & $+1.8$ & 14.25 & $+0.9$ & 14.25 & $+0.9$ \\
+Kimi K2.5, later frame & 14.25 & $-4.0$ & 14.25 & $-4.8$ & 14.25 & $-4.8$ \\
+\midrule
+Models with lower pass above $\hat{\gamma}$ & \multicolumn{2}{c}{2 of 21} & \multicolumn{2}{c}{5 of 21} & \multicolumn{2}{c}{1 of 21} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Sensitivity to the outcome definition.} Table~\ref{tab:outcome-sensitivity} repeats the main analyses under the three definitions. The task-type-controlled gap, the later-frame breakpoint, the absence of a significant earlier-frame break, and Kimi K2.5's later-frame decline are stable. The pooled breakpoint, the construction-frame-controlled fit, and the set of models with lower pass above their breakpoint are not: the frame-controlled search selects 8.50 on raw harness outcomes and under the reviewed audit but 14.25 under the independent audit, and the downward models are Kimi K2.5 and Gemini 3.1 Pro Preview under the independent audit, Gemini 3.1 Pro Preview alone on raw harness outcomes, and those two plus Grok-3, GPT-5.4, and Qwen 3.6 Plus under the reviewed audit. Kimi K2.5's frame-controlled search selects 14.25 under all three (sup-Wald 32.0, 29.7, and 28.5). The extension, fixed-version, and repeated-sampling runs did not save generated code, so they use raw harness outcomes throughout. The protocol and amendments are in \texttt{docs/independent\_audit\_protocol.md}, the audit code in \texttt{src/audit/}, and the reanalysis for any outcome definition in \texttt{scripts/camera\_ready/}.
 
 \section{Dataset, code, and reproducibility details}
 \label{app:artifact}
 
-\textbf{Dataset.} The public data release, linked from \codeurl{}, contains the 5{,}000 locked prompts with source identifiers and construction-frame labels, the 19{,}997 per-judge rubric score rows and ensemble aggregates, all 105{,}000 generations with unit-test outcomes and Lizard output complexity, the repeated-sampling subset, the human calibration grades, and the 365-prompt audit-clean extension. It is documented with a dataset card and Croissant metadata including the Responsible-AI fields. % TODO(camera-ready): reconcile this list with the final release inventory.
+\textbf{Dataset.} The public data release, linked from \codeurl{}, contains the 5{,}000 locked prompts with source identifiers and construction-frame labels, the 19{,}997 per-judge rubric score rows and ensemble aggregates, all 105{,}000 generations with Lizard output complexity and three outcome columns (raw harness, the independent audit, and the reviewed version's audit) plus the auditor's verdicts, the known-answer audit sets with every auditor's responses, the repeated-sampling subset, the human calibration grades, and the 365-prompt audit-clean extension. It is documented with a dataset card and Croissant metadata including the Responsible-AI fields. % TODO(camera-ready): reconcile this list with the final release inventory.
 
 \textbf{Code.} The repository (\codeurl{}) contains the six-dimension rubric prompt, model metadata, and analysis scripts for the breakpoint, task-control, construction-frame, diagnostic-IV, placebo, and figure pipelines, together with locked summary outputs and the source tables for every figure. Re-running model inference additionally requires provider access; all reported analyses can be reproduced from the released data without it.
 
 \textbf{Existing assets and licenses.} The source task pool is OpenCodeInstruct under CC BY 4.0~\cite{opencodeinst}, and the derived benchmark is released under CC BY 4.0. % TODO(camera-ready): confirm licensing of released model outputs against each provider's terms.
 Generated-output cyclomatic complexity is computed with Lizard 1.21.0 under the MIT License~\cite{lizard}; diagnostic IV estimation uses \texttt{linearmodels} 7.0 under the NCSA License~\cite{linearmodels}. The code repository is released under the MIT License.
 
-\textbf{Compute.} The main compute cost is inference: four rubric judges score 5{,}000 prompts each, and 21 evaluated models each generate one answer for every prompt. Open-weight or locally served models are run one model at a time on A100-class GPU workers; serverless/API models are run through provider batch or hosted inference endpoints. Unit-test execution, Lizard scoring, and econometric analysis run on CPU workers. Exact wall times, worker memory, and total compute were not logged consistently across providers, so we do not claim a complete compute accounting.
+\textbf{Compute.} The main compute cost is inference: four rubric judges score 5{,}000 prompts each, and 21 evaluated models each generate one answer for every prompt. Open-weight or locally served models are run one model at a time on A100-class GPU workers; serverless/API models are run through provider batch or hosted inference endpoints. The outcome audit sends one request per generation to a hosted auditor (105{,}000 production requests, plus 450 known-answer cases per auditor per set and 5{,}250 agreement-sample requests per second auditor). Unit-test execution, Lizard scoring, and econometric analysis run on CPU workers. Exact wall times, worker memory, and total compute were not logged consistently across providers, so we do not claim a complete compute accounting.
 
-\textbf{Execution safeguards.} Generated code is executed only inside the benchmark unit-test harness with timeouts and isolated working directories. The source artifact does not release a trained model or a public code-generation service.
+\textbf{Execution safeguards.} Generated code is executed only inside the benchmark unit-test harness with timeouts and isolated working directories; the audit's known-answer variants run in the same harness inside a container without network access, and the auditor reads code but never executes it. The source artifact does not release a trained model or a public code-generation service.
 
-\textbf{LLM usage.} LLMs are part of the core methodology as rubric judges and as evaluated code-generation models. LLM-assisted drafting and editing were also used under author supervision; all scientific claims, analysis choices, and final text remain the authors' responsibility.
+\textbf{LLM usage.} LLMs are part of the core methodology as rubric judges, as evaluated code-generation models, and as the outcome auditor. LLM-assisted drafting and editing were also used under author supervision; all scientific claims, analysis choices, and final text remain the authors' responsibility.
 
 \newpage
 \input{checklist.tex}
