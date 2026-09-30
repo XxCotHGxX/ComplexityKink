@@ -13,10 +13,17 @@ network service. It reads only from ``<data-root>/data`` and writes:
 
 Source-of-truth rules (see release/README.md, "How the data was built"):
 
-  * Main benchmark = ``data/stage_d/scored_combined/*.jsonl`` joined to
+  * Main benchmark = ``data/stage_d/scored_independent_audit/*.jsonl`` (the
+    camera-ready primary outcome, written by
+    ``src/audit/06_apply_independent_audit.py``; every row also carries the raw
+    harness value and the reviewed version's value) joined to
     ``data/stage_d/ensemble_scores_current_aggregated.jsonl``. The stale
     ``ensemble_scores_aggregated.jsonl`` is never used; the join must yield
     exactly 5,000 prompts.
+  * Audit records come from ``data/independent_audit/`` (known-answer sets and
+    responses under ``pilot/`` and ``confirmation/``; production verdicts under
+    ``production/``). Verdicts are counted with the same completeness rule as
+    the analysis (``final_verdict`` in ``src/audit/independent_audit.py``).
   * The output-CC-mined 24-bin "equal-support" set
     (``data/stage_d_24bin_equal``) is excluded. The 365-prompt audit-clean
     extension is ``data/rebuttal/tail_topup/tail_topup_final.jsonl``.
@@ -52,6 +59,29 @@ import pyarrow.parquet as pq
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RELEASE_DIR = REPO_ROOT / "release"
+sys.path.insert(0, str(REPO_ROOT / "src" / "audit"))
+from independent_audit import INCOMPLETE_FINISH, final_verdict  # noqa: E402
+
+PRIMARY_AUDITOR = "auditor:mimo-v2.6-pro"
+# (auditor key, file under data/independent_audit/<set dir>/) for the known-answer sets.
+KNOWN_ANSWER_RUNS = {
+    "A_selection": ("pilot", [
+        ("auditor:phi-4-reasoning", "audit_phi4_reasoning.jsonl"),
+        ("auditor:mai-thinking-1", "audit_mai_thinking_1.jsonl"),
+        ("auditor:nemotron-3-ultra", "audit_or_nemotron3_ultra_venice.jsonl"),
+        ("auditor:laguna-s-2.1", "audit_or_laguna_s21_poolside.jsonl"),
+        (PRIMARY_AUDITOR, "audit_or_mimo_v26_pro_gmicloud.jsonl"),
+        ("judge:o4-mini", "audit_o4mini_reviewed_settings.jsonl"),
+    ]),
+    "B_confirmation": ("confirmation", [
+        (PRIMARY_AUDITOR, "audit_or_mimo_v26_pro_gmicloud.jsonl"),
+    ]),
+}
+PRODUCTION_RUNS = [
+    (PRIMARY_AUDITOR, "audit_mimo_v26_pro.jsonl"),
+    ("auditor:mai-thinking-1", "audit_mai_thinking_1.jsonl"),
+    ("auditor:phi-4-reasoning", "audit_phi4_reasoning.jsonl"),
+]
 
 DIMS = ["branching", "iteration", "state", "data_structures", "edge_cases", "composition"]
 EXPECTED_MAIN_PROMPTS = 5000
@@ -96,7 +126,7 @@ DISPLAY_NAMES = {
     "gpt-5-mini": "GPT-5-mini",
     "gpt-oss-20b": "GPT-OSS-20B",
     "ministral-3-14b-reasoning": "Ministral-3-14B-reasoning",
-    "mistral-small-2412": "Mistral Small 2412",
+    "mistral-small-2412": "Devstral Small 2505",
     "openai_gpt-5.4": "GPT-5.4",
     "qwen3.5-9b": "Qwen 3.5-9B",
     "qwen_qwen3.6-plus": "Qwen 3.6 Plus",
@@ -171,8 +201,8 @@ MODELS_META = [
      "4-bit GGUF quantization."),
     ("mistral-small-2412", "Mistral AI", ["evaluated_panel"],
      "Locally served quantized GGUF", "Devstral-Small-2505-Q4_K_M", "open",
-     "Experiment key/display name say 'Mistral Small 2412' but the recorded served model "
-     "is Devstral-Small-2505 (Q4_K_M)."),
+     "4-bit GGUF quantization. The experiment key says 'mistral-small-2412', but the recorded "
+     "served model is Devstral-Small-2505 (Q4_K_M), the name used in the paper."),
     ("openai_gpt-5.4", "OpenAI", ["evaluated_panel", "fixed_version_check"],
      "OpenAI Batch API", "gpt-5.4", "closed", "Temperature not sent (reasoning model)."),
     ("qwen3.5-9b", "Alibaba (Qwen)", ["evaluated_panel"],
@@ -195,7 +225,21 @@ MODELS_META = [
      "Single-shot, no tools."),
     ("judge:o4-mini", "OpenAI", ["rubric_judge", "preliminary_rater", "task_type_labeler",
                                   "harness_auditor"],
-     "Azure AI Foundry", "o4-mini", "closed", ""),
+     "Azure AI Foundry", "o4-mini", "closed",
+     "Its harness audit defined the reviewed version's outcome (earlier frame only); it was "
+     "rerun on known-answer set A as a diagnostic of that audit, not as a candidate."),
+    (PRIMARY_AUDITOR, "Xiaomi", ["outcome_auditor", "auditor_candidate"],
+     "OpenRouter, pinned to one provider (GMICloud, bf16), streamed", "xiaomi/mimo-v2.6-pro",
+     "not recorded", "Adopted by author decision after missing the pre-declared clean-accuracy "
+     "threshold by three cases on set A; met every threshold on set B."),
+    ("auditor:mai-thinking-1", "Microsoft", ["auditor_candidate", "agreement_auditor"],
+     "Azure AI Foundry", "MAI-Thinking-1", "closed", "Preview model (inference retires 2026-11-04)."),
+    ("auditor:phi-4-reasoning", "Microsoft", ["auditor_candidate", "agreement_auditor"],
+     "Azure AI Foundry", "Phi-4-reasoning", "open (MIT)", ""),
+    ("auditor:nemotron-3-ultra", "NVIDIA", ["auditor_candidate"],
+     "OpenRouter (Venice, fp8)", "nvidia/nemotron-3-ultra-550b-a55b", "open", ""),
+    ("auditor:laguna-s-2.1", "Poolside", ["auditor_candidate"],
+     "OpenRouter (Poolside, fp4)", "poolside/laguna-s-2.1", "not recorded", ""),
     ("judge:gpt-5.5", "OpenAI", ["rubric_judge", "task_type_labeler"],
      "Azure AI Foundry", "gpt-5.5", "closed", ""),
     ("judge:llama-4-maverick", "Meta", ["rubric_judge", "task_type_labeler"],
@@ -218,6 +262,12 @@ MODEL_SETTINGS_DOC = {
     "fixed_version_check": "Single completion, no tools; OpenRouter routes use temperature 0.0 "
                            "and max 16000 tokens; Codex CLI uses its defaults "
                            "(src/rebuttal/25_frontier_cli_generate.py).",
+    "outcome_auditor": "One request per non-empty main-benchmark generation with the audit system "
+                       "prompt (task, code, unit tests, harness pass rate); max 16,000 completion "
+                       "tokens; provider-default sampling (src/audit/independent_audit.py).",
+    "auditor_candidate": "Scored on the 450-case known-answer set A with the same prompt and "
+                         "parser (docs/independent_audit_protocol.md).",
+    "agreement_auditor": "Re-audited the seeded 5% production sample (5,250 generations).",
 }
 
 GEN_SYSTEM_PROMPTS = {
@@ -395,7 +445,8 @@ CONFIGS: dict[str, dict[str, Any]] = {
                f"Keyword/lexical prompt feature `{name}` (pre-generation lexical baseline).")
               for name in KEYWORD_FEATURES],
             ("n_models", I, "Number of evaluated-panel generations for this prompt (21)."),
-            ("mean_pass_rate", F, "Mean of generations.pass_rate over the 21 models (the prompt-level outcome used in the paper)."),
+            ("mean_pass_rate", F, "Mean of generations.pass_rate (the audited primary outcome) over the 21 models: the prompt-level outcome of the camera-ready paper."),
+            ("mean_pass_rate_reviewed", F, "Mean of generations.pass_rate_reviewed over the 21 models (the reviewed version's prompt-level outcome)."),
             ("mean_harness_pass_rate", F, "Mean of generations.harness_pass_rate over the 21 models (pure test-execution fraction)."),
             ("in_human_calibration", B, "Prompt was graded in the human calibration study."),
             ("in_passk_subset", B, "Prompt is in the 359-prompt repeated-sampling subset."),
@@ -411,18 +462,24 @@ CONFIGS: dict[str, dict[str, Any]] = {
     },
     "generations": {
         "description": "One generated solution per (model, prompt) for the 21-model panel on the 5,000 main prompts "
-                       "(105,000 rows): cleaned code, per-test outcomes, pass rates, Lizard output CC, and "
-                       "recovered generation settings. Raw API responses are not included.",
+                       "(105,000 rows): cleaned code, per-test outcomes, three outcome definitions (the audited "
+                       "primary outcome, the reviewed version's outcome, and the raw harness fraction), the "
+                       "auditor's verdict, Lizard output CC, and recovered generation settings. Raw API "
+                       "responses are not included.",
         "fields": [
             ("model_key", S, "Experiment identifier of the evaluated model (joins to the models config)."),
             ("model_display_name", S, "Display name used in the paper."),
             ("prompt_id", S, "Prompt identifier (joins to prompts)."),
             ("construction_frame", S, "Construction frame of the prompt (copied from prompts)."),
             ("code", S, "Cleaned generated Python code exactly as executed and measured (extracted from the model response). Empty string when no code could be extracted; a small number of rows retain markdown fences."),
-            ("pass_rate", F, "Outcome used in the paper's analyses. For later_candidate prompts it equals harness_pass_rate. For earlier_retained prompts, where the o4-mini harness audit returned 'correct' or 'incorrect', it was set to 1.0 or 0.0 (see pass_rate_source)."),
+            ("pass_rate", F, "Primary outcome of the camera-ready paper: 1.0 if the independent auditor (MiMo-V2.6-Pro) judged the code correct, 0.0 if incorrect or if there is no code (empty-code rule); otherwise (uncertain, unparseable, or a response cut off by the token limit or a content filter) harness_pass_rate."),
+            ("pass_rate_source", S, "'independent_audit' when pass_rate comes from a correct/incorrect verdict or the empty-code rule, else 'harness_fallback'."),
+            ("independent_audit_verdict", S, "Counted verdict of the independent auditor: correct, incorrect, uncertain, or null (unparseable or incomplete response)."),
+            ("independent_audit_handling", S, "auditor_verdict, auditor_uncertain, unparseable, incomplete_response (cut off by the token limit or a content filter), or empty_code_rule (no code; marked incorrect without an auditor request)."),
             ("harness_pass_rate", F, "Fraction of unit-test assertions that passed when the code was executed (from test_status)."),
-            ("pass_rate_source", S, "'harness' or 'o4mini_audit_override' (earlier_retained rows whose pass_rate was set from the audit verdict)."),
-            ("audit_verdict", S, "o4-mini harness-audit verdict for earlier_retained rows: correct, incorrect, uncertain, or null (not audited / later_candidate)."),
+            ("pass_rate_reviewed", F, "Outcome of the reviewed (submitted) version: harness_pass_rate, except that for earlier_retained prompts an o4-mini audit verdict of correct or incorrect set it to 1.0 or 0.0."),
+            ("reviewed_audit_verdict", S, "The reviewed version's o4-mini harness-audit verdict (earlier_retained rows only): correct, incorrect, uncertain, or null."),
+            ("model_returned_no_response", B, "The model API returned no response at all (time-out, cancelled operation, or empty response). These 157 rows (156 Gemini 3.1 Pro Preview) count as failures in the primary analysis; the paper also reports results treating them as missing."),
             ("n_tests", I, "Number of executed assertions."),
             ("test_status", LS, "Per-assertion outcome ('pass'/'fail'), in unit_tests order."),
             ("output_cc_lizard", I, "Generated-output cyclomatic complexity: Lizard CC of `code`, summed over reported functions. Null when not computable (1,052 rows). Never the prompt index or reference CC."),
@@ -571,6 +628,64 @@ CONFIGS: dict[str, dict[str, Any]] = {
         "description": "Per-judge rubric scores of the Java and C++ re-expressions (936 rows).",
         "fields": [("target_language", S, "java or cpp."), *JUDGE_SCORE_FIELDS],
         "references": {"prompt_id": "prompts/prompt_id"},
+    },
+    "audit_known_answer_cases": {
+        "description": "Known-answer cases used to select (set A) and confirm (set B) the outcome auditor. For each of "
+                       "150 benchmark prompts per set whose reference solution passes every unit test: the normalized "
+                       "reference (clean, correct), a copy with the test-called names renamed so the harness fails it "
+                       "(cosmetic, correct), and the most subtle single-AST mutation the tests detect (bug, "
+                       "incorrect), all executed in the benchmark harness (900 rows). Labels come from the harness "
+                       "and construction, not human review; some clean references violate task instructions the "
+                       "tests do not check.",
+        "key": "case_id",
+        "fields": [
+            ("case_id", S, "Case identifier: <prompt_id>:<variant>."),
+            ("known_answer_set", S, "A_selection (auditor selection, seed 20260928) or B_confirmation (fresh prompts, seed 20260930)."),
+            ("prompt_id", S, "Benchmark prompt identifier (joins to prompts)."),
+            ("category", S, "clean, cosmetic, or bug."),
+            ("ground_truth", S, "correct (clean, cosmetic) or incorrect (bug)."),
+            ("mutation", S, "For bug cases, the AST mutation kind and site (JSON); null otherwise."),
+            ("code", S, "The code shown to the auditors."),
+            ("harness_pass_rate", F, "Fraction of unit tests the case passes in the benchmark harness."),
+        ],
+        "references": {"prompt_id": "prompts/prompt_id"},
+    },
+    "audit_known_answer_responses": {
+        "description": "Every auditor response on the known-answer sets: five candidate auditors and the reviewed "
+                       "version's o4-mini audit (diagnostic) on set A, and the adopted auditor on set B (3,150 rows).",
+        "fields": [
+            ("known_answer_set", S, "A_selection or B_confirmation."),
+            ("auditor", S, "Auditor model key (joins to models)."),
+            ("case_id", S, "Known-answer case (joins to audit_known_answer_cases)."),
+            ("status", S, "ok, parse_error, or api_error as recorded by the audit client."),
+            ("verdict", S, "Verdict parsed from the response (correct, incorrect, uncertain, or null)."),
+            ("counted_verdict", S, "Verdict after the completeness rule (null if the response was cut off by the token limit or a content filter); used for every reported rate."),
+            ("finish_reason", S, "Finish reason reported by the endpoint."),
+            ("parse_status", S, "json, regex, parse_error, or rule."),
+            ("reason", S, "The auditor's stated reason."),
+            ("response_tail", S, "Last 600 characters of the response."),
+            ("completion_tokens", I, "Completion tokens reported by the endpoint (may exclude reasoning tokens on some routes)."),
+        ],
+        "references": {"case_id": "audit_known_answer_cases/case_id", "auditor": "models/model_key"},
+    },
+    "audit_production_verdicts": {
+        "description": "Outcome-audit verdicts for the main benchmark: the adopted auditor on all 105,000 generations "
+                       "and two second auditors on the seeded 5% agreement sample (5,250 generations each), "
+                       "115,500 rows. The last final record per generation is kept, as in the analysis.",
+        "fields": [
+            ("auditor", S, "Auditor model key (joins to models)."),
+            ("model_key", S, "Evaluated model (joins to models)."),
+            ("prompt_id", S, "Prompt identifier (joins to prompts)."),
+            ("in_agreement_sample", B, "Generation is in the seeded 5% agreement sample."),
+            ("status", S, "ok, parse_error, or api_error as recorded by the audit client."),
+            ("verdict", S, "Verdict parsed from the response."),
+            ("counted_verdict", S, "Verdict after the completeness rule; for the adopted auditor this is generations.independent_audit_verdict."),
+            ("finish_reason", S, "Finish reason reported by the endpoint."),
+            ("parse_status", S, "json, regex, parse_error, or rule (empty code: incorrect without a request)."),
+            ("reason", S, "The auditor's stated reason."),
+            ("response_tail", S, "Last 600 characters of the response."),
+        ],
+        "references": {"prompt_id": "prompts/prompt_id", "model_key": "models/model_key", "auditor": "models/model_key"},
     },
     "models": {
         "description": "Metadata for every model whose outputs or labels appear in the release: developer, role(s), "
@@ -754,10 +869,43 @@ class Builder:
                 "gen_max_output_tokens": s.get("max_tokens"),
                 "gen_system_prompt_variant": variant}
 
+    def _audit_final_records(self, path: Path) -> dict[str, dict]:
+        """Last final record per case, exactly as the apply step keeps them."""
+        final = {}
+        with path.open("rb") as handle:
+            for raw in handle:
+                text = raw.strip(b"\x00\r\n ")
+                if not text:
+                    continue
+                try:
+                    rec = json.loads(text)
+                except ValueError:
+                    continue
+                if rec.get("status") in ("ok", "parse_error"):
+                    final[rec["case_id"]] = rec
+        return final
+
+    @staticmethod
+    def _handling(rec: dict | None) -> str:
+        if rec is None:
+            return "unparseable"
+        if rec.get("parse_status") == "rule":
+            return "empty_code_rule"
+        counted = final_verdict(rec)
+        if counted in ("correct", "incorrect"):
+            return "auditor_verdict"
+        if counted == "uncertain":
+            return "auditor_uncertain"
+        if rec.get("status") == "ok" and rec.get("finish_reason") in INCOMPLETE_FINISH:
+            return "incomplete_response"
+        return "unparseable"
+
     def build_generations(self) -> None:
-        sc_dir = self.data / "stage_d" / "scored_combined"
-        paths = sorted(p for p in sc_dir.glob("*.jsonl"))
-        require(len(paths) == EXPECTED_MODELS, f"expected 21 scored_combined files, found {len(paths)}")
+        sc_dir = self.data / "stage_d" / "scored_independent_audit"
+        paths = sorted(p for p in sc_dir.glob("*.jsonl") if not p.name.startswith("_"))
+        require(len(paths) == EXPECTED_MODELS, f"expected 21 scored_independent_audit files, found {len(paths)}")
+        self.primary_audit = self._audit_final_records(
+            self.data / "independent_audit" / "production" / dict(PRODUCTION_RUNS)[PRIMARY_AUDITOR])
         gemini_api = {"google_gemini-3-flash-preview": "gemini-3-flash-preview",
                       "google_gemini-3.1-pro-preview": "gemini-3.1-pro-preview"}
         rows: list[dict] = []
@@ -780,23 +928,40 @@ class Builder:
                 # Rows with no executed assertions (no extractable code) score 0.0 in the pipeline.
                 harness = (sum(1 for s in status if s == "pass") / n_tests) if n_tests else 0.0
                 stats["no_tests_executed"] += n_tests == 0
-                pr = r.get("pass_rate")
-                require(pr is not None, f"{model_key}/{pid}: null pass_rate")
+                # Reviewed version's outcome (o4-mini audit, earlier frame only).
+                pr_rev = r.get("pass_rate_reviewed_o4mini_audit")
+                require(pr_rev is not None, f"{model_key}/{pid}: null reviewed pass_rate")
                 verdict = r.get("judge_verdict")
                 frame = FRAME_NAMES[prompt["selection_source"]]
                 if verdict in ("correct", "incorrect"):
                     source = "o4mini_audit_override"
                     require(frame == "earlier_retained", "audit override outside earlier frame")
-                    require(float(pr) == (1.0 if verdict == "correct" else 0.0), "override value mismatch")
+                    require(float(pr_rev) == (1.0 if verdict == "correct" else 0.0), "override value mismatch")
                 else:
                     source = "harness"
-                    require(harness is not None and abs(float(pr) - harness) < 1e-9,
+                    require(harness is not None and abs(float(pr_rev) - harness) < 1e-9,
                             f"{model_key}/{pid}: harness pass_rate mismatch")
                 if "harness_pass_rate" in r and r["harness_pass_rate"] is not None and harness is not None:
                     require(abs(float(r["harness_pass_rate"]) - harness) < 1e-9, "stored harness mismatch")
-                if source == "o4mini_audit_override" and harness is not None and abs(float(pr) - harness) > 1e-9:
+                if source == "o4mini_audit_override" and harness is not None and abs(float(pr_rev) - harness) > 1e-9:
                     stats["audit_override_changed_value"] += 1
                     stats[f"audit_override_changed_to_{verdict}"] += 1
+                # Primary outcome (independent audit), checked against the audit record itself.
+                pr = r.get("pass_rate")
+                require(pr is not None, f"{model_key}/{pid}: null pass_rate")
+                ind = r.get("independent_audit_verdict")
+                rec = self.primary_audit.get(f"{model_key}:{pid}")
+                require(final_verdict(rec) == ind, f"{model_key}/{pid}: stored verdict differs from the audit record")
+                if ind in ("correct", "incorrect"):
+                    ind_source = "independent_audit"
+                    require(float(pr) == (1.0 if ind == "correct" else 0.0), "independent audit value mismatch")
+                else:
+                    ind_source = "harness_fallback"
+                    require(abs(float(pr) - harness) < 1e-9, f"{model_key}/{pid}: fallback differs from harness")
+                handling = self._handling(rec)
+                stats[f"independent_audit_{handling}"] += 1
+                no_response = bool(r.get("generation_returned_no_response"))
+                stats["model_returned_no_response"] += no_response
                 cc = r.get("kappa_cyclomatic")
                 code = r.get("code_cleaned") or ""
                 stats["code_empty"] += not code.strip()
@@ -808,9 +973,13 @@ class Builder:
                     "construction_frame": frame,
                     "code": code,
                     "pass_rate": float(pr),
+                    "pass_rate_source": ind_source,
+                    "independent_audit_verdict": ind,
+                    "independent_audit_handling": handling,
                     "harness_pass_rate": harness,
-                    "pass_rate_source": source,
-                    "audit_verdict": verdict,
+                    "pass_rate_reviewed": float(pr_rev),
+                    "reviewed_audit_verdict": verdict,
+                    "model_returned_no_response": no_response,
                     "n_tests": n_tests,
                     "test_status": status,
                     "output_cc_lizard": inum(cc),
@@ -919,6 +1088,7 @@ class Builder:
                 row[f"kw_{name}"] = fnum(v) if name in KEYWORD_FLOAT else inum(v)
             row["n_models"] = len(gens)
             row["mean_pass_rate"] = float(np.mean([g["pass_rate"] for g in gens]))
+            row["mean_pass_rate_reviewed"] = float(np.mean([g["pass_rate_reviewed"] for g in gens]))
             hs = [g["harness_pass_rate"] for g in gens if g["harness_pass_rate"] is not None]
             row["mean_harness_pass_rate"] = float(np.mean(hs)) if hs else None
             row["in_human_calibration"] = pid in human_ids
@@ -1233,6 +1403,59 @@ class Builder:
         self.tables["cross_language_prompts"] = sorted(prows, key=lambda r: (r["target_language"], r["prompt_id"]))
         self.tables["cross_language_judge_scores"] = sorted(jrows, key=lambda r: (r["target_language"], r["prompt_id"], r["judge"]))
 
+    # ---- outcome audit ----------------------------------------------------------
+    def build_audit(self) -> None:
+        base = self.data / "independent_audit"
+        cases, responses = [], []
+        for set_name, (sub, runs) in KNOWN_ANSWER_RUNS.items():
+            ka = list(read_jsonl(base / sub / "known_answer_set.jsonl"))
+            require(len(ka) == 450, f"{set_name}: expected 450 known-answer cases, found {len(ka)}")
+            ids = []
+            for c in ka:
+                require(c["prompt_id"] in self.prompts_raw, f"{set_name}: known-answer prompt outside the benchmark")
+                ids.append(c["case_id"])
+                cases.append({"case_id": c["case_id"], "known_answer_set": set_name, "prompt_id": c["prompt_id"],
+                              "category": c["category"], "ground_truth": c["ground_truth"],
+                              "mutation": json.dumps(c["mutation"], sort_keys=True) if c.get("mutation") else None,
+                              "code": c["code"], "harness_pass_rate": fnum(c.get("harness_pass_rate"))})
+            for auditor, fname in runs:
+                final = self._audit_final_records(base / sub / fname)
+                missing = [cid for cid in ids if cid not in final]
+                require(not missing, f"{set_name}/{auditor}: {len(missing)} cases without a final record")
+                for cid in ids:
+                    rec = final[cid]
+                    usage = rec.get("usage") or {}
+                    responses.append({
+                        "known_answer_set": set_name, "auditor": auditor, "case_id": cid,
+                        "status": rec.get("status"), "verdict": rec.get("verdict"),
+                        "counted_verdict": final_verdict(rec), "finish_reason": rec.get("finish_reason"),
+                        "parse_status": rec.get("parse_status"), "reason": rec.get("reason") or None,
+                        "response_tail": rec.get("raw_tail") or None,
+                        "completion_tokens": inum(usage.get("completion_tokens")) if isinstance(usage, dict) else None})
+        require(len({c["case_id"] for c in cases}) == len(cases), "known-answer case ids repeat across sets")
+        self.tables["audit_known_answer_cases"] = cases
+        self.tables["audit_known_answer_responses"] = responses
+
+        sample = {r["case_id"] for r in read_jsonl(base / "production" / "audit_input_secondary_5pct.jsonl")}
+        rows = []
+        audit_report = {}
+        for auditor, fname in PRODUCTION_RUNS:
+            final = (self.primary_audit if auditor == PRIMARY_AUDITOR
+                     else self._audit_final_records(base / "production" / fname))
+            expected = EXPECTED_MAIN_PROMPTS * EXPECTED_MODELS if auditor == PRIMARY_AUDITOR else len(sample)
+            require(len(final) == expected, f"{auditor}: {len(final)} final records, expected {expected}")
+            for cid, rec in sorted(final.items()):
+                model_key, pid = cid.split(":", 1)
+                rows.append({"auditor": auditor, "model_key": model_key, "prompt_id": pid,
+                             "in_agreement_sample": cid in sample, "status": rec.get("status"),
+                             "verdict": rec.get("verdict"), "counted_verdict": final_verdict(rec),
+                             "finish_reason": rec.get("finish_reason"), "parse_status": rec.get("parse_status"),
+                             "reason": rec.get("reason") or None, "response_tail": rec.get("raw_tail") or None})
+            audit_report[auditor] = {"final_records": len(final),
+                                     "handling": dict(Counter(self._handling(r) for r in final.values()))}
+        self.tables["audit_production_verdicts"] = rows
+        self.report["audit"] = audit_report
+
     def build_models(self) -> None:
         rows = []
         for key, dev, roles, routes, served, weights, notes in MODELS_META:
@@ -1318,13 +1541,20 @@ class Builder:
         chk["mean_pass_rate_prompt_level"] = float(np.mean([p["mean_pass_rate"] for p in P]))
         chk["mean_harness_pass_rate_generation_level"] = float(np.nanmean(hr))
         comp = np.array([p["ens_composite"] for p in P])
-        mp = np.array([p["mean_pass_rate"] for p in P])
-        low = comp <= 13.75
         later = np.array([p["construction_frame"] == "later_candidate" for p in P])
-        chk["regime_at_13.75"] = {"n_low": int(low.sum()), "pass_low": float(mp[low].mean()),
-                                  "n_high": int((~low).sum()), "pass_high": float(mp[~low].mean()),
-                                  "later_frame_share_low": float(later[low].mean()),
-                                  "later_frame_share_high": float(later[~low].mean())}
+        # Headline breakpoints: 14.0 for the primary outcome, 13.75 for the reviewed version's.
+        for label, column, gamma in (("primary", "mean_pass_rate", 14.0),
+                                     ("reviewed", "mean_pass_rate_reviewed", 13.75)):
+            mp = np.array([p[column] for p in P])
+            low = comp <= gamma
+            chk[f"regime_{label}_at_{gamma}"] = {
+                "n_low": int(low.sum()), "pass_low": float(mp[low].mean()),
+                "n_high": int((~low).sum()), "pass_high": float(mp[~low].mean()),
+                "later_frame_share_low": float(later[low].mean()),
+                "later_frame_share_high": float(later[~low].mean())}
+        chk["mean_pass_rate_reviewed_generation_level"] = float(np.mean([g["pass_rate_reviewed"] for g in G]))
+        chk["independent_audit_handling"] = dict(Counter(g["independent_audit_handling"] for g in G))
+        chk["model_returned_no_response"] = dict(Counter(g["model_key"] for g in G if g["model_returned_no_response"]))
         dbins = Counter(p["display_bin"] for p in P)
         chk["main_display_bin_counts"] = {str(b): dbins[b] for b in sorted(dbins)}
         frames = defaultdict(list)
@@ -1388,9 +1618,9 @@ class Builder:
             if g["in_matched_five"]:
                 m5[g["prompt_id"]].append(g["pass_rate"])
         orig = defaultdict(list)
-        for g in G:
+        for g in G:  # raw harness on both sides: the extension runs saved no code to audit
             if g["model_key"] in MATCHED_FIVE:
-                orig[g["prompt_id"]].append(g["pass_rate"])
+                orig[g["prompt_id"]].append(g["harness_pass_rate"])
         pbin = {p["prompt_id"]: p["display_bin"] for p in P}
         ext_summary = {}
         for b in (15, 16, 17, 18):
@@ -1504,6 +1734,35 @@ class Builder:
     def fill_readme(self) -> None:
         readme = RELEASE_DIR / "README.md"
         text = readme.read_text(encoding="utf-8")
+        # Reverse-threshold numbers in the card come from the release itself.
+        comp_by = {p["prompt_id"]: p["ens_composite"] for p in self.tables["prompts"]}
+        zero = [g for g in self.tables["generations"] if g["output_cc_lizard"] is not None and g["pass_rate"] == 0.0]
+        cell = [g for g in zero if comp_by[g["prompt_id"]] > 8 and g["output_cc_lizard"] <= 10]
+        comp = np.array([p["ens_composite"] for p in self.tables["prompts"]])
+        regimes = {}
+        for token, column, gamma in (("__REG_PRIMARY__", "mean_pass_rate", 14.0),
+                                     ("__REG_REVIEWED__", "mean_pass_rate_reviewed", 13.75)):
+            mp = np.array([p[column] for p in self.tables["prompts"]])
+            low = comp <= gamma
+            regimes[token] = (f"{int(low.sum()):,} at {mp[low].mean():.3f} / "
+                              f"{int((~low).sum()):,} at {mp[~low].mean():.3f}")
+        # Matched-five raw-harness means at bins 15 and 16, extension vs original.
+        ext_bin = {r["prompt_id"]: r["display_bin"] for r in self.tables["extension_prompts"]}
+        pbin = {p["prompt_id"]: p["display_bin"] for p in self.tables["prompts"]}
+        ext, orig = defaultdict(list), defaultdict(list)
+        for g in self.tables["extension_generations"]:
+            if g["in_matched_five"]:
+                ext[g["prompt_id"]].append(g["pass_rate"])
+        for g in self.tables["generations"]:
+            if g["model_key"] in MATCHED_FIVE:
+                orig[g["prompt_id"]].append(g["harness_pass_rate"])
+        means = {(src, b): np.mean([np.mean(v) for p, v in d.items() if bins[p] == b])
+                 for src, d, bins in (("ext", ext, ext_bin), ("orig", orig, pbin)) for b in (15, 16)}
+        ext_text = "; ".join(f"{means[('ext', b)]:.3f} vs {means[('orig', b)]:.3f}" for b in (15, 16))
+        for token, value in (("__RT_CELL__", f"{len(cell):,}"), ("__RT_ZERO__", f"{len(zero):,}"),
+                             ("__RT_SHARE__", f"{100 * len(cell) / len(zero):.1f}%"),
+                             ("__EXT_MATCHED__", ext_text), *regimes.items()):
+            text = text.replace(token, value)
         parts = []
         for name, spec in CONFIGS.items():
             info = self.files[name][0]
@@ -1579,15 +1838,23 @@ class Builder:
             "conformsTo": "http://mlcommons.org/croissant/1.1",
             "name": "complexity-kink",
             "description": ("Prompt-side structural-complexity scores (four out-of-panel LLM judges and human "
-                            "calibration), 105,000 generated Python solutions from 21 LLMs with unit-test outcomes "
-                            "and Lizard output complexity, and robustness subsets, for 5,000 OpenCodeInstruct prompts "
-                            "plus a 365-prompt audit-clean high-complexity extension."),
+                            "calibration), 105,000 generated Python solutions from 21 LLMs with unit-test outcomes, "
+                            "an independent LLM audit of every test verdict (with its known-answer validation sets), "
+                            "and Lizard output complexity, plus robustness subsets, for 5,000 OpenCodeInstruct "
+                            "prompts and a 365-prompt audit-clean high-complexity extension."),
             "license": "https://creativecommons.org/licenses/by/4.0/",
-            "url": "https://huggingface.co/datasets/TODO-author/complexity-kink",
+            # The code repository links the dataset; replace with the dataset page once it is published.
+            "url": "https://github.com/uwm-se/ComplexityKink",
             "version": "1.0.0",
             "datePublished": dt.date.today().isoformat(),
-            "creator": {"@type": "sc:Person", "name": "TODO(author): author list"},
-            "citeAs": "TODO(author): BibTeX for the NeurIPS 2026 paper",
+            "creator": [{"@type": "sc:Person", "name": "Michael Hernandez",
+                         "affiliation": "University of Wisconsin-Milwaukee"},
+                        {"@type": "sc:Person", "name": "Tian Zhao",
+                         "affiliation": "University of Wisconsin-Milwaukee"}],
+            "citeAs": ("@inproceedings{hernandez2026complexitykink, title={The Complexity Kink: LLM Rubric "
+                       "Instruments for Causal Inference on Code Generation Reliability}, author={Hernandez, "
+                       "Michael and Zhao, Tian}, booktitle={Advances in Neural Information Processing Systems, "
+                       "Evaluations and Datasets Track}, year={2026}}"),
             "keywords": ["code generation", "LLM evaluation", "LLM-as-judge", "cyclomatic complexity",
                          "benchmark", "Python", "reliability breakpoints"],
             "inLanguage": "en",
@@ -1643,6 +1910,8 @@ def main() -> None:
     b.build_passk()
     b.build_human()
     b.build_paraphrase_and_xl()
+    b.build_audit()
+    print("built outcome-audit tables")
     b.build_models()
     b.write_all()
     b.write_docs()

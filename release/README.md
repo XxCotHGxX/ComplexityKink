@@ -78,6 +78,18 @@ configs:
   data_files:
   - split: test
     path: cross_language_judge_scores/test-*.parquet
+- config_name: audit_known_answer_cases
+  data_files:
+  - split: test
+    path: audit_known_answer_cases/test-*.parquet
+- config_name: audit_known_answer_responses
+  data_files:
+  - split: test
+    path: audit_known_answer_responses/test-*.parquet
+- config_name: audit_production_verdicts
+  data_files:
+  - split: test
+    path: audit_production_verdicts/test-*.parquet
 - config_name: models
   data_files:
   - split: test
@@ -88,34 +100,37 @@ configs:
 
 This dataset accompanies the NeurIPS 2026 Evaluations & Datasets track paper
 *The Complexity Kink: LLM Rubric Instruments for Causal Inference on Code
-Generation Reliability*. <!-- TODO(author): confirm final camera-ready title and add the paper link. -->
+Generation Reliability* (Michael Hernandez and Tian Zhao, University of
+Wisconsin-Milwaukee). Code and analysis: <https://github.com/uwm-se/ComplexityKink>.
 
-It measures the structural complexity of 5,000 Python programming tasks **before**
-any evaluated model writes code, and pairs that measurement with 105,000
-generated solutions (21 LLMs x 5,000 prompts), their unit-test outcomes, and the
-cyclomatic complexity of the generated code. It also contains the paper's
-robustness data: a 365-prompt audit-clean high-complexity extension, a
-repeated-sampling subset, blinded human rubric grades, task-type labels, and
-paraphrase and Java/C++ rescoring sets.
+It scores the structural complexity of 5,000 Python programming tasks from the
+prompt alone, never from a model's code or test results, and pairs that score with
+105,000 generated solutions (21 LLMs x 5,000 prompts), their unit-test outcomes,
+an independent LLM audit of every test verdict, and the cyclomatic complexity of
+the generated code. It also contains the paper's robustness data: a 365-prompt
+audit-clean high-complexity extension, a repeated-sampling subset, blinded human
+rubric grades, task-type labels, paraphrase and Java/C++ rescoring sets, and the
+known-answer sets used to choose and check the auditor.
 
 The motivation is a measurement problem. Complexity computed from generated code
 is failure-dependent: a hard prompt can yield a short failing program and land in
-a low-complexity bin. Scoring the prompt instead avoids that timing problem. In
-this data, 4,216 of 14,776 zero-pass generations with computable output
-complexity (28.5%) pair a prompt composite above 8 with output complexity of at
-most 10.
+a low-complexity bin. Scoring the prompt instead avoids that problem. In this
+data, 3,561 of 14,247 failed generations (outcome 0) with computable
+output complexity (25.0%) pair a prompt composite above 8 with output
+complexity of at most 10.
 
 ## Quick start
 
 ```python
 from datasets import load_dataset
 
-repo = "TODO-author/complexity-kink"  # TODO(author): final Hugging Face repo id
+repo = "TODO-author/complexity-kink"  # TODO(author): the Hugging Face repo id, once created
 prompts = load_dataset(repo, "prompts", split="test")
 gens = load_dataset(repo, "generations", split="test")
 
-# Prompt-level outcome used in the paper: pass rate averaged over the 21 models.
-df = prompts.to_pandas()[["prompt_id", "ens_composite", "mean_pass_rate", "construction_frame"]]
+# Prompt-level primary outcome: audited pass rate averaged over the 21 models.
+df = prompts.to_pandas()[["prompt_id", "ens_composite", "mean_pass_rate",
+                          "mean_pass_rate_reviewed", "mean_harness_pass_rate", "construction_frame"]]
 ```
 
 All configs share `prompt_id` (the OpenCodeInstruct record `id`) and model
@@ -127,9 +142,9 @@ evaluation dataset and should not be used for training.
 <!-- INVENTORY:BEGIN -->
 | Config | Rows | File size |
 |---|---:|---:|
-| `prompts` | 5,000 | 2.31 MB |
+| `prompts` | 5,000 | 2.32 MB |
 | `judge_scores` | 19,997 | 0.34 MB |
-| `generations` | 105,000 | 32.89 MB |
+| `generations` | 105,000 | 32.93 MB |
 | `extension_prompts` | 365 | 0.12 MB |
 | `extension_judge_scores` | 1,460 | 0.03 MB |
 | `extension_generations` | 2,190 | 0.01 MB |
@@ -141,7 +156,10 @@ evaluation dataset and should not be used for training.
 | `paraphrase_judge_scores` | 600 | 0.01 MB |
 | `cross_language_prompts` | 234 | 0.07 MB |
 | `cross_language_judge_scores` | 936 | 0.02 MB |
-| `models` | 30 | 0.01 MB |
+| `audit_known_answer_cases` | 900 | 0.19 MB |
+| `audit_known_answer_responses` | 3,150 | 0.34 MB |
+| `audit_production_verdicts` | 115,500 | 13.96 MB |
+| `models` | 35 | 0.01 MB |
 <!-- INVENTORY:END -->
 
 | Group | Configs | What it is |
@@ -149,6 +167,7 @@ evaluation dataset and should not be used for training.
 | Main benchmark | `prompts`, `judge_scores`, `generations` | 5,000 prompts, 19,997 per-judge rubric rows, 105,000 generations |
 | High-complexity extension | `extension_prompts`, `extension_judge_scores`, `extension_generations`, `fixed_version_generations` | 365 audit-clean, reference-verified prompts at ensemble composite >= 15 |
 | Robustness checks | `passk_generations`, `human_calibration`, `task_type_labels`, `paraphrase_prompts`, `paraphrase_judge_scores`, `cross_language_prompts`, `cross_language_judge_scores` | Repeated sampling, human grades, task taxonomy, rewrites, language re-expressions |
+| Outcome audit | `audit_known_answer_cases`, `audit_known_answer_responses`, `audit_production_verdicts` | Known-answer sets used to choose and confirm the auditor, every auditor's responses on them, and the production verdicts of the adopted auditor (all 105,000 generations) and two second auditors (5% sample) |
 | Metadata | `models` | Developer, role, access route, and documented settings for every model |
 
 Supporting files: `docs/rubric_prompt.txt` (the exact rubric given to every judge;
@@ -168,18 +187,31 @@ SHA-256 `3bbf9bb0...a8`), `docs/generation_system_prompts.json`, and
 - **Construction frame**: `earlier_retained` (2,246 prompts kept from an earlier
   prefix-scan draw) or `later_candidate` (2,754 later candidates, including
   deliberate high reference-complexity supplementation). The two frames differ
-  sharply in mean index (7.92 vs 11.42) and mean pass rate (0.747 vs 0.880).
+  sharply in mean index (7.92 vs 11.42) and mean pass rate (0.795 vs 0.897 on the
+  primary outcome). Each model's two frames were also generated in separate runs
+  (weeks apart, sometimes through different routes or token limits; see the
+  `gen_*` fields and the `models` config), so the frame marks the generation run
+  as well as the prompt source.
 - **Display bin**: `floor(composite + 0.5)`, so bin *b* holds [b-0.5, b+0.5).
   Bins are for description only; breakpoints are estimated on the unbinned index.
-- **`pass_rate` vs `harness_pass_rate`**: `harness_pass_rate` is the fraction of
-  assertions that passed when the generated code was executed. `pass_rate` is
-  the value used in the paper. They are identical for `later_candidate` rows. For
-  `earlier_retained` rows, an o4-mini audit of the harness verdict set
-  `pass_rate` to 1.0 (`correct`) or 0.0 (`incorrect`); this changed the value in
-  23,848 of 47,166 earlier-frame rows (15,725 raised to 1.0, 8,123 lowered to
-  0.0). Mean pass rate over all generations is 0.820 (`pass_rate`) versus 0.792
-  (`harness_pass_rate`). Use `pass_rate_source` to separate them.
-  <!-- TODO(author): confirm this description and reconcile with the manuscript, which defines pass rate as the fraction of supplied unit tests passed. -->
+- **Three outcome definitions** (all in `generations`):
+  - `harness_pass_rate`: the fraction of unit-test assertions that passed when
+    the generated code was executed.
+  - `pass_rate` (**primary**, used in the camera-ready paper): an independent LLM
+    auditor (MiMo-V2.6-Pro, from a vendor used nowhere else in the study) read
+    each generation's task, code, tests, and harness result. A `correct` verdict
+    sets `pass_rate` to 1.0 and `incorrect` to 0.0; uncertain, unparseable, or
+    cut-off responses keep the harness value (`independent_audit_handling`
+    says which). Generations with no code are 0.0 by rule. For 98.9% of rows the
+    value is therefore a binary verdict. Mean over all generations: 0.851.
+  - `pass_rate_reviewed`: the reviewed (submitted) version's outcome, in which an
+    o4-mini audit set values to 1.0 or 0.0 in the earlier frame only (23,848 of
+    47,166 earlier-frame rows changed). Mean: 0.820, against 0.792 for
+    `harness_pass_rate`.
+- **No-response generations**: 157 generations (156 from Gemini 3.1 Pro Preview,
+  from one batch) came back from the model API with no response at all
+  (`model_returned_no_response`). They count as failures in the primary
+  analysis; the paper also reports results with them treated as missing.
 - **Output complexity (`output_cc_lizard`)**: McCabe cyclomatic complexity of
   the generated code computed with Lizard 1.21.0 and summed over functions;
   available for 103,948 of 105,000 generations. It is never the prompt index and
@@ -197,19 +229,32 @@ SHA-256 `3bbf9bb0...a8`), `docs/generation_system_prompts.json`, and
 3. **Ensemble scoring.** After the set was locked, four judges outside the
    evaluated panel rescored every prompt with the same rubric prompt: 19,997
    valid rows (4,998 prompts with four judges, one with three, one with two).
-   Composite ICC(2,1) = 0.872 on the 4,998 complete prompts.
+   Composite ICC(2,1) = 0.872 on the 4,998 complete prompts. The judges saw only
+   the prompt text. This scoring took place after most generations already
+   existed, but it never used them.
 4. **Generation.** Each of 21 models produced one solution per prompt through
    provider APIs, batch APIs, OpenRouter, or locally served quantized builds
-   (see the `models` config). Raw API responses are not released; `code` is the
-   cleaned code that was executed and measured.
-5. **Execution and measurement.** Each unit-test assertion was executed
-   separately in an isolated working directory with timeouts; Lizard measured
+   (see the `models` config). Three system-prompt variants were used
+   (`docs/generation_system_prompts.json`); per-row settings are in the `gen_*`
+   fields where a request record was retained. Raw API responses are not
+   released; `code` is the cleaned code that was executed and measured.
+5. **Execution and measurement.** Each unit-test assertion was executed in a
+   fresh Python process (isolated mode) with a 5-second timeout; Lizard measured
    the generated code.
-6. **Robustness data.** Task-type labels (nine categories; o4-mini on all
+6. **Outcome audit.** Before any auditor was scored, a protocol fixed a
+   known-answer set and a selection rule (`audit_known_answer_*` configs). No
+   candidate met the rule in full; the adopted auditor (MiMo-V2.6-Pro) missed the
+   clean-accuracy threshold by three cases on set A and met every threshold on a
+   fresh set B. It then audited all 105,000 generations; two other auditors
+   audited a seeded 5% sample for agreement (`audit_production_verdicts`). The
+   protocol, its amendments, and the code are in the GitHub repository
+   (`docs/independent_audit_protocol.md`, `src/audit/`).
+7. **Robustness data.** Task-type labels (nine categories; o4-mini on all
    prompts, three more labelers on 500), blinded human grades, 150 paraphrases
    and 117 Java/C++ re-expressions written by DeepSeek-V3.2 and rescored by the
    judges, and a 359-prompt x 4-model x 5-draw repeated-sampling subset at
-   temperature 0.8.
+   temperature 0.8 (with code; its outcomes are raw harness values, as these
+   generations were not included in the independent audit).
 
 ### The 365-prompt audit-clean extension
 
@@ -221,9 +266,12 @@ removed every prompt carrying an exclusion flag (764 prompts; flags included
 hidden test callables, I/O-style prompts with callable tests, external fixtures
 or globals, and duplicate tests), leaving 365. All 365 reference solutions pass
 every test when re-executed. Display bins 15/16/17/18 hold 218/133/11/3 prompts.
-Six Azure-hosted models generated one solution each at temperature 0.0 (five of
-them are also in the main panel and form the paper's matched frame); the run
-did not retain generated code, so `extension_generations` has outcomes only. The
+Six Azure-hosted models generated one solution each at temperature 0.0 with a
+system prompt (variant C) that, unlike the main runs, tells the model to define
+exactly the functions the task names (five of the models are also in the main
+panel and form the paper's matched frame); the run did not retain generated
+code, so `extension_generations` has raw harness outcomes only and could not be
+audited. The
 `fixed_version_generations` config holds the three exact-version frontier-model
 runs on the 365 prompts plus 150 main-benchmark anchors. Candidate rows that did
 not survive the audit are not released.
@@ -292,7 +340,8 @@ The 5,000-prompt Python benchmark: prompt text, unit tests, source metadata, pre
 | `kw_inst_total_structural` | int | Keyword/lexical prompt feature `inst_total_structural` (pre-generation lexical baseline). |
 | `kw_inst_avg_word_len` | float | Keyword/lexical prompt feature `inst_avg_word_len` (pre-generation lexical baseline). |
 | `n_models` | int | Number of evaluated-panel generations for this prompt (21). |
-| `mean_pass_rate` | float | Mean of generations.pass_rate over the 21 models (the prompt-level outcome used in the paper). |
+| `mean_pass_rate` | float | Mean of generations.pass_rate (the audited primary outcome) over the 21 models: the prompt-level outcome of the camera-ready paper. |
+| `mean_pass_rate_reviewed` | float | Mean of generations.pass_rate_reviewed over the 21 models (the reviewed version's prompt-level outcome). |
 | `mean_harness_pass_rate` | float | Mean of generations.harness_pass_rate over the 21 models (pure test-execution fraction). |
 | `in_human_calibration` | bool | Prompt was graded in the human calibration study. |
 | `in_passk_subset` | bool | Prompt is in the 359-prompt repeated-sampling subset. |
@@ -320,7 +369,7 @@ Per-judge rubric scores for the 5,000 main prompts (19,997 rows; four out-of-pan
 
 #### `generations` (105,000 rows)
 
-One generated solution per (model, prompt) for the 21-model panel on the 5,000 main prompts (105,000 rows): cleaned code, per-test outcomes, pass rates, Lizard output CC, and recovered generation settings. Raw API responses are not included.
+One generated solution per (model, prompt) for the 21-model panel on the 5,000 main prompts (105,000 rows): cleaned code, per-test outcomes, three outcome definitions (the audited primary outcome, the reviewed version's outcome, and the raw harness fraction), the auditor's verdict, Lizard output CC, and recovered generation settings. Raw API responses are not included.
 
 | Field | Type | Description |
 |---|---|---|
@@ -329,10 +378,14 @@ One generated solution per (model, prompt) for the 21-model panel on the 5,000 m
 | `prompt_id` | string | Prompt identifier (joins to prompts). |
 | `construction_frame` | string | Construction frame of the prompt (copied from prompts). |
 | `code` | string | Cleaned generated Python code exactly as executed and measured (extracted from the model response). Empty string when no code could be extracted; a small number of rows retain markdown fences. |
-| `pass_rate` | float | Outcome used in the paper's analyses. For later_candidate prompts it equals harness_pass_rate. For earlier_retained prompts, where the o4-mini harness audit returned 'correct' or 'incorrect', it was set to 1.0 or 0.0 (see pass_rate_source). |
+| `pass_rate` | float | Primary outcome of the camera-ready paper: 1.0 if the independent auditor (MiMo-V2.6-Pro) judged the code correct, 0.0 if incorrect or if there is no code (empty-code rule); otherwise (uncertain, unparseable, or a response cut off by the token limit or a content filter) harness_pass_rate. |
+| `pass_rate_source` | string | 'independent_audit' when pass_rate comes from a correct/incorrect verdict or the empty-code rule, else 'harness_fallback'. |
+| `independent_audit_verdict` | string | Counted verdict of the independent auditor: correct, incorrect, uncertain, or null (unparseable or incomplete response). |
+| `independent_audit_handling` | string | auditor_verdict, auditor_uncertain, unparseable, incomplete_response (cut off by the token limit or a content filter), or empty_code_rule (no code; marked incorrect without an auditor request). |
 | `harness_pass_rate` | float | Fraction of unit-test assertions that passed when the code was executed (from test_status). |
-| `pass_rate_source` | string | 'harness' or 'o4mini_audit_override' (earlier_retained rows whose pass_rate was set from the audit verdict). |
-| `audit_verdict` | string | o4-mini harness-audit verdict for earlier_retained rows: correct, incorrect, uncertain, or null (not audited / later_candidate). |
+| `pass_rate_reviewed` | float | Outcome of the reviewed (submitted) version: harness_pass_rate, except that for earlier_retained prompts an o4-mini audit verdict of correct or incorrect set it to 1.0 or 0.0. |
+| `reviewed_audit_verdict` | string | The reviewed version's o4-mini harness-audit verdict (earlier_retained rows only): correct, incorrect, uncertain, or null. |
+| `model_returned_no_response` | bool | The model API returned no response at all (time-out, cancelled operation, or empty response). These 157 rows (156 Gemini 3.1 Pro Preview) count as failures in the primary analysis; the paper also reports results treating them as missing. |
 | `n_tests` | int | Number of executed assertions. |
 | `test_status` | list<string> | Per-assertion outcome ('pass'/'fail'), in unit_tests order. |
 | `output_cc_lizard` | int | Generated-output cyclomatic complexity: Lizard CC of `code`, summed over reported functions. Null when not computable (1,052 rows). Never the prompt index or reference CC. |
@@ -535,7 +588,58 @@ Per-judge rubric scores of the Java and C++ re-expressions (936 rows).
 | `rubric_sha256` | string | SHA-256 of the exact rubric system prompt (docs/rubric_prompt.txt). |
 | `scored_at` | string | UTC timestamp of the scoring call (ISO 8601). |
 
-#### `models` (30 rows)
+#### `audit_known_answer_cases` (900 rows)
+
+Known-answer cases used to select (set A) and confirm (set B) the outcome auditor. For each of 150 benchmark prompts per set whose reference solution passes every unit test: the normalized reference (clean, correct), a copy with the test-called names renamed so the harness fails it (cosmetic, correct), and the most subtle single-AST mutation the tests detect (bug, incorrect), all executed in the benchmark harness (900 rows). Labels come from the harness and construction, not human review; some clean references violate task instructions the tests do not check.
+
+| Field | Type | Description |
+|---|---|---|
+| `case_id` | string | Case identifier: <prompt_id>:<variant>. |
+| `known_answer_set` | string | A_selection (auditor selection, seed 20260928) or B_confirmation (fresh prompts, seed 20260930). |
+| `prompt_id` | string | Benchmark prompt identifier (joins to prompts). |
+| `category` | string | clean, cosmetic, or bug. |
+| `ground_truth` | string | correct (clean, cosmetic) or incorrect (bug). |
+| `mutation` | string | For bug cases, the AST mutation kind and site (JSON); null otherwise. |
+| `code` | string | The code shown to the auditors. |
+| `harness_pass_rate` | float | Fraction of unit tests the case passes in the benchmark harness. |
+
+#### `audit_known_answer_responses` (3,150 rows)
+
+Every auditor response on the known-answer sets: five candidate auditors and the reviewed version's o4-mini audit (diagnostic) on set A, and the adopted auditor on set B (3,150 rows).
+
+| Field | Type | Description |
+|---|---|---|
+| `known_answer_set` | string | A_selection or B_confirmation. |
+| `auditor` | string | Auditor model key (joins to models). |
+| `case_id` | string | Known-answer case (joins to audit_known_answer_cases). |
+| `status` | string | ok, parse_error, or api_error as recorded by the audit client. |
+| `verdict` | string | Verdict parsed from the response (correct, incorrect, uncertain, or null). |
+| `counted_verdict` | string | Verdict after the completeness rule (null if the response was cut off by the token limit or a content filter); used for every reported rate. |
+| `finish_reason` | string | Finish reason reported by the endpoint. |
+| `parse_status` | string | json, regex, parse_error, or rule. |
+| `reason` | string | The auditor's stated reason. |
+| `response_tail` | string | Last 600 characters of the response. |
+| `completion_tokens` | int | Completion tokens reported by the endpoint (may exclude reasoning tokens on some routes). |
+
+#### `audit_production_verdicts` (115,500 rows)
+
+Outcome-audit verdicts for the main benchmark: the adopted auditor on all 105,000 generations and two second auditors on the seeded 5% agreement sample (5,250 generations each), 115,500 rows. The last final record per generation is kept, as in the analysis.
+
+| Field | Type | Description |
+|---|---|---|
+| `auditor` | string | Auditor model key (joins to models). |
+| `model_key` | string | Evaluated model (joins to models). |
+| `prompt_id` | string | Prompt identifier (joins to prompts). |
+| `in_agreement_sample` | bool | Generation is in the seeded 5% agreement sample. |
+| `status` | string | ok, parse_error, or api_error as recorded by the audit client. |
+| `verdict` | string | Verdict parsed from the response. |
+| `counted_verdict` | string | Verdict after the completeness rule; for the adopted auditor this is generations.independent_audit_verdict. |
+| `finish_reason` | string | Finish reason reported by the endpoint. |
+| `parse_status` | string | json, regex, parse_error, or rule (empty code: incorrect without a request). |
+| `reason` | string | The auditor's stated reason. |
+| `response_tail` | string | Last 600 characters of the response. |
+
+#### `models` (35 rows)
 
 Metadata for every model whose outputs or labels appear in the release: developer, role(s), access route, served model string, and documented generation settings.
 
@@ -583,10 +687,11 @@ Metadata for every model whose outputs or labels appear in the release: develope
   constructed frame, the scoring index, generation settings, and the unit-test
   protocol. The prompt distribution is neither the natural OpenCodeInstruct
   distribution nor balanced on the final index.
-- **Construction-frame composition.** Later candidates make up 39.9% of prompts
-  at or below composite 13.75 but 94.7% above it, so the pooled rebound is
-  largely a composition effect. Control for `construction_frame` in any pooled
-  analysis.
+- **Construction-frame composition.** Later candidates make up 41.0% of prompts
+  at or below composite 14.0 (the primary-outcome breakpoint) but 95.4% above it,
+  so the pooled rebound is largely a composition effect. The frame also marks
+  the generation run and test quality (below). Control for `construction_frame`
+  in any pooled analysis.
 - **Python only.** Java and C++ data are rescoring of re-expressed prompts; no
   non-Python code was generated or executed.
 - **LLM-judge index with moderate human agreement.** On a disagreement-enriched
@@ -598,16 +703,21 @@ Metadata for every model whose outputs or labels appear in the release: develope
   the 2,246 `earlier_retained` prompts the source-supplied reference
   `average_test_score` is below 1.0 (491 at 0.0); every `later_candidate` and
   extension prompt has a fully passing reference. See
-  `source_reference_avg_test_score`.
-  <!-- TODO(author): confirm whether earlier-frame prompts were meant to require a passing reference. -->
+  `source_reference_avg_test_score`. The earlier frame was not passed through
+  the contract and test-quality filter applied to later candidates.
 - **Heterogeneous generation settings.** Temperature (0.0, 0.2, or provider
   default), output-token caps, system prompts, and access routes differ across
   models and frames. Per-row settings are released where a batch request record
   was retained (24,675 rows); otherwise see the `models` config. Several
   open-weight models were served as 4-bit or 8-bit GGUF quantizations, and the
-  model labeled "Mistral Small 2412" was served as Devstral-Small-2505 (Q4_K_M).
+  model whose experiment key is `mistral-small-2412` was served as
+  Devstral-Small-2505 (Q4_K_M), the name used in the paper. Each model's two
+  frames were generated in separate runs weeks apart, and the extension and
+  pass@k runs used a system prompt (variant C) that names the functions to
+  define, which the main runs did not.
 - **Missing values.** `output_cc_lizard` is null for 1,052 generations; 208
-  generations have no extractable code (scored 0.0); 129 `code` values retain
+  generations have no extractable code (scored 0.0; 157 of them because the
+  model API returned no response); 129 `code` values retain
   markdown fences. Two prompts have fewer than four judge scores.
 - **Sparse tails.** Main-benchmark display bins 0 and 17-19 hold 3, 45, 6, and 5
   prompts; the extension adds only 14 prompts above bin 16.
@@ -645,7 +755,7 @@ redistribution; see the `models` config for the full list of models and routes.
 ```bibtex
 @inproceedings{complexitykink2026,
   title     = {The Complexity Kink: LLM Rubric Instruments for Causal Inference on Code Generation Reliability},
-  author    = {TODO(author)},
+  author    = {Hernandez, Michael and Zhao, Tian},
   booktitle = {Advances in Neural Information Processing Systems (NeurIPS), Evaluations and Datasets Track},
   year      = {2026}
 }
@@ -663,8 +773,9 @@ These values were recomputed from the released files by
 | Main prompts / generations / judge rows | 5,000 / 105,000 / 19,997 | 5,000 / 105,000 / 19,997 |
 | Four-judge composite ICC(2,1), complete cases | 0.872 (n = 4,998) | 0.8719 (n = 4,998) |
 | Generations with Lizard output CC | 103,948 | 103,948 |
-| Prompts at or below / above 13.75 and mean pass | 3,617 at 0.799 / 1,383 at 0.876 | 3,617 at 0.799 / 1,383 at 0.876 |
-| Zero-pass complete cases in the reverse-threshold cell | 4,216 of 14,776 (28.5%) | 4,216 of 14,776 (28.5%) |
+| Prompts at or below / above 14.0 and mean pass (primary outcome) | 3,703 at 0.834 / 1,297 at 0.901 | 3,703 at 0.834 / 1,297 at 0.901 |
+| Prompts at or below / above 13.75 and mean pass (reviewed outcome) | 3,617 at 0.799 / 1,383 at 0.876 | 3,617 at 0.799 / 1,383 at 0.876 |
+| Failed complete cases in the reverse-threshold cell (primary outcome) | 3,561 of 14,247 (25.0%) | 3,561 of 14,247 (25.0%) |
 | Human grader 1 vs ensemble (n = 200): Pearson / ICC(2,1) | 0.408 / 0.395 | 0.408 / 0.395 |
 | Extension bins 15/16/17/18 | 218/133/11/3 | 218/133/11/3 |
-| Matched-five pass, bin 15 and 16 (extension vs original) | 0.880 vs 0.894; 0.799 vs 0.808 | 0.880 vs 0.894; 0.799 vs 0.808 |
+| Matched-five raw-harness pass, bin 15 and 16 (extension vs original) | 0.880 vs 0.890; 0.799 vs 0.795 | 0.880 vs 0.890; 0.799 vs 0.795 |

@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-28T19:09:51+00:00",
+  "generated_at_utc": "2026-09-30T05:23:25+00:00",
   "pitfall_stale_ensemble_overlap": 2151,
   "judge_rows_dropped_invalid": {
     "gpt-5.5": 4,
@@ -91,11 +91,17 @@
     "no_tests_executed": 208,
     "audit_override_changed_value": 23848,
     "audit_override_changed_to_correct": 15725,
+    "independent_audit_auditor_verdict": 103655,
+    "model_returned_no_response": 157,
     "code_empty": 208,
     "code_with_fence": 129,
     "settings_not_recorded_per_row": 80325,
     "settings_batch_request_record": 24675,
-    "audit_override_changed_to_incorrect": 8123
+    "audit_override_changed_to_incorrect": 8123,
+    "independent_audit_unparseable": 951,
+    "independent_audit_auditor_uncertain": 177,
+    "independent_audit_incomplete_response": 9,
+    "independent_audit_empty_code_rule": 208
   },
   "keyword_feature_conflicts_across_models": 0,
   "subset_sizes": {
@@ -116,6 +122,37 @@
     "24bin_overlap_with_main_benchmark": 3072
   },
   "human_calibration_selection_replicated": true,
+  "audit": {
+    "auditor:mimo-v2.6-pro": {
+      "final_records": 105000,
+      "handling": {
+        "auditor_verdict": 103655,
+        "auditor_uncertain": 177,
+        "unparseable": 951,
+        "incomplete_response": 9,
+        "empty_code_rule": 208
+      }
+    },
+    "auditor:mai-thinking-1": {
+      "final_records": 5250,
+      "handling": {
+        "auditor_verdict": 5232,
+        "auditor_uncertain": 7,
+        "empty_code_rule": 10,
+        "unparseable": 1
+      }
+    },
+    "auditor:phi-4-reasoning": {
+      "final_records": 5250,
+      "handling": {
+        "auditor_verdict": 5059,
+        "incomplete_response": 117,
+        "unparseable": 60,
+        "auditor_uncertain": 4,
+        "empty_code_rule": 10
+      }
+    }
+  },
   "rubric_hash": {
     "computed": "3bbf9bb0c93c684dd5b8109fa5610501a8df42a89443a5441ac9075de33144a8",
     "judge_rows": [
@@ -145,16 +182,36 @@
       "17": 11,
       "18": 3
     },
-    "mean_pass_rate_generation_level": 0.820444761904762,
-    "mean_pass_rate_prompt_level": 0.820444761904762,
+    "mean_pass_rate_generation_level": 0.8513771428571429,
+    "mean_pass_rate_prompt_level": 0.8513771428571428,
     "mean_harness_pass_rate_generation_level": 0.7916,
-    "regime_at_13.75": {
+    "regime_primary_at_14.0": {
+      "n_low": 3703,
+      "pass_low": 0.8338464308218562,
+      "n_high": 1297,
+      "pass_high": 0.9014282042809414,
+      "later_frame_share_low": 0.40966783688900893,
+      "later_frame_share_high": 0.9537393986121819
+    },
+    "regime_reviewed_at_13.75": {
       "n_low": 3617,
       "pass_low": 0.7993088194636438,
       "n_high": 1383,
       "pass_high": 0.8757222050063699,
       "later_frame_share_low": 0.39922587779928115,
       "later_frame_share_high": 0.9472161966738973
+    },
+    "mean_pass_rate_reviewed_generation_level": 0.820444761904762,
+    "independent_audit_handling": {
+      "auditor_verdict": 103655,
+      "unparseable": 951,
+      "auditor_uncertain": 177,
+      "incomplete_response": 9,
+      "empty_code_rule": 208
+    },
+    "model_returned_no_response": {
+      "google_gemini-3-flash-preview": 1,
+      "google_gemini-3.1-pro-preview": 156
     },
     "main_display_bin_counts": {
       "0": 3,
@@ -182,7 +239,7 @@
       "earlier_retained": {
         "n": 2246,
         "mean_composite": 7.922232116355002,
-        "mean_pass_rate": 0.7472480176398253,
+        "mean_pass_rate": 0.7951384471865326,
         "mean_harness_pass_rate": 0.6830343891786457,
         "ref_avg_test_score_lt_1": 1259,
         "ref_avg_test_score_eq_0": 491
@@ -190,7 +247,7 @@
       "later_candidate": {
         "n": 2754,
         "mean_composite": 11.41884531590414,
-        "mean_pass_rate": 0.8801397102050696,
+        "mean_pass_rate": 0.8972421067192309,
         "mean_harness_pass_rate": 0.8801397102050696,
         "ref_avg_test_score_lt_1": 0,
         "ref_avg_test_score_eq_0": 0
@@ -214,10 +271,10 @@
     },
     "reference_cc_available": 5000,
     "generations_with_lizard_cc": 103948,
-    "zero_pass_complete_cases": 14776,
-    "reverse_threshold_cell": 4216,
-    "reverse_threshold_share": 0.2853275582024905,
-    "zero_pass_without_cc": 977,
+    "zero_pass_complete_cases": 14247,
+    "reverse_threshold_cell": 3561,
+    "reverse_threshold_share": 0.24994735733838702,
+    "zero_pass_without_cc": 969,
     "icc_2_1_composite": {
       "n_complete": 4998,
       "icc": 0.8719344824248982
@@ -244,19 +301,19 @@
         "extension_n": 218,
         "extension_mean": 0.880183486238532,
         "original_n": 850,
-        "original_mean": 0.8940941176470587
+        "original_mean": 0.8895764705882353
       },
       "16": {
         "extension_n": 133,
         "extension_mean": 0.7990977443609023,
         "original_n": 257,
-        "original_mean": 0.8084824902723735
+        "original_mean": 0.795330739299611
       },
       "17": {
         "extension_n": 11,
         "extension_mean": 0.6818181818181818,
         "original_n": 45,
-        "original_mean": 0.7182222222222222
+        "original_mean": 0.7293333333333334
       },
       "18": {
         "extension_n": 3,
@@ -334,8 +391,12 @@
   },
   "sanitization_scan": {
     "sk-": {
-      "matches": 3,
+      "matches": 140,
       "by_column": {
+        "audit_production_verdicts.response_tail": 65,
+        "audit_production_verdicts.reason": 62,
+        "audit_known_answer_responses.reason": 5,
+        "audit_known_answer_responses.response_tail": 5,
         "generations.code": 3
       },
       "examples": [
@@ -346,21 +407,50 @@
         {
           "where": "generations.code",
           "context": "he\"\n    response.headers[\"X-Server\"] = \"Simple-Flask-Server\"\n    return response\n\n\n@app.route(\"/\", methods=[\""
+        },
+        {
+          "where": "audit_known_answer_responses.reason",
+          "context": "d skills, and the code does not enforce the one-task-per-worker constraint."
+        },
+        {
+          "where": "audit_known_answer_responses.reason",
+          "context": "worker-task compatibility, fails to enforce one-task-per-worker, and implements an incorrect colleague constraint"
+        },
+        {
+          "where": "audit_known_answer_responses.reason",
+          "context": "league rule and could KeyError; the at-most-one-task-per-worker rule is also not enforced."
+        },
+        {
+          "where": "audit_known_answer_responses.reason",
+          "context": "[worker]` is always False), and the at-most-one-task-per-worker constraint is never enforced, so overlapping-skil"
+        },
+        {
+          "where": "audit_known_answer_responses.reason",
+          "context": "The backtracking logic never enforces one-task-per-worker and misapplies the colleague constraint, so it pr"
+        },
+        {
+          "where": "audit_known_answer_responses.response_tail",
+          "context": "d skills, and the code does not enforce the one-task-per-worker constraint.\"}"
         }
       ]
     },
     "key (case-insensitive, any)": {
-      "matches": 503858,
+      "matches": 520039,
       "by_column": {
         "generations.code": 474188,
         "passk_generations.code": 20169,
+        "audit_production_verdicts.response_tail": 7729,
         "prompts.prompt_text": 6261,
+        "audit_production_verdicts.reason": 5643,
+        "audit_known_answer_cases.code": 2505,
         "prompts.unit_tests": 1474,
         "extension_prompts.prompt_text": 997,
         "cross_language_prompts.ported_prompt_text": 296,
+        "audit_known_answer_responses.response_tail": 210,
         "paraphrase_prompts.paraphrased_prompt_text": 190,
         "paraphrase_prompts.original_prompt_text": 183,
         "extension_prompts.unit_tests": 98,
+        "audit_known_answer_responses.reason": 94,
         "models.notes": 2
       },
       "examples": []
@@ -383,9 +473,11 @@
       ]
     },
     "herna": {
-      "matches": 4,
+      "matches": 9,
       "by_column": {
-        "prompts.unit_tests": 4
+        "prompts.unit_tests": 4,
+        "croissant.json": 3,
+        "README.md": 2
       },
       "examples": [
         {
@@ -399,10 +491,12 @@
       ]
     },
     "Bearer": {
-      "matches": 24,
+      "matches": 26,
       "by_column": {
         "generations.code": 23,
-        "prompts.unit_tests": 1
+        "prompts.unit_tests": 1,
+        "audit_production_verdicts.reason": 1,
+        "audit_production_verdicts.response_tail": 1
       },
       "examples": [
         {
@@ -443,9 +537,9 @@
       "matches": 0
     },
     "openrouter": {
-      "matches": 16,
+      "matches": 19,
       "by_column": {
-        "models.access_routes": 10,
+        "models.access_routes": 13,
         "models.documented_settings": 4,
         "croissant.json": 1,
         "README.md": 1
@@ -523,8 +617,8 @@
     "prompts": {
       "path": "prompts/test-00000-of-00001.parquet",
       "rows": 5000,
-      "bytes": 2314470,
-      "sha256": "f21202cdaf3ea68b2d0302f52d7c3f4b7f62650713f93cb6dff2aa36f8301f51"
+      "bytes": 2318094,
+      "sha256": "8faef8e38459da1815d8a54755fafa6593f2c84f00c2585f238e3a574c715a04"
     },
     "judge_scores": {
       "path": "judge_scores/test-00000-of-00001.parquet",
@@ -535,8 +629,8 @@
     "generations": {
       "path": "generations/test-00000-of-00001.parquet",
       "rows": 105000,
-      "bytes": 32890180,
-      "sha256": "a701c917b7326ea531dbaa15581b729842180fec8bc56e096d5ce2e551d831cd"
+      "bytes": 32926754,
+      "sha256": "5af5d66f4f6c51e47282b9b96067a35dfbaacbea3461f3a1cf218f15e908687a"
     },
     "extension_prompts": {
       "path": "extension_prompts/test-00000-of-00001.parquet",
@@ -604,13 +698,31 @@
       "bytes": 16232,
       "sha256": "798ca3504d8d9c06813ba85e4e223740d98f9ae3af98ea0c2c13bde4108806bb"
     },
+    "audit_known_answer_cases": {
+      "path": "audit_known_answer_cases/test-00000-of-00001.parquet",
+      "rows": 900,
+      "bytes": 189331,
+      "sha256": "552cd83e038b66701b3369dc38dc21c0f8fcef992d14cdb7e835aace9058b49c"
+    },
+    "audit_known_answer_responses": {
+      "path": "audit_known_answer_responses/test-00000-of-00001.parquet",
+      "rows": 3150,
+      "bytes": 338579,
+      "sha256": "22509dc172279d73d629e25214e09c72c618e3c0b76952f3399ef715238fb177"
+    },
+    "audit_production_verdicts": {
+      "path": "audit_production_verdicts/test-00000-of-00001.parquet",
+      "rows": 115500,
+      "bytes": 13955997,
+      "sha256": "1929a1b62cf75001d117b455df0ae19a8345d695e52d9fcaa9f260f7f95ad370"
+    },
     "models": {
       "path": "models/test-00000-of-00001.parquet",
-      "rows": 30,
-      "bytes": 6340,
-      "sha256": "a335dccaedc95ab7fd18227789e0d078a0cfbfe4b66b2951273a467e4d35e6d3"
+      "rows": 35,
+      "bytes": 7199,
+      "sha256": "f52a16e9909ba874cd67bd51de8f27bb18cdb40281cd0685c4a7db52910a72cd"
     }
   },
-  "release_total_bytes": 37949279,
+  "release_total_bytes": 52505208,
   "release_dir": "data/public_release"
 }
