@@ -186,7 +186,10 @@ def _post_streaming(url, headers, body, cfg):
                 return 503, text, "", None, None, None
             return resp.status_code, text, "", None, None, None
         parts, finish, usage, provider = [], None, None, None
-        for raw in resp.iter_lines(decode_unicode=True):
+        # Split on b"\n" only: str.splitlines (the iter_lines default) also breaks on
+        # U+2028, form feeds, and similar characters inside the JSON payload.
+        for raw_bytes in resp.iter_lines(delimiter=b"\n"):
+            raw = raw_bytes.decode("utf-8", errors="replace").rstrip("\r")
             if time.time() > deadline:
                 raise TimeoutError(f"stream exceeded {cfg['max_wall_s']} s")
             if not raw or not raw.startswith("data:"):
