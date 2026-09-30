@@ -34,36 +34,36 @@
     },
     "n_generations": 105000,
     "n_prompts": 5000,
-    "mean_pass_rate": 0.8514047619047619
+    "mean_pass_rate": 0.8513771428571427
   },
   "reverse_threshold": {
     "n_scored_generations": 103948,
     "n_missing_output_cyclomatic_complexity": 1052,
-    "n_zero_pass_complete_cases": 14248,
-    "n_zero_pass_missing_output_cyclomatic_complexity": 968,
+    "n_zero_pass_complete_cases": 14247,
+    "n_zero_pass_missing_output_cyclomatic_complexity": 969,
     "prompt_composite_gt": 8.0,
     "output_cyclomatic_complexity_lte": 10.0,
     "shares": {
-      "pass_rate_eq_0": 0.25,
-      "pass_rate_lte_0_25": 0.2505204718945177,
-      "pass_rate_lte_0_50": 0.25221058359406884,
-      "pass_rate_lte_0_65": 0.25360211053236825
+      "pass_rate_eq_0": 0.24994735733838702,
+      "pass_rate_lte_0_25": 0.2504857063558146,
+      "pass_rate_lte_0_50": 0.25217627856365615,
+      "pass_rate_lte_0_65": 0.25356780520798106
     },
     "share_counts": {
       "pass_rate_eq_0": {
-        "n_complete_cases": 14248,
-        "n_flagged": 3562
+        "n_complete_cases": 14247,
+        "n_flagged": 3561
       },
       "pass_rate_lte_0_25": {
-        "n_complete_cases": 14410,
+        "n_complete_cases": 14412,
         "n_flagged": 3610
       },
       "pass_rate_lte_0_50": {
-        "n_complete_cases": 14702,
+        "n_complete_cases": 14704,
         "n_flagged": 3708
       },
       "pass_rate_lte_0_65": {
-        "n_complete_cases": 14783,
+        "n_complete_cases": 14785,
         "n_flagged": 3749
       }
     },
@@ -71,7 +71,7 @@
       {
         "prompt_group": "Prompt composite <= 8",
         "output_group": "Output CC <= 10",
-        "n": 3645
+        "n": 3644
       },
       {
         "prompt_group": "Prompt composite <= 8",
@@ -81,12 +81,12 @@
       {
         "prompt_group": "Prompt composite > 8",
         "output_group": "Output CC <= 10",
-        "n": 3562
+        "n": 3561
       },
       {
         "prompt_group": "Prompt composite > 8",
         "output_group": "Output CC > 10",
-        "n": 6204
+        "n": 6205
       }
     ],
     "passing_generation_mapping_at_prompt_threshold": {
@@ -101,10 +101,10 @@
     "sem": "pandas sem of generation rows (ddof=1); no adjustment for repeated prompts or models"
   },
   "kappa_map": {
-    "intercept": -5.528029666286081,
-    "slope": 2.0836771775964893,
-    "r2": 0.6143443671695882,
-    "n_passing": 88936,
+    "intercept": -5.527683431562678,
+    "slope": 2.0836643098149272,
+    "r2": 0.6143568176875762,
+    "n_passing": 88932,
     "by_bin": [
       {
         "bin": 0,
@@ -172,9 +172,9 @@
       },
       {
         "bin": 8,
-        "n": 6031,
+        "n": 6029,
         "median_cc": 5.0,
-        "mean_cc": 6.540208920577019,
+        "mean_cc": 6.541051584010615,
         "q25_cc": 3.0,
         "q75_cc": 8.0
       },
@@ -196,17 +196,17 @@
       },
       {
         "bin": 11,
-        "n": 3334,
+        "n": 3333,
         "median_cc": 11.0,
-        "mean_cc": 12.996700659868026,
+        "mean_cc": 12.999399939994,
         "q25_cc": 7.0,
         "q75_cc": 17.0
       },
       {
         "bin": 12,
-        "n": 8397,
+        "n": 8396,
         "median_cc": 19.0,
-        "mean_cc": 19.678456591639872,
+        "mean_cc": 19.677703668413532,
         "q25_cc": 15.0,
         "q75_cc": 24.0
       },
@@ -271,7 +271,7 @@
   "passing_generation_mapping": {
     "definition": "Generation-level OLS of raw output CC on the prompt composite over generations with pass_rate == 1 and computable CC. kappa_map.by_bin uses numpy round-half-to-even bins of the composite (reviewed convention).",
     "prompt_threshold": 14.0,
-    "estimated_output_cyclomatic_complexity": 23.64345082006477,
+    "estimated_output_cyclomatic_complexity": 23.6436169058463,
     "n_prompts": 4912,
     "by_display_bin_rule": "half-open: bin b holds composites in [b-0.5, b+0.5)",
     "by_display_bin": [
@@ -341,9 +341,9 @@
       },
       {
         "bin": 8,
-        "n": 4952,
+        "n": 4950,
         "median_cc": 5.0,
-        "mean_cc": 6.438004846526656,
+        "mean_cc": 6.438989898989899,
         "q25_cc": 3.0,
         "q75_cc": 8.0
       },
@@ -365,17 +365,17 @@
       },
       {
         "bin": 11,
-        "n": 4368,
+        "n": 4367,
         "median_cc": 10.0,
-        "mean_cc": 12.369505494505495,
+        "mean_cc": 12.37142202885276,
         "q25_cc": 7.0,
         "q75_cc": 16.0
       },
       {
         "bin": 12,
-        "n": 6796,
+        "n": 6795,
         "median_cc": 18.0,
-        "mean_cc": 19.0700412007063,
+        "mean_cc": 19.069021339220015,
         "q25_cc": 14.0,
         "q75_cc": 23.0
       },

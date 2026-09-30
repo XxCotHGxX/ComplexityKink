@@ -1,0 +1,43 @@
+{
+  "_combined": {
+    "model": "Combined",
+    "N": 5000,
+    "ols_coef": 0.0019469142437804478,
+    "ols_se": 0.0008733503785571414,
+    "ols_pval": 0.02579743437089692,
+    "ols_r2": 0.0008059056901569273,
+    "iv_coef": 0.002063395612742963,
+    "iv_se": 0.0004167788073929111,
+    "iv_pval": 7.390256497874503e-07,
+    "iv_fstat": 13611.325354128683,
+    "iv_j_pval": 0.0,
+    "hausman_stat": 210.29939789372307,
+    "hausman_pval": 1.1102230246251565e-16,
+    "kink_threshold": 11.25,
+    "kink_sup_wald": 155.2867177791141,
+    "kink_pval": 0.0,
+    "kink_ci_lower": 7.75,
+    "kink_ci_upper": 11.5,
+    "mean_pass_low": 0.7595288717896796,
+    "mean_pass_high": 0.8331540513358695,
+    "placebo_pval": 0.0,
+    "linear_aic": 2038.506681937948,
+    "linear_bic": 2051.5410683207806,
+    "linear_r2": 0.0008059056901569273,
+    "cubic_aic": 1797.8404908102766,
+    "cubic_bic": 1823.9092635759416,
+    "cubic_r2": 0.04852271830067245,
+    "piecewise_aic": 1740.9630286666888,
+    "piecewise_bic": 1767.0318014323539,
+    "piecewise_r2": 0.05928491223322818,
+    "best_functional_form": "piecewise",
+    "sensitivity_threshold_range": [
+      11.25,
+      11.25
+    ],
+    "fprobit_coef": 0.007034604963139138,
+    "fprobit_se": 0.004621811919418414,
+    "fprobit_pval": 0.12799784679962437,
+    "fprobit_marginal_at_mean": 0.002017635453953185
+  }
+}

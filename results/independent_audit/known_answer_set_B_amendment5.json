@@ -1,0 +1,27 @@
+{
+  "rule": {
+    "max_error_rate": 0.02,
+    "min_clean_accuracy": 0.95,
+    "min_cosmetic_rescue": 0.9
+  },
+  "results": {
+    "MiMo-V2.6-Pro(set B)": {
+      "n_cases": 450,
+      "missing": 0,
+      "error_rate": 0.0,
+      "uncertain_rate": 0.0,
+      "clean_accuracy": 0.9533333333333334,
+      "cosmetic_rescue": 0.9733333333333334,
+      "bug_wrong_rescue": 0.006666666666666667,
+      "bug_detected": 0.9933333333333333,
+      "overall_accuracy": 0.9733333333333334,
+      "median_completion_tokens": 140,
+      "median_latency_s": 8.36,
+      "eligible": true
+    }
+  },
+  "eligible": [
+    "MiMo-V2.6-Pro(set B)"
+  ],
+  "primary_auditor": "MiMo-V2.6-Pro(set B)"
+}

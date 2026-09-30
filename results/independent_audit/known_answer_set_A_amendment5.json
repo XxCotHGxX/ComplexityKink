@@ -1,0 +1,95 @@
+{
+  "rule": {
+    "max_error_rate": 0.02,
+    "min_clean_accuracy": 0.95,
+    "min_cosmetic_rescue": 0.9
+  },
+  "results": {
+    "Phi-4-reasoning": {
+      "n_cases": 450,
+      "missing": 0,
+      "error_rate": 0.008888888888888889,
+      "uncertain_rate": 0.0,
+      "clean_accuracy": 0.8866666666666667,
+      "cosmetic_rescue": 0.4666666666666667,
+      "bug_wrong_rescue": 0.05333333333333334,
+      "bug_detected": 0.94,
+      "overall_accuracy": 0.7644444444444445,
+      "median_completion_tokens": 2250,
+      "median_latency_s": 88.4,
+      "eligible": false
+    },
+    "MAI-Thinking-1": {
+      "n_cases": 450,
+      "missing": 0,
+      "error_rate": 0.0,
+      "uncertain_rate": 0.0,
+      "clean_accuracy": 0.9533333333333334,
+      "cosmetic_rescue": 0.88,
+      "bug_wrong_rescue": 0.03333333333333333,
+      "bug_detected": 0.9666666666666667,
+      "overall_accuracy": 0.9333333333333333,
+      "median_completion_tokens": 654,
+      "median_latency_s": 14.2,
+      "eligible": false
+    },
+    "Nemotron-3-Ultra": {
+      "n_cases": 450,
+      "missing": 0,
+      "error_rate": 0.0044444444444444444,
+      "uncertain_rate": 0.0,
+      "clean_accuracy": 0.86,
+      "cosmetic_rescue": 0.7866666666666666,
+      "bug_wrong_rescue": 0.0,
+      "bug_detected": 0.9866666666666667,
+      "overall_accuracy": 0.8777777777777778,
+      "median_completion_tokens": 808,
+      "median_latency_s": 13.27,
+      "eligible": false
+    },
+    "Laguna-S-2.1": {
+      "n_cases": 450,
+      "missing": 0,
+      "error_rate": 0.04666666666666667,
+      "uncertain_rate": 0.0022222222222222222,
+      "clean_accuracy": 0.8866666666666667,
+      "cosmetic_rescue": 0.7466666666666667,
+      "bug_wrong_rescue": 0.03333333333333333,
+      "bug_detected": 0.96,
+      "overall_accuracy": 0.8644444444444445,
+      "median_completion_tokens": 643,
+      "median_latency_s": 10.7,
+      "eligible": false
+    },
+    "MiMo-V2.6-Pro": {
+      "n_cases": 450,
+      "missing": 0,
+      "error_rate": 0.0022222222222222222,
+      "uncertain_rate": 0.0,
+      "clean_accuracy": 0.9333333333333333,
+      "cosmetic_rescue": 0.9466666666666667,
+      "bug_wrong_rescue": 0.013333333333333334,
+      "bug_detected": 0.9866666666666667,
+      "overall_accuracy": 0.9555555555555556,
+      "median_completion_tokens": 157,
+      "median_latency_s": 7.71,
+      "eligible": false
+    },
+    "o4-mini-reviewed": {
+      "n_cases": 450,
+      "missing": 0,
+      "error_rate": 0.017777777777777778,
+      "uncertain_rate": 0.0,
+      "clean_accuracy": 0.88,
+      "cosmetic_rescue": 0.82,
+      "bug_wrong_rescue": 0.0,
+      "bug_detected": 0.9733333333333334,
+      "overall_accuracy": 0.8911111111111111,
+      "median_completion_tokens": 683,
+      "median_latency_s": 6.01,
+      "eligible": false
+    }
+  },
+  "eligible": [],
+  "primary_auditor": null
+}

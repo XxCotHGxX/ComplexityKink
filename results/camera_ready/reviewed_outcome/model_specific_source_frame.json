@@ -25,7 +25,7 @@
         "n": 5000,
         "n_high": 2994,
         "n_low": 2006,
-        "sup_wald": 73.68092203963182,
+        "sup_wald": 73.68092204075926,
         "threshold": 8.25
       },
       "source_controlled_threshold": {
@@ -34,16 +34,16 @@
         "n_high": 2925,
         "n_low": 2075,
         "raw_regime_gap": -0.019310884563896735,
-        "sup_wald": 36.241089900908065,
+        "sup_wald": 36.24108990169063,
         "threshold": 8.5,
         "threshold_grid_candidates": 36,
         "wild_bootstrap": {
           "draws": 300,
           "exceedances": 0,
-          "maximum": 9.620097538118678,
+          "maximum": 9.620097538214043,
           "p_finite_mc": 0.0033222591362126247,
           "p_raw": 0.0,
-          "q95": 5.6043179445032765,
+          "q95": 5.60431794455869,
           "seed": 42
         }
       },
@@ -183,7 +183,7 @@
         "n": 5000,
         "n_high": 1163,
         "n_low": 3837,
-        "sup_wald": 60.18423378343964,
+        "sup_wald": 60.18423378411965,
         "threshold": 14.25
       },
       "source_controlled_threshold": {
@@ -192,16 +192,16 @@
         "n_high": 1163,
         "n_low": 3837,
         "raw_regime_gap": -0.018081287979578864,
-        "sup_wald": 29.71675270860379,
+        "sup_wald": 29.716752708713273,
         "threshold": 14.25,
         "threshold_grid_candidates": 36,
         "wild_bootstrap": {
           "draws": 300,
           "exceedances": 0,
-          "maximum": 8.080472360863672,
+          "maximum": 8.080472361368534,
           "p_finite_mc": 0.0033222591362126247,
           "p_raw": 0.0,
-          "q95": 5.36585080111855,
+          "q95": 5.365850801512236,
           "seed": 42
         }
       },
@@ -341,7 +341,7 @@
         "n": 5000,
         "n_high": 2178,
         "n_low": 2822,
-        "sup_wald": 18.632495863320997,
+        "sup_wald": 18.632495864140477,
         "threshold": 11.25
       },
       "source_controlled_threshold": {
@@ -350,16 +350,16 @@
         "n_high": 1163,
         "n_low": 3837,
         "raw_regime_gap": -0.06321215947092518,
-        "sup_wald": 7.706639466540551,
+        "sup_wald": 7.706639466640511,
         "threshold": 14.25,
         "threshold_grid_candidates": 36,
         "wild_bootstrap": {
           "draws": 300,
           "exceedances": 0,
-          "maximum": 7.5845785479746795,
+          "maximum": 7.584578548488787,
           "p_finite_mc": 0.0033222591362126247,
           "p_raw": 0.0,
-          "q95": 5.112277468945724,
+          "q95": 5.112277469517371,
           "seed": 42
         }
       },
@@ -499,7 +499,7 @@
         "n": 5000,
         "n_high": 3135,
         "n_low": 1865,
-        "sup_wald": 69.90062453369478,
+        "sup_wald": 69.90062453528033,
         "threshold": 7.75
       },
       "source_controlled_threshold": {
@@ -508,16 +508,16 @@
         "n_high": 3135,
         "n_low": 1865,
         "raw_regime_gap": -0.03149642324187274,
-        "sup_wald": 19.387291515699005,
+        "sup_wald": 19.387291516697342,
         "threshold": 7.75,
         "threshold_grid_candidates": 36,
         "wild_bootstrap": {
           "draws": 300,
           "exceedances": 0,
-          "maximum": 10.794422046844254,
+          "maximum": 10.794422047123742,
           "p_finite_mc": 0.0033222591362126247,
           "p_raw": 0.0,
-          "q95": 5.584436459856257,
+          "q95": 5.584436460419065,
           "seed": 42
         }
       },
@@ -657,7 +657,7 @@
         "n": 5000,
         "n_high": 3135,
         "n_low": 1865,
-        "sup_wald": 85.13244219334753,
+        "sup_wald": 85.13244219465444,
         "threshold": 7.75
       },
       "source_controlled_threshold": {
@@ -666,16 +666,16 @@
         "n_high": 3222,
         "n_low": 1778,
         "raw_regime_gap": -0.04368340130668036,
-        "sup_wald": 44.69777560758932,
+        "sup_wald": 44.69777560877111,
         "threshold": 7.5,
         "threshold_grid_candidates": 36,
         "wild_bootstrap": {
           "draws": 300,
           "exceedances": 0,
-          "maximum": 7.230330624400444,
+          "maximum": 7.230330625008931,
           "p_finite_mc": 0.0033222591362126247,
           "p_raw": 0.0,
-          "q95": 5.698525671210613,
+          "q95": 5.698525671714508,
           "seed": 42
         }
       },
@@ -811,11 +811,11 @@
   "validation": {
     "analyzed_model_count": 5,
     "expected_prompts_per_model": 5000,
-    "expected_selected_model_count": 5,
     "expected_source_counts": {
       "stage_c_existing": 2246,
       "stage_d_candidate": 2754
     },
+    "reviewed_outcome_selected_model_count": 5,
     "selected_model_count": 5
   }
 }

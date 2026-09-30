@@ -1,0 +1,55 @@
+{
+  "primary_auditor": "MiMo-V2.6-Pro",
+  "sample_size": 5250,
+  "rule": "final_verdict (complete responses only); empty-code rule cases excluded",
+  "MAI-Thinking-1": {
+    "empty_code_rule_cases": 10,
+    "excluding_rule_cases": {
+      "n": 5178,
+      "agreement": 0.910583236770954,
+      "cohen_kappa": 0.6312375389194863,
+      "table": {
+        "correct|correct": 4216,
+        "correct|incorrect": 273,
+        "incorrect|correct": 190,
+        "incorrect|incorrect": 499
+      }
+    },
+    "including_rule_cases": {
+      "n": 5188,
+      "agreement": 0.9107555898226677,
+      "cohen_kappa": 0.6355122885645822,
+      "table": {
+        "correct|correct": 4216,
+        "correct|incorrect": 273,
+        "incorrect|correct": 190,
+        "incorrect|incorrect": 509
+      }
+    }
+  },
+  "Phi-4-reasoning": {
+    "empty_code_rule_cases": 10,
+    "excluding_rule_cases": {
+      "n": 5029,
+      "agreement": 0.811891032014317,
+      "cohen_kappa": 0.42528547067689104,
+      "table": {
+        "correct|correct": 3562,
+        "correct|incorrect": 831,
+        "incorrect|correct": 115,
+        "incorrect|incorrect": 521
+      }
+    },
+    "including_rule_cases": {
+      "n": 5039,
+      "agreement": 0.8122643381623338,
+      "cohen_kappa": 0.4297024097792361,
+      "table": {
+        "correct|correct": 3562,
+        "correct|incorrect": 831,
+        "incorrect|correct": 115,
+        "incorrect|incorrect": 531
+      }
+    }
+  }
+}
