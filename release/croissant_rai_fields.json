@@ -1,0 +1,204 @@
+{
+  "_comment": "Draft Responsible-AI (RAI) and provenance properties for the Complexity Kink Croissant file, following the NeurIPS 2026 Evaluations & Datasets hosting guidelines (minimal set: rai:dataLimitations, rai:dataBiases, rai:personalSensitiveInformation, rai:dataUseCases, rai:dataSocialImpact, rai:hasSyntheticData, prov:wasDerivedFrom, prov:wasGeneratedBy) plus optional Croissant RAI 1.0 properties. Keys starting with '_' are ignored by merge_croissant_rai.py. Every string containing 'TODO(author):' must be resolved before the merge script will write a final file (unless --allow-todo).",
+  "_numbers_source": "Counts quoted below were recomputed from the released Parquet files by scripts/build_public_release.py (see release/build_report.json).",
+  "@context": {
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dct": "http://purl.org/dc/terms/"
+  },
+  "rai:dataLimitations": [
+    "Benchmark-conditional results. Pass rates, regime means, and reliability breakpoints estimated from this data are conditional on the constructed 5,000-prompt frame, the four-judge prompt-side index, each model's generation settings and access route, and the OpenCodeInstruct unit-test protocol. They are not universal, causal, or deployment-level failure thresholds, and the prompt set does not follow the natural OpenCodeInstruct prompt distribution.",
+    "Python only. All generation and unit-test execution is in Python. The Java and C++ subsets (117 prompts each) are LLM re-expressions used only for rubric rescoring; no non-Python code was generated or executed.",
+    "LLM-judge measurement. The prompt-side complexity index is the mean of four LLM judges scoring a published six-dimension rubric. Inter-judge reliability is high (composite ICC(2,1) = 0.872 on 4,998 complete prompts), but agreement with human graders on a disagreement-enriched 200-prompt sample is moderate and rater-dependent (Pearson r = 0.41, ICC(2,1) = 0.40; the two human graders correlate 0.56 on a 50-prompt overlap). The index is a proxy for intended solution structure, not ground truth.",
+    "Construction-frame composition. The benchmark combines 2,246 prompts retained from an earlier prefix-scan draw with 2,754 later candidates that deliberately supplemented high reference-solution complexity. The two frames differ sharply in mean index (7.92 vs 11.42) and mean pass rate (0.747 vs 0.880), and their changing mixture drives much of the pooled pattern. Sampling was stratified on a preliminary single-rater (o4-mini) score, not on the final index, so the final index is not balanced.",
+    "Sparse extremes. Display bins 0 and 17-19 of the main benchmark hold 3, 45, 6, and 5 prompts; the 365-prompt extension adds only 14 prompts above bin 16.",
+    "Outcome definition differs by frame. For earlier_retained prompts, 23,848 of 47,166 generation rows have pass_rate set to 1.0 or 0.0 from an o4-mini harness-audit verdict rather than the raw fraction of passing tests; later_candidate rows use the raw harness fraction. The raw fraction is released as harness_pass_rate for every row. TODO(author): confirm this description and reconcile it with the manuscript's definition of pass rate as the fraction of supplied unit tests passed.",
+    "Unit-test quality. Tests come from OpenCodeInstruct and can be incomplete, over-specified (for example, requiring a particular function name), or wrong. For 1,259 of the 2,246 earlier_retained prompts the NVIDIA-supplied average_test_score of the source reference solution is below 1.0 (491 at 0.0); all 2,754 later_candidate prompts and all 365 extension prompts have a passing reference. TODO(author): confirm whether earlier-frame prompts were intended to require a passing reference.",
+    "Heterogeneous generation settings. Settings were not uniform across models, access routes, and construction frames: recovered batch records show temperature 0.0, 0.2, or not sent (provider default), output-token caps from 2,048 to 8,192 (configurations list up to 65,536), and two different system prompts. Per-row settings are recoverable for 24,675 of 105,000 generations; the rest are documented only at the model level. Several open-weight models were served locally as 4-bit or 8-bit GGUF quantizations, and the model labeled 'Mistral Small 2412' was served as Devstral-Small-2505 (Q4_K_M).",
+    "Point-in-time model snapshots. Generations were collected between February and May 2026 (extension and robustness runs in July 2026) from hosted APIs whose model versions can change or be retired; results may not be reproducible by re-querying the same model names.",
+    "Missing values. Generated-output Lizard complexity is null for 1,052 of 105,000 generations; 208 generations contain no extractable code; 129 retain markdown fences. The extension and fixed-version runs did not retain generated code, so those configs contain outcomes only.",
+    "Single sample per model and prompt. Except for the 359-prompt, four-model, five-draw repeated-sampling subset, each model contributes one generation per prompt, so per-prompt outcomes include sampling noise.",
+    "Excluded data. A locally served AuroraGPT-IT-v4 run (earlier frame only) was excluded post hoc and is not released. A 24-bin 'equal-support' tail set mined on generated-output complexity with the reference-test gate disabled is excluded as contaminated."
+  ],
+  "rai:dataBiases": [
+    "Selection bias in the prompt frame: prompts come from a 200,000-record source-ordered prefix scan of OpenCodeInstruct plus later candidates deliberately enriched for high reference-solution cyclomatic complexity, filtered for non-trivial tests and contract quality, and stratified on a preliminary single-rater score. Task categories are unbalanced (2,005 of 5,000 prompts are data-structures/algorithms; 83 are API/library orchestration).",
+    "Source-dataset bias: OpenCodeInstruct instructions, reference solutions, and unit tests are themselves synthetic, LLM-generated content (per its dataset card) and English-only, favoring self-contained algorithmic tasks over real-world software engineering with external dependencies.",
+    "Judge bias: the four rubric judges share common-mode tendencies that averaging cannot remove. Relative to the first human grader, the ensemble scores higher on average (mean composite offset -1.18 points human minus LLM), especially on data structures, composition, and edge cases.",
+    "Outcome-measurement bias: the o4-mini harness-audit override was applied only to earlier_retained rows, and test-suite quality differs between frames, so pass rates are not measured identically across the two construction frames.",
+    "Panel composition: the 21 evaluated models were chosen by availability and budget. Closed models were queried through hosted APIs while several open-weight models were run as quantized local builds, which can understate those models' capability relative to their full-precision versions.",
+    "Human calibration sample: both graders are members of the research team, and half of the 500-prompt calibration pool was drawn from the prompts with the highest judge disagreement, so agreement statistics are a stress test rather than an average-case estimate."
+  ],
+  "rai:personalSensitiveInformation": [
+    "None of the sensitive categories (gender, socio-economic status, geography, language, age, culture, experience or seniority, health or medical data, political or religious beliefs) is recorded about any person.",
+    "Human rubric grades from two research-team members are released under pseudonymous IDs (grader_1 = first author, grader_2 = second grader); no names, contact details, or demographics are included. TODO(author): confirm that the second grader agreed to public release of their pseudonymous grades.",
+    "Prompts, unit tests, and generated code are programming tasks and may contain fictitious names, placeholder email addresses, and placeholder credentials (for example, 'your_api_key_here') inherited from the source dataset or produced by models. A scan of every released text field found no real API keys, bearer tokens, account or deployment identifiers, request identifiers, endpoint URLs, or local filesystem paths belonging to the authors."
+  ],
+  "rai:dataUseCases": [
+    "Construct measured: (1) the intended structural complexity of a Python programming task, scored from the prompt before any evaluated model generates code (six rubric dimensions, each 0-4, summed to 0-24); and (2) the functional reliability of LLM-generated solutions, measured as the fraction of source unit tests passed. Generated-output cyclomatic complexity is included as a post-generation comparison measure, not as task complexity.",
+    "Validated use: reproducing and auditing the paper's analyses, including model-specific and pooled breakpoint estimates, task-type and construction-frame sensitivity, the reverse-threshold (failure-dependent output complexity) diagnostic, and the rater, paraphrase, cross-language, repeated-sampling, and high-complexity-extension checks.",
+    "Other intended research uses: evaluating alternative prompt-side complexity measures against the four-judge index and human grades; studying LLM-as-judge reliability for input scoring; studying how failed or unscorable generations bias output-side metrics; test-harness and benchmark-construction audits.",
+    "Not intended or validated: setting deployment cutoffs or safety thresholds for code generators; ranking models outside this protocol; treating the rubric dimensions as valid causal instruments (overidentification tests reject); training or fine-tuning code models on these prompts or generations, which would contaminate future evaluation."
+  ],
+  "rai:dataSocialImpact": "Positive: the release supports more careful evaluation of LLM code generators by separating pre-generation task measurement from failure-dependent output metrics, reporting rater uncertainty and composition sensitivity, and making all per-generation outcomes auditable. Risks: breakpoints could be over-read as universal reliability thresholds or used to justify deployment decisions they do not support; model comparisons reflect dated API snapshots and specific routes and could be misquoted; the generated code is unreviewed, may be incorrect or insecure, and should only be executed in a sandbox; publishing the prompts and tests increases the chance that future models are trained on them. The data contain no personal information about identifiable individuals, so direct privacy risk is low.",
+  "rai:hasSyntheticData": true,
+  "prov:wasDerivedFrom": [
+    {
+      "@id": "https://huggingface.co/datasets/nvidia/OpenCodeInstruct",
+      "name": "OpenCodeInstruct (NVIDIA), CC BY 4.0"
+    }
+  ],
+  "prov:wasGeneratedBy": [
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Source extraction and prompt filtering",
+      "description": "Python records were streamed from the OpenCodeInstruct parquet shards in fixed shard order. Prompts required non-trivial unit tests and a non-trivial instruction; the Lizard cyclomatic complexity of each source reference solution was computed for candidate-pool shaping. The earlier frame came from a 200,000-record source-ordered prefix scan; later candidates added deliberate high reference-complexity supplementation and passed automated contract and test-quality audits. Prompt text and tests are unchanged from the source records.",
+      "prov:wasAssociatedWith": [
+        {
+          "@type": "prov:Agent",
+          "prov:label": "Lizard 1.21.0 (MIT)"
+        }
+      ]
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Preliminary single-rater scoring and stratified sampling",
+      "description": "o4-mini scored candidates on the six-dimension rubric (docs/rubric_prompt.txt). 834 prompts were selected in each of the preliminary bands 0-3 and 4-6 and 833 in each of 7-9, 10-12, 13-15, and 16-24. The preliminary score is used for sampling only.",
+      "prov:wasAssociatedWith": [
+        {
+          "@type": "prov:Agent",
+          "prov:label": "o4-mini (OpenAI) via Azure AI Foundry"
+        }
+      ]
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Four-judge ensemble rubric scoring",
+      "description": "After the prompt set was locked, four LLM judges outside the evaluated panel rescored every prompt with the same rubric prompt (SHA-256 3bbf9bb0c93c684dd5b8109fa5610501a8df42a89443a5441ac9075de33144a8), producing 19,997 valid score rows. The released index is the per-dimension mean over available judges, summed over dimensions.",
+      "prov:startedAtTime": "2026-04-30T02:21:27Z",
+      "prov:endedAtTime": "2026-05-05T03:49:34Z",
+      "prov:wasAssociatedWith": [
+        {
+          "@type": "prov:Agent",
+          "prov:label": "o4-mini (OpenAI) via Azure AI Foundry"
+        },
+        {
+          "@type": "prov:Agent",
+          "prov:label": "gpt-5.5 (OpenAI) via Azure AI Foundry"
+        },
+        {
+          "@type": "prov:Agent",
+          "prov:label": "Llama 4 Maverick (Meta) via Azure AI Foundry"
+        },
+        {
+          "@type": "prov:Agent",
+          "prov:label": "Command A (Cohere) via Azure AI Foundry"
+        }
+      ]
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Code generation by the evaluated model panel",
+      "description": "Each of 21 models generated one solution per prompt (105,000 generations) through provider APIs, batch APIs, OpenRouter, or locally served quantized builds; see the models config for routes and documented settings and generations.gen_* for per-row settings where batch request records were retained. Raw API responses are not released.",
+      "prov:startedAtTime": "2026-02-21T20:30:06Z",
+      "prov:endedAtTime": "2026-05-05T17:18:52Z"
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Code extraction, unit-test execution, and output-complexity measurement",
+      "description": "Code was extracted from each response, each unit-test assertion was executed separately in an isolated working directory with timeouts, and pass rate was recorded as the fraction of passing assertions. Generated-output cyclomatic complexity was computed with Lizard on the cleaned code and summed over reported functions (null when not computable).",
+      "prov:wasAssociatedWith": [
+        {
+          "@type": "prov:Agent",
+          "prov:label": "Lizard 1.21.0 (MIT)"
+        }
+      ]
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Harness audit of earlier-frame outcomes",
+      "description": "For earlier_retained generations, o4-mini judged whether the harness verdict reflected semantic correctness (for example, a function-name mismatch). Verdicts 'correct' and 'incorrect' set pass_rate to 1.0 and 0.0; 'uncertain' or unaudited rows keep the harness value. TODO(author): confirm this step belongs in the camera-ready description.",
+      "prov:wasAssociatedWith": [
+        {
+          "@type": "prov:Agent",
+          "prov:label": "o4-mini (OpenAI) via Azure AI Foundry"
+        }
+      ]
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Task-type labeling",
+      "description": "A fixed nine-category taxonomy was applied by o4-mini to all 5,000 prompts; gpt-5.5, Llama 4 Maverick, and Command A labeled a shared 500-prompt subset for reliability (Krippendorff alpha = 0.787 reported in the paper).",
+      "prov:startedAtTime": "2026-07-24T00:00:00Z"
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Blinded human calibration",
+      "description": "A 500-prompt calibration pool was drawn with seed 20260724, balanced over six ensemble-composite bands with half of each band taken from the highest judge-disagreement prompts. The first author graded 200 prompts from a seeded shuffle and a second research-team member graded the first 50 of those, using an offline grading page that showed the prompt, tests, and rubric but hid all LLM scores.",
+      "prov:endedAtTime": "2026-07-26T14:31:14Z",
+      "prov:wasAssociatedWith": [
+        {
+          "@type": "prov:Agent",
+          "prov:label": "Two research-team graders (pseudonymous)"
+        }
+      ]
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Robustness subsets and audit-clean high-complexity extension",
+      "description": "Paraphrase (150 prompts) and Java/C++ re-expressions (117 prompts each) were written by DeepSeek-V3.2 and rescored by the four judges. A 359-prompt, four-model, five-draw repeated-sampling subset used temperature 0.8. The extension took unused OpenCodeInstruct candidates (not in the main benchmark or the excluded 24-bin set) with preliminary o4-mini composite >= 15, selected on prompt-side scores only and never on generated-output quantities, rescored them with the four judges, kept 1,129 with ensemble composite >= 15, dropped 764 with contract or test-quality audit flags, and retained 365 whose reference solutions pass every test; six Azure-hosted models generated at temperature 0.0, and three exact-version frontier models were run on the 365 prompts plus 150 main-benchmark anchors.",
+      "prov:startedAtTime": "2026-07-24T00:00:00Z",
+      "prov:endedAtTime": "2026-07-26T23:59:59Z",
+      "prov:wasAssociatedWith": [
+        {
+          "@type": "prov:Agent",
+          "prov:label": "DeepSeek-V3.2 (DeepSeek) via Azure AI Foundry"
+        }
+      ]
+    },
+    {
+      "@type": "prov:Activity",
+      "prov:label": "Release preprocessing",
+      "description": "scripts/build_public_release.py joined the retained per-model scored files with the current four-judge aggregate (asserting exactly 5,000 prompts per model), excluded the 24-bin set and all non-final candidate rows, dropped raw API responses and all request, batch, deployment, endpoint, credential, and local-path fields, pseudonymized human graders, recomputed harness pass rates from per-test outcomes, and wrote one Parquet file per config."
+    }
+  ],
+  "rai:dataCollection": "Prompts, reference-solution metadata, and unit tests were taken from OpenCodeInstruct. All other content was produced for this study: LLM rubric scores, LLM generations and their executed test outcomes, LLM task-type labels, LLM paraphrases and language re-expressions, and blinded human rubric grades from two research-team members.",
+  "rai:dataCollectionType": [
+    "Secondary data: existing public dataset (OpenCodeInstruct)",
+    "Machine-generated: LLM outputs (generations, rubric scores, labels, rewrites)",
+    "Software measurement: unit-test execution and static analysis (Lizard)",
+    "Expert annotation: blinded human rubric grading"
+  ],
+  "rai:dataCollectionTimeframe": [
+    "2026-02-21T00:00:00Z",
+    "2026-07-26T23:59:59Z"
+  ],
+  "rai:dataCollectionMissingData": "Four judge calls did not return a valid score (one prompt has three judges and one has two). Output CC is null for 1,052 generations and 208 generations have no extractable code (scored 0.0). Generated code was not retained for the extension and fixed-version runs. Per-row generation settings are null where no batch request record was retained.",
+  "rai:dataPreprocessingProtocol": [
+    "Unit tests are released as the list of assertion strings parsed from the source JSON string, unchanged.",
+    "Code is released as the cleaned code that was executed and measured; raw model responses are withheld.",
+    "harness_pass_rate is recomputed from per-test outcomes; pass_rate is the value used in the paper's analyses.",
+    "display_bin = floor(composite + 0.5) is a descriptive convenience; analyses use the unbinned composite."
+  ],
+  "rai:dataAnnotationProtocol": "Rubric annotation: each judge received only the prompt text and the fixed rubric (docs/rubric_prompt.txt) and returned six integer scores from 0 to 4 for the structure a correct solution would need, explicitly excluding task difficulty for an LLM, code length, and language idioms. Human annotation used the same rubric in an offline grading page with LLM scores hidden; graders were asked to score intended solution structure rather than perceived difficulty or whether any model solved the task.",
+  "rai:dataAnnotationPlatform": [
+    "Azure AI Foundry (LLM judges and labelers)",
+    "Offline single-file HTML grading page (human calibration)"
+  ],
+  "rai:dataAnnotationAnalysis": [
+    "Judge scores are aggregated by the per-dimension mean over available judges; per-judge rows are released so other aggregations can be computed.",
+    "Four-judge composite ICC(2,1) = 0.872 on 4,998 complete prompts; pairwise judge Pearson correlations range from 0.89 to 0.92.",
+    "Human versus ensemble on 200 prompts: Pearson r = 0.408, Spearman 0.373, ICC(2,1) = 0.395, mean offset -1.18; on the 50-prompt overlap the graders correlate 0.561 with each other and 0.613 and 0.921 with the ensemble.",
+    "Task-type labels: Krippendorff alpha = 0.787 across four labelers on 500 prompts (as reported in the paper)."
+  ],
+  "rai:annotationsPerItem": "Four LLM judge scores per main and extension prompt (4,998 main prompts complete; one prompt with three and one with two). Human grades: one grade for 150 prompts and two grades for 50 prompts. Task type: one label per prompt, four labels for a 500-prompt subset.",
+  "rai:annotatorDemographics": [
+    "Two human graders, both members of the research team with Python programming experience; no demographic information was collected. TODO(author): confirm."
+  ],
+  "rai:machineAnnotationTools": [
+    "o4-mini, gpt-5.5, Llama 4 Maverick, and Command A via Azure AI Foundry (rubric judges; task-type labelers)",
+    "o4-mini (preliminary sampling rater; earlier-frame harness auditor)",
+    "DeepSeek-V3.2 via Azure AI Foundry (paraphrase and Java/C++ re-expression)",
+    "Lizard 1.21.0 (cyclomatic complexity)"
+  ],
+  "rai:dataReleaseMaintenancePlan": "Version 1.0.0 corresponds to the NeurIPS 2026 camera-ready paper and will not be modified in place; corrections will be released as new versions with a changelog. The same files are mirrored on Hugging Face and Harvard Dataverse; the Dataverse DOI is the archival reference. TODO(author): add the DOI, maintainer contact, and issue-reporting channel."
+}

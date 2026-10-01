@@ -1,0 +1,339 @@
+{
+  "scored_dir": "data/stage_d/scored_harness",
+  "n_prompts": 5000,
+  "minimum_regime_size": 500,
+  "mean_pooled": {
+    "unadjusted": {
+      "threshold": 11.25,
+      "sup_wald": 155.28671777994643,
+      "n_low": 2822,
+      "n_high": 2178,
+      "mean_pass_low": 0.7595288717896796,
+      "mean_pass_high": 0.8331540513358695,
+      "raw_regime_gap": 0.07362517954618986,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.962277288014511,
+        "maximum": 10.226054261845565
+      },
+      "specification": "by_side",
+      "controls": [],
+      "adjusted_jump_at_selected": {
+        "jump": 0.07362517954619037,
+        "se_hc1": 0.008238463699521937,
+        "p_value": 4.007445324768374e-19
+      }
+    },
+    "task_type_additive": {
+      "threshold": 11.25,
+      "sup_wald": 114.50191696472211,
+      "n_low": 2822,
+      "n_high": 2178,
+      "mean_pass_low": 0.7595288717896796,
+      "mean_pass_high": 0.8331540513358695,
+      "raw_regime_gap": 0.07362517954618986,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 6.133269021194355,
+        "maximum": 9.756924652908829
+      },
+      "specification": "additive",
+      "controls": [
+        "tt_array_matrix_grid",
+        "tt_data_structures_algorithms",
+        "tt_logic_validation",
+        "tt_numeric_math",
+        "tt_other",
+        "tt_parsing_serialization",
+        "tt_simulation_stateful",
+        "tt_string_text"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": 0.01972264539361131,
+        "se_hc1": 0.010844699430339269,
+        "p_value": 0.06896579077680205
+      }
+    },
+    "task_type_by_side": {
+      "threshold": 9.5,
+      "sup_wald": 31.870810343104402,
+      "n_low": 2352,
+      "n_high": 2648,
+      "mean_pass_low": 0.7805818756073858,
+      "mean_pass_high": 0.8013864911523522,
+      "raw_regime_gap": 0.020804615544966376,
+      "threshold_grid_candidates": 29,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 3.5773527004278725,
+        "maximum": 4.973666972672988
+      },
+      "specification": "by_side",
+      "controls": [
+        "tt_array_matrix_grid",
+        "tt_data_structures_algorithms",
+        "tt_logic_validation",
+        "tt_numeric_math",
+        "tt_other",
+        "tt_parsing_serialization",
+        "tt_simulation_stateful",
+        "tt_string_text"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": -0.055073091855687935,
+        "se_hc1": 0.010763254210500887,
+        "p_value": 3.1081291717295545e-07
+      }
+    },
+    "frame_additive": {
+      "threshold": 13.75,
+      "sup_wald": 39.41647307424476,
+      "n_low": 3617,
+      "n_high": 1383,
+      "mean_pass_low": 0.7613452348039024,
+      "mean_pass_high": 0.870726164652412,
+      "raw_regime_gap": 0.10938092984850967,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.739321523168579,
+        "maximum": 10.120334352556783
+      },
+      "specification": "additive",
+      "controls": [
+        "later"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": 0.0018082636792001242,
+        "se_hc1": 0.008640635992735318,
+        "p_value": 0.8342340562685591
+      }
+    },
+    "frame_by_side": {
+      "threshold": 8.5,
+      "sup_wald": 32.9155964561851,
+      "n_low": 2075,
+      "n_high": 2925,
+      "mean_pass_low": 0.7932048192771085,
+      "mean_pass_high": 0.7904615384615384,
+      "raw_regime_gap": -0.0027432808155700705,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.653746640113551,
+        "maximum": 9.343321939292492
+      },
+      "specification": "by_side",
+      "controls": [
+        "later"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": -0.07665700677180928,
+        "se_hc1": 0.008568486662789022,
+        "p_value": 3.673040960292724e-19
+      }
+    },
+    "task_type_and_frame_additive": {
+      "threshold": 13.75,
+      "sup_wald": 28.977682307123224,
+      "n_low": 3617,
+      "n_high": 1383,
+      "mean_pass_low": 0.7613452348039024,
+      "mean_pass_high": 0.870726164652412,
+      "raw_regime_gap": 0.10938092984850967,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.967524492471162,
+        "maximum": 12.429035694509585
+      },
+      "specification": "additive",
+      "controls": [
+        "tt_array_matrix_grid",
+        "tt_data_structures_algorithms",
+        "tt_logic_validation",
+        "tt_numeric_math",
+        "tt_other",
+        "tt_parsing_serialization",
+        "tt_simulation_stateful",
+        "tt_string_text",
+        "later"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": -0.015820292886552373,
+        "se_hc1": 0.01091826695731431,
+        "p_value": 0.1473446405166464
+      }
+    },
+    "adjusted_jumps_at_unadjusted_threshold": {
+      "threshold": 11.25,
+      "none": {
+        "jump": 0.07362517954619037,
+        "se_hc1": 0.008238463699521937,
+        "p_value": 4.007445324768374e-19
+      },
+      "task_type": {
+        "jump": 0.01972264539361131,
+        "se_hc1": 0.010844699430339269,
+        "p_value": 0.06896579077680205
+      },
+      "frame": {
+        "jump": -0.044115530243425044,
+        "se_hc1": 0.008945666690855518,
+        "p_value": 8.160173757298081e-07
+      },
+      "task_type_and_frame": {
+        "jump": -0.08305934919793939,
+        "se_hc1": 0.010821281851290535,
+        "p_value": 1.6470335177574462e-14
+      }
+    }
+  },
+  "model_specific": {
+    "azure_kimi-k2.5": {
+      "unadjusted": {
+        "threshold": 14.25,
+        "sup_wald": 74.64251950984142,
+        "n_low": 3837,
+        "n_high": 1163,
+        "mean_pass_low": 0.7109721136304404,
+        "mean_pass_high": 0.7489251934651763,
+        "raw_regime_gap": 0.03795307983473584,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 0,
+          "p_raw": 0.0,
+          "p_finite_mc": 0.0033222591362126247,
+          "q95": 5.682959447242868,
+          "maximum": 8.918242029287574
+        },
+        "specification": "by_side"
+      },
+      "frame_additive": {
+        "threshold": 14.25,
+        "sup_wald": 41.94315593749044,
+        "n_low": 3837,
+        "n_high": 1163,
+        "mean_pass_low": 0.7109721136304404,
+        "mean_pass_high": 0.7489251934651763,
+        "raw_regime_gap": 0.03795307983473584,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 0,
+          "p_finite_mc": 0.0033222591362126247,
+          "q95": 5.909726195905983,
+          "maximum": 9.888830035230091
+        },
+        "specification": "additive"
+      },
+      "frame_by_side": {
+        "threshold": 14.25,
+        "sup_wald": 28.537313117778865,
+        "n_low": 3837,
+        "n_high": 1163,
+        "mean_pass_low": 0.7109721136304404,
+        "mean_pass_high": 0.7489251934651763,
+        "raw_regime_gap": 0.03795307983473584,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 0,
+          "p_raw": 0.0,
+          "p_finite_mc": 0.0033222591362126247,
+          "q95": 4.881570731927971,
+          "maximum": 7.162142380542785
+        },
+        "specification": "by_side"
+      }
+    },
+    "google_gemini-3.1-pro-preview": {
+      "unadjusted": {
+        "threshold": 11.25,
+        "sup_wald": 36.90544282793486,
+        "n_low": 2822,
+        "n_high": 2178,
+        "mean_pass_low": 0.7840892983699504,
+        "mean_pass_high": 0.7383838383838383,
+        "raw_regime_gap": -0.045705459986112196,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 0,
+          "p_raw": 0.0,
+          "p_finite_mc": 0.0033222591362126247,
+          "q95": 6.741231075351965,
+          "maximum": 10.85097953893419
+        },
+        "specification": "by_side"
+      },
+      "frame_additive": {
+        "threshold": 14.75,
+        "sup_wald": 7.721567247518781,
+        "n_low": 4295,
+        "n_high": 705,
+        "mean_pass_low": 0.7716181606519208,
+        "mean_pass_high": 0.7188652482269504,
+        "raw_regime_gap": -0.05275291242497038,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 9,
+          "p_finite_mc": 0.03322259136212625,
+          "q95": 6.89732926156791,
+          "maximum": 10.815308427806507
+        },
+        "specification": "additive"
+      },
+      "frame_by_side": {
+        "threshold": 11.25,
+        "sup_wald": 5.629256236012451,
+        "n_low": 2822,
+        "n_high": 2178,
+        "mean_pass_low": 0.7840892983699504,
+        "mean_pass_high": 0.7383838383838383,
+        "raw_regime_gap": -0.045705459986112196,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 12,
+          "p_raw": 0.04,
+          "p_finite_mc": 0.04318936877076412,
+          "q95": 5.404151095636609,
+          "maximum": 7.373041412233468
+        },
+        "specification": "by_side"
+      }
+    }
+  }
+}

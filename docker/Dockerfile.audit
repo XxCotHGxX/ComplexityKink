@@ -1,0 +1,20 @@
+# Independent outcome audit (docs/independent_audit_protocol.md).
+# Runs as an Azure Container Apps Job with the ckr-camera-ready file share
+# mounted at /mnt/ckr. The container only sends code text to the auditor API;
+# it never executes generated code.
+#
+# Build (no local Docker needed):
+#   az acr build -r qwen359b -t ckr-audit:<tag> -f docker/Dockerfile.audit .
+FROM python:3.12-slim
+
+RUN pip install --no-cache-dir requests==2.32.3
+
+WORKDIR /app
+COPY src/audit/ /app/src/audit/
+COPY src/data_provenance/06_audit_scoring.py /app/src/data_provenance/06_audit_scoring.py
+COPY docker/run_audit.sh /app/run_audit.sh
+RUN chmod +x /app/run_audit.sh
+
+ENV PYTHONUNBUFFERED=1 \
+    DATA_ROOT=/mnt/ckr/data
+ENTRYPOINT ["/app/run_audit.sh"]

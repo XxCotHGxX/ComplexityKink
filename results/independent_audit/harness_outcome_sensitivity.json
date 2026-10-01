@@ -1,0 +1,538 @@
+{
+  "analyzed": {
+    "unadjusted": {
+      "threshold": 13.75,
+      "sup_wald": 121.6994691642973,
+      "n_low": 3617,
+      "n_high": 1383,
+      "mean_pass_low": 0.7993088194636438,
+      "mean_pass_high": 0.8757222050063699,
+      "raw_regime_gap": 0.07641338554272603,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.57535504259146,
+        "maximum": 8.724827334213217
+      }
+    },
+    "task_type_fe": {
+      "threshold": 10.75,
+      "sup_wald": 19.556861735806706,
+      "n_low": 2677,
+      "n_high": 2323,
+      "mean_pass_low": 0.8108401373250085,
+      "mean_pass_high": 0.8315130270791053,
+      "raw_regime_gap": 0.020672889754096868,
+      "threshold_grid_candidates": 29,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 3.7235538988683174,
+        "maximum": 4.486677038640026
+      }
+    },
+    "frame_fe": {
+      "threshold": 8.5,
+      "sup_wald": 47.37329466658257,
+      "n_low": 2075,
+      "n_high": 2925,
+      "mean_pass_low": 0.8408146873207114,
+      "mean_pass_high": 0.805994301994302,
+      "raw_regime_gap": -0.03482038532640941,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.810380203495388,
+        "maximum": 9.22274161416902
+      }
+    },
+    "earlier_frame": {
+      "threshold": 7.75,
+      "sup_wald": 3.4292172604240885,
+      "n_low": 1149,
+      "n_high": 1097,
+      "mean_pass_low": 0.8245555141116498,
+      "mean_pass_high": 0.6662759907974128,
+      "raw_regime_gap": -0.158279523314237,
+      "threshold_grid_candidates": 20,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 57,
+        "p_raw": 0.19,
+        "p_finite_mc": 0.19269102990033224,
+        "q95": 5.144520323779485,
+        "maximum": 7.342975060070532
+      },
+      "frame_mean_pass": 0.7472480176398253
+    },
+    "later_frame": {
+      "threshold": 14.25,
+      "sup_wald": 36.714745015191816,
+      "n_low": 1642,
+      "n_high": 1112,
+      "mean_pass_low": 0.8766457862072967,
+      "mean_pass_high": 0.8852989037341555,
+      "raw_regime_gap": 0.008653117526858822,
+      "threshold_grid_candidates": 23,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 6.090066311105235,
+        "maximum": 10.032081958971817
+      },
+      "frame_mean_pass": 0.8801397102050696
+    }
+  },
+  "harness": {
+    "unadjusted": {
+      "threshold": 11.25,
+      "sup_wald": 155.28671777889204,
+      "n_low": 2822,
+      "n_high": 2178,
+      "mean_pass_low": 0.7595288717896796,
+      "mean_pass_high": 0.8331540513358695,
+      "raw_regime_gap": 0.07362517954618986,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.96227728777205,
+        "maximum": 10.226054261826452
+      }
+    },
+    "task_type_fe": {
+      "threshold": 9.5,
+      "sup_wald": 31.870810342983365,
+      "n_low": 2352,
+      "n_high": 2648,
+      "mean_pass_low": 0.7805818756073858,
+      "mean_pass_high": 0.8013864911523522,
+      "raw_regime_gap": 0.020804615544966376,
+      "threshold_grid_candidates": 29,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 3.5773527004348864,
+        "maximum": 4.973666972607659
+      }
+    },
+    "frame_fe": {
+      "threshold": 8.5,
+      "sup_wald": 32.915596455317406,
+      "n_low": 2075,
+      "n_high": 2925,
+      "mean_pass_low": 0.7932048192771085,
+      "mean_pass_high": 0.7904615384615384,
+      "raw_regime_gap": -0.0027432808155700705,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.653746639766496,
+        "maximum": 9.343321938712636
+      }
+    },
+    "earlier_frame": {
+      "threshold": 9.5,
+      "sup_wald": 3.5069845222048017,
+      "n_low": 1569,
+      "n_high": 677,
+      "mean_pass_low": 0.7228595708519225,
+      "mean_pass_high": 0.5907364422874023,
+      "raw_regime_gap": -0.13212312856452024,
+      "threshold_grid_candidates": 20,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 50,
+        "p_raw": 0.16666666666666666,
+        "p_finite_mc": 0.16943521594684385,
+        "q95": 4.723516115206652,
+        "maximum": 7.753314905528071
+      },
+      "frame_mean_pass": 0.6830343891786457
+    },
+    "later_frame": {
+      "threshold": 14.25,
+      "sup_wald": 36.714745015191816,
+      "n_low": 1642,
+      "n_high": 1112,
+      "mean_pass_low": 0.8766457862072967,
+      "mean_pass_high": 0.8852989037341555,
+      "raw_regime_gap": 0.008653117526858822,
+      "threshold_grid_candidates": 23,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 6.090066311105235,
+        "maximum": 10.032081958971817
+      },
+      "frame_mean_pass": 0.8801397102050696
+    }
+  },
+  "per_model": {
+    "Claude Opus 4.6": {
+      "analyzed": {
+        "gamma": 10.5,
+        "sup_wald": 65.98,
+        "low": 0.827,
+        "high": 0.867,
+        "delta_pp": 3.9
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 104.35,
+        "low": 0.772,
+        "high": 0.868,
+        "delta_pp": 9.6
+      }
+    },
+    "Claude Opus 4.7": {
+      "analyzed": {
+        "gamma": 10.0,
+        "sup_wald": 59.4,
+        "low": 0.848,
+        "high": 0.867,
+        "delta_pp": 1.9
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 108.51,
+        "low": 0.783,
+        "high": 0.876,
+        "delta_pp": 9.3
+      }
+    },
+    "Claude Sonnet 4.6": {
+      "analyzed": {
+        "gamma": 10.0,
+        "sup_wald": 49.14,
+        "low": 0.84,
+        "high": 0.853,
+        "delta_pp": 1.3
+      },
+      "harness": {
+        "gamma": 7.75,
+        "sup_wald": 122.82,
+        "low": 0.779,
+        "high": 0.794,
+        "delta_pp": 1.5
+      }
+    },
+    "DeepSeek V3.2": {
+      "analyzed": {
+        "gamma": 10.5,
+        "sup_wald": 137.01,
+        "low": 0.784,
+        "high": 0.823,
+        "delta_pp": 3.9
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 199.42,
+        "low": 0.712,
+        "high": 0.824,
+        "delta_pp": 11.2
+      }
+    },
+    "GLM 4.7-flash": {
+      "analyzed": {
+        "gamma": 13.75,
+        "sup_wald": 125.3,
+        "low": 0.757,
+        "high": 0.859,
+        "delta_pp": 10.2
+      },
+      "harness": {
+        "gamma": 13.75,
+        "sup_wald": 132.56,
+        "low": 0.731,
+        "high": 0.856,
+        "delta_pp": 12.5
+      }
+    },
+    "GPT-4.1": {
+      "analyzed": {
+        "gamma": 11.25,
+        "sup_wald": 60.36,
+        "low": 0.828,
+        "high": 0.877,
+        "delta_pp": 4.8
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 124.3,
+        "low": 0.768,
+        "high": 0.868,
+        "delta_pp": 10.1
+      }
+    },
+    "GPT-5-mini": {
+      "analyzed": {
+        "gamma": 10.75,
+        "sup_wald": 52.03,
+        "low": 0.852,
+        "high": 0.884,
+        "delta_pp": 3.2
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 134.29,
+        "low": 0.787,
+        "high": 0.874,
+        "delta_pp": 8.7
+      }
+    },
+    "GPT-5.4": {
+      "analyzed": {
+        "gamma": 7.75,
+        "sup_wald": 69.9,
+        "low": 0.874,
+        "high": 0.843,
+        "delta_pp": -3.1
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 147.23,
+        "low": 0.789,
+        "high": 0.872,
+        "delta_pp": 8.3
+      }
+    },
+    "GPT-OSS-120B": {
+      "analyzed": {
+        "gamma": 13.75,
+        "sup_wald": 68.39,
+        "low": 0.814,
+        "high": 0.898,
+        "delta_pp": 8.4
+      },
+      "harness": {
+        "gamma": 8.5,
+        "sup_wald": 123.63,
+        "low": 0.79,
+        "high": 0.801,
+        "delta_pp": 1.1
+      }
+    },
+    "GPT-OSS-20B": {
+      "analyzed": {
+        "gamma": 13.75,
+        "sup_wald": 81.09,
+        "low": 0.804,
+        "high": 0.89,
+        "delta_pp": 8.6
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 125.2,
+        "low": 0.758,
+        "high": 0.841,
+        "delta_pp": 8.3
+      }
+    },
+    "Gemini 3 Flash": {
+      "analyzed": {
+        "gamma": 13.75,
+        "sup_wald": 87.65,
+        "low": 0.803,
+        "high": 0.899,
+        "delta_pp": 9.6
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 120.71,
+        "low": 0.772,
+        "high": 0.851,
+        "delta_pp": 7.9
+      }
+    },
+    "Gemini 3.1 Pro Preview": {
+      "analyzed": {
+        "gamma": 11.25,
+        "sup_wald": 18.63,
+        "low": 0.818,
+        "high": 0.748,
+        "delta_pp": -7.0
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 36.91,
+        "low": 0.784,
+        "high": 0.738,
+        "delta_pp": -4.6
+      }
+    },
+    "Grok-3": {
+      "analyzed": {
+        "gamma": 8.25,
+        "sup_wald": 73.68,
+        "low": 0.836,
+        "high": 0.808,
+        "delta_pp": -2.8
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 124.27,
+        "low": 0.754,
+        "high": 0.848,
+        "delta_pp": 9.4
+      }
+    },
+    "Kimi K2.5": {
+      "analyzed": {
+        "gamma": 14.25,
+        "sup_wald": 60.18,
+        "low": 0.771,
+        "high": 0.753,
+        "delta_pp": -1.8
+      },
+      "harness": {
+        "gamma": 14.25,
+        "sup_wald": 74.64,
+        "low": 0.711,
+        "high": 0.749,
+        "delta_pp": 3.8
+      }
+    },
+    "Llama 3.3-70B": {
+      "analyzed": {
+        "gamma": 14.0,
+        "sup_wald": 83.8,
+        "low": 0.752,
+        "high": 0.862,
+        "delta_pp": 11.0
+      },
+      "harness": {
+        "gamma": 14.0,
+        "sup_wald": 85.29,
+        "low": 0.74,
+        "high": 0.858,
+        "delta_pp": 11.8
+      }
+    },
+    "Ministral-3-14B-reasoning": {
+      "analyzed": {
+        "gamma": 14.0,
+        "sup_wald": 97.99,
+        "low": 0.767,
+        "high": 0.841,
+        "delta_pp": 7.4
+      },
+      "harness": {
+        "gamma": 11.5,
+        "sup_wald": 100.23,
+        "low": 0.751,
+        "high": 0.811,
+        "delta_pp": 6.0
+      }
+    },
+    "Mistral Large-3": {
+      "analyzed": {
+        "gamma": 13.75,
+        "sup_wald": 87.78,
+        "low": 0.805,
+        "high": 0.904,
+        "delta_pp": 9.9
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 122.43,
+        "low": 0.778,
+        "high": 0.857,
+        "delta_pp": 8.0
+      }
+    },
+    "Mistral Small 2412": {
+      "analyzed": {
+        "gamma": 13.75,
+        "sup_wald": 101.2,
+        "low": 0.779,
+        "high": 0.866,
+        "delta_pp": 8.6
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 112.56,
+        "low": 0.757,
+        "high": 0.828,
+        "delta_pp": 7.1
+      }
+    },
+    "Qwen 3.5-9B": {
+      "analyzed": {
+        "gamma": 14.0,
+        "sup_wald": 97.38,
+        "low": 0.753,
+        "high": 0.845,
+        "delta_pp": 9.2
+      },
+      "harness": {
+        "gamma": 13.75,
+        "sup_wald": 102.05,
+        "low": 0.728,
+        "high": 0.837,
+        "delta_pp": 10.9
+      }
+    },
+    "Qwen 3.6 Plus": {
+      "analyzed": {
+        "gamma": 7.75,
+        "sup_wald": 85.13,
+        "low": 0.859,
+        "high": 0.821,
+        "delta_pp": -3.8
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 142.23,
+        "low": 0.769,
+        "high": 0.859,
+        "delta_pp": 9.0
+      }
+    },
+    "Trinity-large": {
+      "analyzed": {
+        "gamma": 10.5,
+        "sup_wald": 89.44,
+        "low": 0.826,
+        "high": 0.85,
+        "delta_pp": 2.4
+      },
+      "harness": {
+        "gamma": 11.25,
+        "sup_wald": 126.6,
+        "low": 0.787,
+        "high": 0.86,
+        "delta_pp": 7.3
+      }
+    }
+  }
+}

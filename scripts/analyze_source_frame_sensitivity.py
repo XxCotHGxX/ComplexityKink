@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -300,7 +301,8 @@ def best_piecewise_fit(
 def load_analysis_frame(data_root: Path) -> tuple[pd.DataFrame, dict]:
     stage_d = data_root / "stage_d"
     rubric_path = stage_d / "ensemble_scores_current_aggregated.jsonl"
-    scored_dir = stage_d / "scored_combined"
+    # CK_SCORED_DIR selects the outcome definition, e.g. data/stage_d/scored_independent_audit.
+    scored_dir = Path(os.environ.get("CK_SCORED_DIR", stage_d / "scored_combined"))
     prompt_path = stage_d / "stage_d_prompts.jsonl"
 
     for path in (rubric_path, scored_dir, prompt_path):
@@ -571,7 +573,7 @@ def analyze(args: argparse.Namespace) -> dict:
             "rubric": (
                 "data/stage_d/ensemble_scores_current_aggregated.jsonl"
             ),
-            "scored_models": "data/stage_d/scored_combined/*.jsonl",
+            "scored_models": os.environ.get("CK_SCORED_DIR", "data/stage_d/scored_combined") + "/*.jsonl",
             "join_key": "prompt_id",
         },
         "validation": validation,
@@ -581,10 +583,11 @@ def analyze(args: argparse.Namespace) -> dict:
             "bootstrap_draws": args.n_boot,
             "bootstrap_seed": args.seed,
             "source_controlled_search": (
-                "Matches src/rebuttal/09_threshold_with_task_type.py: "
+                "By-side specification (as src/rebuttal/09_threshold_with_task_type.py): "
                 "the pooled null and both regime regressions include the "
-                "composite and source-frame dummy. The split alternative "
-                "therefore permits the source coefficient to differ by regime."
+                "composite and source-frame dummy, so the split alternative "
+                "lets the source coefficient differ by regime. The additive "
+                "(common-effect) search is in scripts/camera_ready/control_specs.py."
             ),
             "regime_means": (
                 "Reported regime means are raw summaries at each selected "

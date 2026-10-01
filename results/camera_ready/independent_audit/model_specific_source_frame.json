@@ -1,0 +1,347 @@
+{
+  "inputs": {
+    "join_key": "prompt_id",
+    "prompt_metadata": "data/stage_d/stage_d_prompts.jsonl",
+    "rubric": "data/stage_d/ensemble_scores_current_aggregated.jsonl",
+    "scored_models": "data/stage_d/scored_independent_audit/*.jsonl",
+    "source_mapping_field": "selection_source"
+  },
+  "method": {
+    "interpretation": "Model-specific breakpoint estimates are conditional on the constructed benchmark frame, prompt index, generation settings, and unit-test protocol.",
+    "pairs_bootstrap_draws": 300,
+    "regime_means": "Raw descriptive means at each selected threshold; the sup-Wald test is not a separate test of their difference.",
+    "seed": 42,
+    "wild_bootstrap_draws": 300
+  },
+  "models": [
+    {
+      "display_name": "Kimi K2.5",
+      "model_id": "azure_kimi-k2.5",
+      "selection_basis_unadjusted_fit": {
+        "direction": "down",
+        "mean_pass_high": 0.8007710100231302,
+        "mean_pass_low": 0.8172562786929517,
+        "model": "azure_kimi-k2.5",
+        "n": 5000,
+        "n_high": 1297,
+        "n_low": 3703,
+        "sup_wald": 60.53712945311117,
+        "threshold": 14.0
+      },
+      "source_controlled_threshold": {
+        "mean_pass_high": 0.8001719690455719,
+        "mean_pass_low": 0.8168621318738598,
+        "n_high": 1163,
+        "n_low": 3837,
+        "raw_regime_gap": -0.016690162828287947,
+        "sup_wald": 32.028675675515785,
+        "threshold": 14.25,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "draws": 300,
+          "exceedances": 0,
+          "maximum": 7.607271870479731,
+          "p_finite_mc": 0.0033222591362126247,
+          "p_raw": 0.0,
+          "q95": 5.497691608165382,
+          "seed": 42
+        }
+      },
+      "source_specific_fit_comparison": {
+        "linear_slopes": {
+          "adjusted_r2": 0.04401655991368825,
+          "aic": 4532.588103231412,
+          "bic": 4558.656875997077,
+          "n_parameters": 4,
+          "r2": 0.04459026471870098,
+          "rss": 723.5963763158134
+        },
+        "linear_slopes_plus_piecewise": {
+          "adjusted_r2": 0.0586171747849098,
+          "aic": 4457.632571745917,
+          "bic": 4496.735730894414,
+          "n_parameters": 6,
+          "r2": 0.05955874592435273,
+          "rss": 712.2597336593807,
+          "threshold": 14.25
+        },
+        "piecewise_minus_linear_bic": -61.921145102663104
+      },
+      "within_frame_thresholds": {
+        "later_candidate_frame": {
+          "linear_fit": {
+            "adjusted_r2": 0.022421111788039516,
+            "aic": 2337.9758206066117,
+            "bic": 2349.817439965189,
+            "n_parameters": 2,
+            "r2": 0.0227762076428204,
+            "rss": 376.31192472976477
+          },
+          "mean_pass_high": 0.8080935251798561,
+          "mean_pass_low": 0.84768574908648,
+          "n_high": 1112,
+          "n_low": 1642,
+          "pairs_bootstrap_threshold": {
+            "ci_lower": 14.0,
+            "ci_percentiles": [
+              2.5,
+              97.5
+            ],
+            "ci_upper": 14.75,
+            "failed_draws": 0,
+            "maximum": 14.75,
+            "median": 14.25,
+            "minimum": 14.0,
+            "requested_draws": 300,
+            "seed": 42,
+            "successful_draws": 300
+          },
+          "piecewise_fit": {
+            "adjusted_r2": 0.05044929697350209,
+            "aic": 2259.8596029131913,
+            "bic": 2283.5428416303457,
+            "n_parameters": 4,
+            "r2": 0.0514840416553326,
+            "rss": 365.2570360169012,
+            "threshold": 14.25
+          },
+          "raw_regime_gap": -0.03959222390662387,
+          "sup_wald": 41.61582250729654,
+          "threshold": 14.25,
+          "threshold_grid_candidates": 23,
+          "wild_bootstrap": {
+            "draws": 300,
+            "exceedances": 0,
+            "maximum": 12.33925983667286,
+            "p_finite_mc": 0.0033222591362126247,
+            "p_raw": 0.0,
+            "q95": 6.294897599378056,
+            "seed": 42
+          }
+        },
+        "retained_earlier_frame": {
+          "linear_fit": {
+            "adjusted_r2": 0.06132164602832979,
+            "aic": 2185.124560541869,
+            "bic": 2196.5583728124657,
+            "n_parameters": 2,
+            "r2": 0.06173976556239291,
+            "rss": 347.28445158604876
+          },
+          "mean_pass_high": 0.6491875923190547,
+          "mean_pass_low": 0.8507966857871256,
+          "n_high": 677,
+          "n_low": 1569,
+          "pairs_bootstrap_threshold": {
+            "ci_lower": 6.25,
+            "ci_percentiles": [
+              2.5,
+              97.5
+            ],
+            "ci_upper": 10.25,
+            "failed_draws": 0,
+            "maximum": 10.25,
+            "median": 9.5,
+            "minimum": 5.5,
+            "requested_draws": 300,
+            "seed": 42,
+            "successful_draws": 300
+          },
+          "piecewise_fit": {
+            "adjusted_r2": 0.06330882989017217,
+            "aic": 2182.3620590854953,
+            "bic": 2205.2296836266887,
+            "n_parameters": 4,
+            "r2": 0.06456053301281328,
+            "rss": 346.2403823170808,
+            "threshold": 9.5
+          },
+          "raw_regime_gap": -0.201609093468071,
+          "sup_wald": 3.3803152679717625,
+          "threshold": 9.5,
+          "threshold_grid_candidates": 20,
+          "wild_bootstrap": {
+            "draws": 300,
+            "exceedances": 67,
+            "maximum": 13.794165331896833,
+            "p_finite_mc": 0.22591362126245848,
+            "p_raw": 0.22333333333333333,
+            "q95": 4.970000348753371,
+            "seed": 42
+          }
+        }
+      }
+    },
+    {
+      "display_name": "Gemini 3.1 Pro Preview",
+      "model_id": "google_gemini-3.1-pro-preview",
+      "selection_basis_unadjusted_fit": {
+        "direction": "down",
+        "mean_pass_high": 0.7931984502798105,
+        "mean_pass_low": 0.8721329846843481,
+        "model": "google_gemini-3.1-pro-preview",
+        "n": 5000,
+        "n_high": 2323,
+        "n_low": 2677,
+        "sup_wald": 9.59676683074994,
+        "threshold": 10.75
+      },
+      "source_controlled_threshold": {
+        "mean_pass_high": 0.7754609929078015,
+        "mean_pass_low": 0.8453084982537834,
+        "n_high": 705,
+        "n_low": 4295,
+        "raw_regime_gap": -0.06984750534598194,
+        "sup_wald": 7.767612841608186,
+        "threshold": 14.75,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "draws": 300,
+          "exceedances": 1,
+          "maximum": 8.506728300044765,
+          "p_finite_mc": 0.006644518272425249,
+          "p_raw": 0.0033333333333333335,
+          "q95": 5.308011354718446,
+          "seed": 42
+        }
+      },
+      "source_specific_fit_comparison": {
+        "linear_slopes": {
+          "adjusted_r2": 0.028397698590134968,
+          "aic": 4063.376215307744,
+          "bic": 4089.444988073409,
+          "n_parameters": 4,
+          "r2": 0.02898077658658016,
+          "rss": 658.781138671156
+        },
+        "linear_slopes_plus_piecewise": {
+          "adjusted_r2": 0.030444120223735993,
+          "aic": 4054.831937994264,
+          "bic": 4093.9350971427616,
+          "n_parameters": 6,
+          "r2": 0.03141387005347818,
+          "rss": 657.1304235813127,
+          "threshold": 14.75
+        },
+        "piecewise_minus_linear_bic": 4.490109069352457
+      },
+      "within_frame_thresholds": {
+        "later_candidate_frame": {
+          "linear_fit": {
+            "adjusted_r2": 0.03581698233153441,
+            "aic": 2255.689275850452,
+            "bic": 2267.530895209029,
+            "n_parameters": 2,
+            "r2": 0.0361672122689366,
+            "rss": 365.2344466072145
+          },
+          "mean_pass_high": 0.7683357879234168,
+          "mean_pass_low": 0.8567228915662651,
+          "n_high": 679,
+          "n_low": 2075,
+          "pairs_bootstrap_threshold": {
+            "ci_lower": 8.0,
+            "ci_percentiles": [
+              2.5,
+              97.5
+            ],
+            "ci_upper": 14.75,
+            "failed_draws": 0,
+            "maximum": 15.0,
+            "median": 12.0,
+            "minimum": 8.0,
+            "requested_draws": 300,
+            "seed": 42,
+            "successful_draws": 300
+          },
+          "piecewise_fit": {
+            "adjusted_r2": 0.03941201599960409,
+            "aic": 2247.3993937832174,
+            "bic": 2271.082632500372,
+            "n_parameters": 4,
+            "r2": 0.04045878823062521,
+            "rss": 363.6081983705987,
+            "threshold": 14.75
+          },
+          "raw_regime_gap": -0.0883871036428483,
+          "sup_wald": 6.149727468989812,
+          "threshold": 14.75,
+          "threshold_grid_candidates": 23,
+          "wild_bootstrap": {
+            "draws": 300,
+            "exceedances": 12,
+            "maximum": 8.083496410764456,
+            "p_finite_mc": 0.04318936877076412,
+            "p_raw": 0.04,
+            "q95": 5.841964707030722,
+            "seed": 42
+          }
+        },
+        "retained_earlier_frame": {
+          "linear_fit": {
+            "adjusted_r2": 0.01944591814842611,
+            "aic": 1807.555170280113,
+            "bic": 1818.9889825507098,
+            "n_parameters": 2,
+            "r2": 0.019882690567959105,
+            "rss": 293.54669206394107
+          },
+          "mean_pass_high": 0.7615830115830116,
+          "mean_pass_low": 0.8584490740740741,
+          "n_high": 518,
+          "n_low": 1728,
+          "pairs_bootstrap_threshold": {
+            "ci_lower": 5.5,
+            "ci_percentiles": [
+              2.5,
+              97.5
+            ],
+            "ci_upper": 10.25,
+            "failed_draws": 0,
+            "maximum": 10.25,
+            "median": 9.5,
+            "minimum": 5.5,
+            "requested_draws": 300,
+            "seed": 42,
+            "successful_draws": 300
+          },
+          "piecewise_fit": {
+            "adjusted_r2": 0.02119488767480371,
+            "aic": 1805.542830558823,
+            "bic": 1828.4104551000166,
+            "n_parameters": 4,
+            "r2": 0.022502867780360702,
+            "rss": 292.76194482407493,
+            "threshold": 10.25
+          },
+          "raw_regime_gap": -0.09686606249106255,
+          "sup_wald": 3.0048360849027005,
+          "threshold": 10.25,
+          "threshold_grid_candidates": 20,
+          "wild_bootstrap": {
+            "draws": 300,
+            "exceedances": 88,
+            "maximum": 8.870459039973703,
+            "p_finite_mc": 0.2956810631229236,
+            "p_raw": 0.29333333333333333,
+            "q95": 5.1259993675391,
+            "seed": 42
+          }
+        }
+      }
+    }
+  ],
+  "schema_version": 1,
+  "selection_rule": "All and only models whose locked unadjusted original-benchmark fit has a negative raw above-minus-below regime contrast.",
+  "selection_source": "results/camera_ready/independent_audit/breakpoints.json",
+  "validation": {
+    "analyzed_model_count": 2,
+    "expected_prompts_per_model": 5000,
+    "expected_source_counts": {
+      "stage_c_existing": 2246,
+      "stage_d_candidate": 2754
+    },
+    "reviewed_outcome_selected_model_count": 5,
+    "selected_model_count": 2
+  }
+}

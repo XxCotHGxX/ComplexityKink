@@ -12,10 +12,12 @@ The scored files have the SAME schema as iv_enriched_dataset.jsonl,
 making them drop-in compatible with the rest of the pipeline.
 
 SAFETY:
-  Code execution is sandboxed via subprocess with:
-    - 10-second timeout
-    - No network access (we don't grant it)
-    - Isolated temp files (cleaned up)
+  Each unit-test assertion runs in a fresh subprocess (`python -I -c`, so no
+  user site-packages or PYTHON* environment variables), with a 5-second
+  timeout that kills the whole process tree. This script does not itself
+  isolate the filesystem or the network: the child inherits the working
+  directory and environment. Run it inside a container without network access
+  (for example `docker run --network none`) when executing untrusted code.
 
 USAGE:
   python src/data_provenance/03_execute_and_score.py \\

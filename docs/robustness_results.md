@@ -1,5 +1,14 @@
 # Post-submission robustness results
 
+> **Reviewed-version values.** This note records the checks as they stood during
+> the review period, under the reviewed version's outcome definition (an
+> `o4-mini` audit of the earlier frame only). The camera-ready paper uses an
+> independently audited outcome for all 105,000 generations, so its numbers
+> differ: see the manuscript and `results/camera_ready/independent_audit/`
+> (with `reviewed_outcome/` and `harness_outcome/` for the two alternatives).
+> Outcome-independent checks (human calibration, paraphrase, language, task
+> labels) are unchanged.
+
 This note records the checks completed during the review period. It keeps the
 submitted 5,000-prompt analysis separate from new evidence and states the
 limits directly. The machine-readable values are in
@@ -156,10 +165,10 @@ high-regime pattern through bin 16, but the extreme tail remains unresolved.
 
 ## 6. Human calibration
 
-Michael Hernandez and Tian Zhao graded prompts with the LLM scores hidden.
-Michael scored 200 prompts. Tian scored a 50-prompt overlap. Half of the
-200-prompt set was deliberately drawn from the highest-disagreement cases, so
-this is a stress test rather than an average-case population estimate.
+Two people graded prompts with the LLM scores hidden. The first grader scored
+200 prompts. The second scored a 50-prompt overlap. Half of the 200-prompt set
+was deliberately drawn from the highest-disagreement cases, so this is a stress
+test rather than an average-case population estimate.
 
 On the full 200 prompts:
 
@@ -171,10 +180,10 @@ On the full 200 prompts:
 
 On the shared 50 prompts:
 
-- Michael versus LLM Pearson: 0.61
-- Tian versus LLM Pearson: 0.92
+- first grader versus LLM Pearson: 0.61
+- second grader versus LLM Pearson: 0.92
 - human versus human correlation: 0.56
-- Tian minus LLM composite offset: -1.35 points
+- second grader minus LLM composite offset: -1.35 points
 
 The rubric carries signal, but neither a single human nor an LLM ensemble
 should be treated as ground truth.

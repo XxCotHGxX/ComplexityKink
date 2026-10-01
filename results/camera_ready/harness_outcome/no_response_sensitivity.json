@@ -1,0 +1,517 @@
+{
+  "scored_dir": "data/stage_d/scored_harness",
+  "no_response_generations": {
+    "total": 157,
+    "by_model": {
+      "google_gemini-3-flash-preview": 1,
+      "google_gemini-3.1-pro-preview": 156
+    },
+    "later_frame": 152,
+    "composite_above_14": 144
+  },
+  "variants": {
+    "all_rows": {
+      "mean_pooled": {
+        "threshold": 11.25,
+        "sup_wald": 155.28671777994643,
+        "n": 5000,
+        "mean_pass_low": 0.7595288717896796,
+        "mean_pass_high": 0.8331540513358695,
+        "n_low": 2822,
+        "n_high": 2178,
+        "direction": "up"
+      },
+      "per_model": {
+        "anthropic_claude-opus-4.6": {
+          "threshold": 11.25,
+          "sup_wald": 104.34963668694141,
+          "n": 5000,
+          "mean_pass_low": 0.7717221828490433,
+          "mean_pass_high": 0.8680440771349862,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "anthropic_claude-opus-4.7": {
+          "threshold": 11.25,
+          "sup_wald": 108.50763831632706,
+          "n": 5000,
+          "mean_pass_low": 0.7830616583982991,
+          "mean_pass_high": 0.8763085399449035,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "anthropic_claude-sonnet-4.6": {
+          "threshold": 7.75,
+          "sup_wald": 122.81795726966297,
+          "n": 5000,
+          "mean_pass_low": 0.7794638069705094,
+          "mean_pass_high": 0.7942902711323764,
+          "n_low": 1865,
+          "n_high": 3135,
+          "direction": "up"
+        },
+        "arcee-ai_trinity-large-preview_free": {
+          "threshold": 11.25,
+          "sup_wald": 126.59705877911075,
+          "n": 5000,
+          "mean_pass_low": 0.7869950389794472,
+          "mean_pass_high": 0.8601469237832875,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "azure_deepseek-v3.2-speciale": {
+          "threshold": 11.25,
+          "sup_wald": 199.42005820358273,
+          "n": 5000,
+          "mean_pass_low": 0.7120481927710843,
+          "mean_pass_high": 0.8236914600550964,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "azure_gpt-oss-120b": {
+          "threshold": 8.5,
+          "sup_wald": 123.62863163279302,
+          "n": 5000,
+          "mean_pass_low": 0.7899759036144579,
+          "mean_pass_high": 0.8013675213675213,
+          "n_low": 2075,
+          "n_high": 2925,
+          "direction": "up"
+        },
+        "azure_grok-3": {
+          "threshold": 11.25,
+          "sup_wald": 124.26581505170073,
+          "n": 5000,
+          "mean_pass_low": 0.7542877391920624,
+          "mean_pass_high": 0.8483011937557393,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "azure_kimi-k2.5": {
+          "threshold": 14.25,
+          "sup_wald": 74.64251950984142,
+          "n": 5000,
+          "mean_pass_low": 0.7109721136304404,
+          "mean_pass_high": 0.7489251934651763,
+          "n_low": 3837,
+          "n_high": 1163,
+          "direction": "up"
+        },
+        "azure_llama-3.3-70b": {
+          "threshold": 14.0,
+          "sup_wald": 85.29259551127329,
+          "n": 5000,
+          "mean_pass_low": 0.7396705374021064,
+          "mean_pass_high": 0.8575173477255205,
+          "n_low": 3703,
+          "n_high": 1297,
+          "direction": "up"
+        },
+        "azure_mistral-large-3": {
+          "threshold": 11.25,
+          "sup_wald": 122.42713368250946,
+          "n": 5000,
+          "mean_pass_low": 0.7777462792345855,
+          "mean_pass_high": 0.8573002754820936,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "glm_4_7_flash_results": {
+          "threshold": 13.75,
+          "sup_wald": 132.5600118084233,
+          "n": 5000,
+          "mean_pass_low": 0.7308266519214819,
+          "mean_pass_high": 0.8560375994215474,
+          "n_low": 3617,
+          "n_high": 1383,
+          "direction": "up"
+        },
+        "google_gemini-3-flash-preview": {
+          "threshold": 11.25,
+          "sup_wald": 120.70605610610954,
+          "n": 5000,
+          "mean_pass_low": 0.7721474131821403,
+          "mean_pass_high": 0.851423324150597,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "google_gemini-3.1-pro-preview": {
+          "threshold": 11.25,
+          "sup_wald": 36.90544282793486,
+          "n": 5000,
+          "mean_pass_low": 0.7840892983699504,
+          "mean_pass_high": 0.7383838383838383,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "down"
+        },
+        "gpt-4.1": {
+          "threshold": 11.25,
+          "sup_wald": 124.29854398156908,
+          "n": 5000,
+          "mean_pass_low": 0.7676116229624381,
+          "mean_pass_high": 0.8681359044995408,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "gpt-5-mini": {
+          "threshold": 11.25,
+          "sup_wald": 134.29264338404042,
+          "n": 5000,
+          "mean_pass_low": 0.7873493975903615,
+          "mean_pass_high": 0.8739669421487604,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "gpt-oss-20b": {
+          "threshold": 11.25,
+          "sup_wald": 125.20063213807701,
+          "n": 5000,
+          "mean_pass_low": 0.7580085046066619,
+          "mean_pass_high": 0.8414600550964187,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "ministral-3-14b-reasoning": {
+          "threshold": 11.5,
+          "sup_wald": 100.23440216267527,
+          "n": 5000,
+          "mean_pass_low": 0.7513420509291122,
+          "mean_pass_high": 0.8108882521489972,
+          "n_low": 2906,
+          "n_high": 2094,
+          "direction": "up"
+        },
+        "mistral-small-2412": {
+          "threshold": 11.25,
+          "sup_wald": 112.55597979141493,
+          "n": 5000,
+          "mean_pass_low": 0.7571934798015593,
+          "mean_pass_high": 0.8281450872359963,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "openai_gpt-5.4": {
+          "threshold": 11.25,
+          "sup_wald": 147.23118715102095,
+          "n": 5000,
+          "mean_pass_low": 0.7894046775336641,
+          "mean_pass_high": 0.8720844811753903,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "qwen3.5-9b": {
+          "threshold": 13.75,
+          "sup_wald": 102.04760361786785,
+          "n": 5000,
+          "mean_pass_low": 0.7281725186618745,
+          "mean_pass_high": 0.8370209689081706,
+          "n_low": 3617,
+          "n_high": 1383,
+          "direction": "up"
+        },
+        "qwen_qwen3.6-plus": {
+          "threshold": 11.25,
+          "sup_wald": 142.2281364968348,
+          "n": 5000,
+          "mean_pass_low": 0.7689936215450035,
+          "mean_pass_high": 0.8594123048668503,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        }
+      },
+      "direction_tally": {
+        "up": 20,
+        "down": 1
+      },
+      "downward_models": [
+        "google_gemini-3.1-pro-preview"
+      ],
+      "later_frame_fits": {
+        "azure_kimi-k2.5": {
+          "threshold": 14.25,
+          "sup_wald": 37.51879228630432,
+          "n": 2754,
+          "mean_pass_low": 0.8082216808769792,
+          "mean_pass_high": 0.7598920863309353,
+          "n_low": 1642,
+          "n_high": 1112,
+          "direction": "down"
+        },
+        "google_gemini-3.1-pro-preview": {
+          "threshold": 14.75,
+          "sup_wald": 9.601447679191901,
+          "n": 2754,
+          "mean_pass_low": 0.8346506024096386,
+          "mean_pass_high": 0.7229749631811487,
+          "n_low": 2075,
+          "n_high": 679,
+          "direction": "down"
+        }
+      }
+    },
+    "no_response_as_missing": {
+      "mean_pooled": {
+        "threshold": 11.25,
+        "sup_wald": 158.64247366968684,
+        "n": 5000,
+        "mean_pass_low": 0.7595608484357599,
+        "mean_pass_high": 0.8363012156193974,
+        "n_low": 2822,
+        "n_high": 2178,
+        "direction": "up"
+      },
+      "per_model": {
+        "anthropic_claude-opus-4.6": {
+          "threshold": 11.25,
+          "sup_wald": 104.34963668694141,
+          "n": 5000,
+          "mean_pass_low": 0.7717221828490433,
+          "mean_pass_high": 0.8680440771349862,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "anthropic_claude-opus-4.7": {
+          "threshold": 11.25,
+          "sup_wald": 108.50763831632706,
+          "n": 5000,
+          "mean_pass_low": 0.7830616583982991,
+          "mean_pass_high": 0.8763085399449035,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "anthropic_claude-sonnet-4.6": {
+          "threshold": 7.75,
+          "sup_wald": 122.81795726966297,
+          "n": 5000,
+          "mean_pass_low": 0.7794638069705094,
+          "mean_pass_high": 0.7942902711323764,
+          "n_low": 1865,
+          "n_high": 3135,
+          "direction": "up"
+        },
+        "arcee-ai_trinity-large-preview_free": {
+          "threshold": 11.25,
+          "sup_wald": 126.59705877911075,
+          "n": 5000,
+          "mean_pass_low": 0.7869950389794472,
+          "mean_pass_high": 0.8601469237832875,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "azure_deepseek-v3.2-speciale": {
+          "threshold": 11.25,
+          "sup_wald": 199.42005820358273,
+          "n": 5000,
+          "mean_pass_low": 0.7120481927710843,
+          "mean_pass_high": 0.8236914600550964,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "azure_gpt-oss-120b": {
+          "threshold": 8.5,
+          "sup_wald": 123.62863163279302,
+          "n": 5000,
+          "mean_pass_low": 0.7899759036144579,
+          "mean_pass_high": 0.8013675213675213,
+          "n_low": 2075,
+          "n_high": 2925,
+          "direction": "up"
+        },
+        "azure_grok-3": {
+          "threshold": 11.25,
+          "sup_wald": 124.26581505170073,
+          "n": 5000,
+          "mean_pass_low": 0.7542877391920624,
+          "mean_pass_high": 0.8483011937557393,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "azure_kimi-k2.5": {
+          "threshold": 14.25,
+          "sup_wald": 74.64251950984142,
+          "n": 5000,
+          "mean_pass_low": 0.7109721136304404,
+          "mean_pass_high": 0.7489251934651763,
+          "n_low": 3837,
+          "n_high": 1163,
+          "direction": "up"
+        },
+        "azure_llama-3.3-70b": {
+          "threshold": 14.0,
+          "sup_wald": 85.29259551127329,
+          "n": 5000,
+          "mean_pass_low": 0.7396705374021064,
+          "mean_pass_high": 0.8575173477255205,
+          "n_low": 3703,
+          "n_high": 1297,
+          "direction": "up"
+        },
+        "azure_mistral-large-3": {
+          "threshold": 11.25,
+          "sup_wald": 122.42713368250946,
+          "n": 5000,
+          "mean_pass_low": 0.7777462792345855,
+          "mean_pass_high": 0.8573002754820936,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "glm_4_7_flash_results": {
+          "threshold": 13.75,
+          "sup_wald": 132.5600118084233,
+          "n": 5000,
+          "mean_pass_low": 0.7308266519214819,
+          "mean_pass_high": 0.8560375994215474,
+          "n_low": 3617,
+          "n_high": 1383,
+          "direction": "up"
+        },
+        "google_gemini-3-flash-preview": {
+          "threshold": 11.25,
+          "sup_wald": 120.74349938015628,
+          "n": 4999,
+          "mean_pass_low": 0.7721474131821403,
+          "mean_pass_high": 0.8518144235186036,
+          "n_low": 2822,
+          "n_high": 2177,
+          "direction": "up"
+        },
+        "google_gemini-3.1-pro-preview": {
+          "threshold": 14.25,
+          "sup_wald": 68.54038602814335,
+          "n": 4844,
+          "mean_pass_low": 0.7795538057742782,
+          "mean_pass_high": 0.8228239845261122,
+          "n_low": 3810,
+          "n_high": 1034,
+          "direction": "up"
+        },
+        "gpt-4.1": {
+          "threshold": 11.25,
+          "sup_wald": 124.29854398156908,
+          "n": 5000,
+          "mean_pass_low": 0.7676116229624381,
+          "mean_pass_high": 0.8681359044995408,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "gpt-5-mini": {
+          "threshold": 11.25,
+          "sup_wald": 134.29264338404042,
+          "n": 5000,
+          "mean_pass_low": 0.7873493975903615,
+          "mean_pass_high": 0.8739669421487604,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "gpt-oss-20b": {
+          "threshold": 11.25,
+          "sup_wald": 125.20063213807701,
+          "n": 5000,
+          "mean_pass_low": 0.7580085046066619,
+          "mean_pass_high": 0.8414600550964187,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "ministral-3-14b-reasoning": {
+          "threshold": 11.5,
+          "sup_wald": 100.23440216267527,
+          "n": 5000,
+          "mean_pass_low": 0.7513420509291122,
+          "mean_pass_high": 0.8108882521489972,
+          "n_low": 2906,
+          "n_high": 2094,
+          "direction": "up"
+        },
+        "mistral-small-2412": {
+          "threshold": 11.25,
+          "sup_wald": 112.55597979141493,
+          "n": 5000,
+          "mean_pass_low": 0.7571934798015593,
+          "mean_pass_high": 0.8281450872359963,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "openai_gpt-5.4": {
+          "threshold": 11.25,
+          "sup_wald": 147.23118715102095,
+          "n": 5000,
+          "mean_pass_low": 0.7894046775336641,
+          "mean_pass_high": 0.8720844811753903,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        },
+        "qwen3.5-9b": {
+          "threshold": 13.75,
+          "sup_wald": 102.04760361786785,
+          "n": 5000,
+          "mean_pass_low": 0.7281725186618745,
+          "mean_pass_high": 0.8370209689081706,
+          "n_low": 3617,
+          "n_high": 1383,
+          "direction": "up"
+        },
+        "qwen_qwen3.6-plus": {
+          "threshold": 11.25,
+          "sup_wald": 142.2281364968348,
+          "n": 5000,
+          "mean_pass_low": 0.7689936215450035,
+          "mean_pass_high": 0.8594123048668503,
+          "n_low": 2822,
+          "n_high": 2178,
+          "direction": "up"
+        }
+      },
+      "direction_tally": {
+        "up": 21
+      },
+      "downward_models": [],
+      "later_frame_fits": {
+        "azure_kimi-k2.5": {
+          "threshold": 14.25,
+          "sup_wald": 37.51879228630432,
+          "n": 2754,
+          "mean_pass_low": 0.8082216808769792,
+          "mean_pass_high": 0.7598920863309353,
+          "n_low": 1642,
+          "n_high": 1112,
+          "direction": "down"
+        },
+        "google_gemini-3.1-pro-preview": {
+          "threshold": 14.25,
+          "sup_wald": 38.44761890383964,
+          "n": 2602,
+          "mean_pass_low": 0.8681284743668931,
+          "mean_pass_high": 0.8314343845371311,
+          "n_low": 1619,
+          "n_high": 983,
+          "direction": "down"
+        }
+      }
+    }
+  }
+}

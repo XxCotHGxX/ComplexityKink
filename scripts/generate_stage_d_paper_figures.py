@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -34,16 +35,21 @@ from analyze_kink import RUBRIC_DIMS, build_combined_df, load_rubric_scores, loa
 from display_bins import half_open_integer_bin  # noqa: E402
 
 STAGE_D_DIR = ROOT / "data" / "stage_d"
-SCORED_DIR = STAGE_D_DIR / "scored_combined"
+# CK_SCORED_DIR selects the outcome definition. The default is the camera-ready
+# primary outcome; data/stage_d/scored_combined gives the reviewed version's.
+SCORED_DIR = Path(os.environ.get("CK_SCORED_DIR", STAGE_D_DIR / "scored_independent_audit"))
 RUBRIC_PATH = STAGE_D_DIR / "ensemble_scores_current_aggregated.jsonl"
-SUMMARY_PATH = ROOT / "results" / "analysis_summary.json"
-PER_MODEL_SUMMARY_PATH = ROOT / "results" / "per_model_bootstrap_summary.csv"
-TAIL_CURVE_PATH = ROOT / "results" / "tail_extension_curve.csv"
-TAIL_SPLIT_PATH = ROOT / "results" / "tail_extension_source_split.csv"
-TAIL_REPLICATION_PATH = ROOT / "results" / "tail_extension_replication.csv"
-OUTPUT_CC_CURVE_PATH = ROOT / "results" / "pass_vs_output_cc.csv"
-REVERSE_CELL_PATH = ROOT / "results" / "reverse_threshold_zero_pass_cells.csv"
-ROBUSTNESS_SUMMARY_PATH = ROOT / "results" / "robustness_summary.json"
+# CK_RESULTS_DIR selects the result set the figures are drawn from. The default
+# is the camera-ready primary outcome; ROOT/results holds the reviewed version's.
+RESULTS_DIR = Path(os.environ.get("CK_RESULTS_DIR", ROOT / "results" / "camera_ready" / "independent_audit"))
+SUMMARY_PATH = RESULTS_DIR / "analysis_summary.json"
+PER_MODEL_SUMMARY_PATH = RESULTS_DIR / "per_model_bootstrap_summary.csv"
+TAIL_CURVE_PATH = RESULTS_DIR / "tail_extension_curve.csv"
+TAIL_SPLIT_PATH = RESULTS_DIR / "tail_extension_source_split.csv"
+TAIL_REPLICATION_PATH = RESULTS_DIR / "tail_extension_replication.csv"
+OUTPUT_CC_CURVE_PATH = RESULTS_DIR / "pass_vs_output_cc.csv"
+REVERSE_CELL_PATH = RESULTS_DIR / "reverse_threshold_zero_pass_cells.csv"
+ROBUSTNESS_SUMMARY_PATH = RESULTS_DIR / "robustness_summary.json"
 PAPER_DIR = ROOT / "paper"
 
 FIG_DPI = 220
@@ -99,7 +105,7 @@ DISPLAY_NAMES = {
     "gpt-5-mini": "GPT-5-mini",
     "gpt-oss-20b": "GPT-OSS-20B",
     "ministral-3-14b-reasoning": "Ministral-3-14B-reasoning",
-    "mistral-small-2412": "Mistral Small 2412",
+    "mistral-small-2412": "Devstral Small 2505",
     "openai_gpt-5.4": "GPT-5.4",
     "qwen3.5-9b": "Qwen 3.5-9B",
     "qwen_qwen3.6-plus": "Qwen 3.6 Plus",
@@ -146,9 +152,9 @@ def save_pipeline() -> None:
             0.365,
             0.23,
             "Prompt-side index",
-            "4 judges\n6 dimensions\nfixed before generation",
+            "4 judges\n6 dimensions\nprompt text only",
         ),
-        (0.63, 0.19, "Model outcomes", "21-model panel\nunit-test pass/fail"),
+        (0.63, 0.21, "Model outcomes", "21-model panel\nunit tests +\nindependent audit"),
         (0.89, 0.19, "Analysis", "Index breakpoints\ntask and pooling\nsensitivity"),
     ]
     fig, ax = plt.subplots(figsize=(5.5, 2.2))
@@ -249,7 +255,7 @@ def save_pipeline() -> None:
     ax.text(
         0.5,
         0.035,
-        "Primary complexity measure: the prompt-side index fixed before generation.",
+        "Primary complexity measure: the prompt-side index, scored from the prompt alone.",
         ha="center",
         va="center",
         color=GRAY,
@@ -525,7 +531,7 @@ def save_output_cc_diagnostic() -> None:
     )
     ax_cell.set_yticks([0, 1])
     ax_cell.set_yticklabels([r"Prompt $\leq 8$", "Prompt > 8"])
-    ax_cell.set_title("(b) Zero-pass complete cases", loc="left")
+    ax_cell.set_title("(b) Failed complete cases (outcome 0)", loc="left")
     ax_cell.set_xlabel("Generated-output complexity")
     ax_cell.set_ylabel("Pre-generation prompt index")
 
@@ -739,7 +745,7 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
                 target=[idx[t] for t in flows["target"]],
                 value=flows["count"],
                 color=link_colors,
-                hovertemplate="%{source.label} -> %{target.label}<br>%{value:,} zero-pass generations<extra></extra>",
+                hovertemplate="%{source.label} -> %{target.label}<br>%{value:,} failed generations<extra></extra>",
             ),
         )
     )
@@ -749,7 +755,7 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
         margin=dict(l=35, r=210, t=85, b=35),
         font=dict(size=14, color="#1f2937"),
         title=dict(
-            text="Zero-pass generations: output CC can understate prompt complexity",
+            text="Failed generations: output CC can understate prompt complexity",
             x=0.5,
             xanchor="center",
             font=dict(size=22),
@@ -763,8 +769,8 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
                 xref="paper",
                 yref="paper",
                 text=(
-                    f"Filtered to generations passing no unit tests (n={len(flow_df):,}). "
-                    "Red/orange flows have Lizard CC <= 10 but prompt rubric > 8 before generation."
+                    f"Generations with outcome 0 (failed) and computable Lizard CC (n={len(flow_df):,}). "
+                    "Red/orange flows have Lizard CC <= 10 but prompt rubric > 8."
                 ),
                 showarrow=False,
                 font=dict(size=12, color="#5b6472"),

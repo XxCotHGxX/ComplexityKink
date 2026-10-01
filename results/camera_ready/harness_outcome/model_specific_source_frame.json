@@ -1,0 +1,189 @@
+{
+  "inputs": {
+    "join_key": "prompt_id",
+    "prompt_metadata": "data/stage_d/stage_d_prompts.jsonl",
+    "rubric": "data/stage_d/ensemble_scores_current_aggregated.jsonl",
+    "scored_models": "data/stage_d/scored_harness/*.jsonl",
+    "source_mapping_field": "selection_source"
+  },
+  "method": {
+    "interpretation": "Model-specific breakpoint estimates are conditional on the constructed benchmark frame, prompt index, generation settings, and unit-test protocol.",
+    "pairs_bootstrap_draws": 300,
+    "regime_means": "Raw descriptive means at each selected threshold; the sup-Wald test is not a separate test of their difference.",
+    "seed": 42,
+    "wild_bootstrap_draws": 300
+  },
+  "models": [
+    {
+      "display_name": "Gemini 3.1 Pro Preview",
+      "model_id": "google_gemini-3.1-pro-preview",
+      "selection_basis_unadjusted_fit": {
+        "direction": "down",
+        "mean_pass_high": 0.7383838383838383,
+        "mean_pass_low": 0.7840892983699504,
+        "model": "google_gemini-3.1-pro-preview",
+        "n": 5000,
+        "n_high": 2178,
+        "n_low": 2822,
+        "sup_wald": 36.90544282793486,
+        "threshold": 11.25
+      },
+      "source_controlled_threshold": {
+        "mean_pass_high": 0.7383838383838383,
+        "mean_pass_low": 0.7840892983699504,
+        "n_high": 2178,
+        "n_low": 2822,
+        "raw_regime_gap": -0.045705459986112196,
+        "sup_wald": 5.629256236012451,
+        "threshold": 11.25,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "draws": 300,
+          "exceedances": 12,
+          "maximum": 7.373041412233468,
+          "p_finite_mc": 0.04318936877076412,
+          "p_raw": 0.04,
+          "q95": 5.404151095636609,
+          "seed": 42
+        }
+      },
+      "source_specific_fit_comparison": {
+        "linear_slopes": {
+          "adjusted_r2": 0.059788717796317004,
+          "aic": 4078.9019769556544,
+          "bic": 4104.970749721319,
+          "n_parameters": 4,
+          "r2": 0.06035295741356261,
+          "rss": 660.8299337227475
+        },
+        "linear_slopes_plus_piecewise": {
+          "adjusted_r2": 0.06272352163722705,
+          "aic": 4065.268415068531,
+          "bic": 4104.371574217028,
+          "n_parameters": 6,
+          "r2": 0.06366098560838396,
+          "rss": 658.5034813915406,
+          "threshold": 14.7532
+        },
+        "piecewise_minus_linear_bic": -0.5991755042914519
+      },
+      "within_frame_thresholds": {
+        "later_candidate_frame": {
+          "linear_fit": {
+            "adjusted_r2": 0.04432912253817001,
+            "aic": 2239.257202652715,
+            "bic": 2251.098822011292,
+            "n_parameters": 2,
+            "r2": 0.044676260524897815,
+            "rss": 363.061719590363
+          },
+          "mean_pass_high": 0.7229749631811487,
+          "mean_pass_low": 0.8346506024096386,
+          "n_high": 679,
+          "n_low": 2075,
+          "pairs_bootstrap_threshold": {
+            "ci_lower": 9.5,
+            "ci_percentiles": [
+              2.5,
+              97.5
+            ],
+            "ci_upper": 14.75,
+            "failed_draws": 0,
+            "maximum": 15.0,
+            "median": 14.5,
+            "minimum": 6.25,
+            "requested_draws": 300,
+            "seed": 42,
+            "successful_draws": 300
+          },
+          "piecewise_fit": {
+            "adjusted_r2": 0.05026595949909929,
+            "aic": 2224.0932080623743,
+            "bic": 2247.7764467795287,
+            "n_parameters": 4,
+            "r2": 0.05130090396749831,
+            "rss": 360.54408672878975,
+            "threshold": 14.75
+          },
+          "raw_regime_gap": -0.11167563922848989,
+          "sup_wald": 9.601447679191901,
+          "threshold": 14.75,
+          "threshold_grid_candidates": 23,
+          "wild_bootstrap": {
+            "draws": 300,
+            "exceedances": 0,
+            "maximum": 9.447454972714045,
+            "p_finite_mc": 0.0033222591362126247,
+            "p_raw": 0.0,
+            "q95": 5.884417621528113,
+            "seed": 42
+          }
+        },
+        "retained_earlier_frame": {
+          "linear_fit": {
+            "adjusted_r2": 0.04497920033911251,
+            "aic": 1839.6250523594636,
+            "bic": 1851.0588646300603,
+            "n_parameters": 2,
+            "r2": 0.04540459935900609,
+            "rss": 297.7682141323851
+          },
+          "mean_pass_high": 0.6104874446085672,
+          "mean_pass_low": 0.7551306564690887,
+          "n_high": 677,
+          "n_low": 1569,
+          "pairs_bootstrap_threshold": {
+            "ci_lower": 5.75,
+            "ci_percentiles": [
+              2.5,
+              97.5
+            ],
+            "ci_upper": 10.25,
+            "failed_draws": 0,
+            "maximum": 10.5,
+            "median": 9.5,
+            "minimum": 5.5,
+            "requested_draws": 300,
+            "seed": 42,
+            "successful_draws": 300
+          },
+          "piecewise_fit": {
+            "adjusted_r2": 0.04660742016347619,
+            "aic": 1837.789892460638,
+            "bic": 1860.6575170018316,
+            "n_parameters": 4,
+            "r2": 0.04788144142829098,
+            "rss": 296.99560948840326,
+            "threshold": 9.5
+          },
+          "raw_regime_gap": -0.14464321186052154,
+          "sup_wald": 2.916170402269326,
+          "threshold": 9.5,
+          "threshold_grid_candidates": 20,
+          "wild_bootstrap": {
+            "draws": 300,
+            "exceedances": 81,
+            "maximum": 8.398421820975033,
+            "p_finite_mc": 0.2724252491694352,
+            "p_raw": 0.27,
+            "q95": 4.802251623120448,
+            "seed": 42
+          }
+        }
+      }
+    }
+  ],
+  "schema_version": 1,
+  "selection_rule": "All and only models whose locked unadjusted original-benchmark fit has a negative raw above-minus-below regime contrast.",
+  "selection_source": "results/camera_ready/harness_outcome/breakpoints.json",
+  "validation": {
+    "analyzed_model_count": 1,
+    "expected_prompts_per_model": 5000,
+    "expected_source_counts": {
+      "stage_c_existing": 2246,
+      "stage_d_candidate": 2754
+    },
+    "reviewed_outcome_selected_model_count": 5,
+    "selected_model_count": 1
+  }
+}

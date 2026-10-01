@@ -1,0 +1,624 @@
+{
+  "schema_version": 1,
+  "script": "scripts/camera_ready/output_cc_diagnostics.py",
+  "inputs": {
+    "scored_dir": "data/stage_d/scored_harness",
+    "rubric": "data/stage_d/ensemble_scores_current_aggregated.jsonl",
+    "prompts": "data/stage_d/stage_d_prompts.jsonl",
+    "prompt_metadata": "data/public_release/prompts"
+  },
+  "panel": {
+    "n_models": 21,
+    "rows_per_model": {
+      "anthropic_claude-opus-4.6": 5000,
+      "anthropic_claude-opus-4.7": 5000,
+      "anthropic_claude-sonnet-4.6": 5000,
+      "arcee-ai_trinity-large-preview_free": 5000,
+      "azure_deepseek-v3.2-speciale": 5000,
+      "azure_gpt-oss-120b": 5000,
+      "azure_grok-3": 5000,
+      "azure_kimi-k2.5": 5000,
+      "azure_llama-3.3-70b": 5000,
+      "azure_mistral-large-3": 5000,
+      "glm_4_7_flash_results": 5000,
+      "google_gemini-3-flash-preview": 5000,
+      "google_gemini-3.1-pro-preview": 5000,
+      "gpt-4.1": 5000,
+      "gpt-5-mini": 5000,
+      "gpt-oss-20b": 5000,
+      "ministral-3-14b-reasoning": 5000,
+      "mistral-small-2412": 5000,
+      "openai_gpt-5.4": 5000,
+      "qwen3.5-9b": 5000,
+      "qwen_qwen3.6-plus": 5000
+    },
+    "n_generations": 105000,
+    "n_prompts": 5000,
+    "mean_pass_rate": 0.7916000000000002
+  },
+  "reverse_threshold": {
+    "n_scored_generations": 103948,
+    "n_missing_output_cyclomatic_complexity": 1052,
+    "n_zero_pass_complete_cases": 11170,
+    "n_zero_pass_missing_output_cyclomatic_complexity": 1021,
+    "prompt_composite_gt": 8.0,
+    "output_cyclomatic_complexity_lte": 10.0,
+    "shares": {
+      "pass_rate_eq_0": 0.2567591763652641,
+      "pass_rate_lte_0_25": 0.25048156301596036,
+      "pass_rate_lte_0_50": 0.2522984710722812,
+      "pass_rate_lte_0_65": 0.2529653181797682
+    },
+    "share_counts": {
+      "pass_rate_eq_0": {
+        "n_complete_cases": 11170,
+        "n_flagged": 2868
+      },
+      "pass_rate_lte_0_25": {
+        "n_complete_cases": 14536,
+        "n_flagged": 3641
+      },
+      "pass_rate_lte_0_50": {
+        "n_complete_cases": 19687,
+        "n_flagged": 4967
+      },
+      "pass_rate_lte_0_65": {
+        "n_complete_cases": 22173,
+        "n_flagged": 5609
+      }
+    },
+    "zero_pass_cells": [
+      {
+        "prompt_group": "Prompt composite <= 8",
+        "output_group": "Output CC <= 10",
+        "n": 3721
+      },
+      {
+        "prompt_group": "Prompt composite <= 8",
+        "output_group": "Output CC > 10",
+        "n": 437
+      },
+      {
+        "prompt_group": "Prompt composite > 8",
+        "output_group": "Output CC <= 10",
+        "n": 2868
+      },
+      {
+        "prompt_group": "Prompt composite > 8",
+        "output_group": "Output CC > 10",
+        "n": 4144
+      }
+    ],
+    "passing_generation_mapping_at_prompt_threshold": {
+      "prompt_threshold": 11.25,
+      "estimated_output_cyclomatic_complexity": 18.5
+    }
+  },
+  "pass_vs_output_cc": {
+    "csv": "pass_vs_output_cc.csv",
+    "top_code": 40,
+    "n_generations": 103948,
+    "sem": "pandas sem of generation rows (ddof=1); no adjustment for repeated prompts or models"
+  },
+  "kappa_map": {
+    "intercept": -4.555706638182394,
+    "slope": 2.0506130349367773,
+    "r2": 0.6291890411994597,
+    "n_passing": 65331,
+    "by_bin": [
+      {
+        "bin": 0,
+        "n": 139,
+        "median_cc": 1.0,
+        "mean_cc": 1.316546762589928,
+        "q25_cc": 1.0,
+        "q75_cc": 1.0
+      },
+      {
+        "bin": 1,
+        "n": 514,
+        "median_cc": 1.0,
+        "mean_cc": 2.669260700389105,
+        "q25_cc": 1.0,
+        "q75_cc": 4.0
+      },
+      {
+        "bin": 2,
+        "n": 1975,
+        "median_cc": 3.0,
+        "mean_cc": 3.457721518987342,
+        "q25_cc": 1.0,
+        "q75_cc": 5.0
+      },
+      {
+        "bin": 3,
+        "n": 3947,
+        "median_cc": 3.0,
+        "mean_cc": 4.634152520901951,
+        "q25_cc": 2.0,
+        "q75_cc": 6.0
+      },
+      {
+        "bin": 4,
+        "n": 5661,
+        "median_cc": 3.0,
+        "mean_cc": 5.103691927221339,
+        "q25_cc": 2.0,
+        "q75_cc": 8.0
+      },
+      {
+        "bin": 5,
+        "n": 2561,
+        "median_cc": 4.0,
+        "mean_cc": 6.951971885982038,
+        "q25_cc": 2.0,
+        "q75_cc": 11.0
+      },
+      {
+        "bin": 6,
+        "n": 4970,
+        "median_cc": 5.0,
+        "mean_cc": 7.543863179074447,
+        "q25_cc": 3.0,
+        "q75_cc": 14.0
+      },
+      {
+        "bin": 7,
+        "n": 2925,
+        "median_cc": 5.0,
+        "mean_cc": 7.034188034188034,
+        "q25_cc": 3.0,
+        "q75_cc": 8.0
+      },
+      {
+        "bin": 8,
+        "n": 3260,
+        "median_cc": 5.0,
+        "mean_cc": 6.8720858895705526,
+        "q25_cc": 3.0,
+        "q75_cc": 8.0
+      },
+      {
+        "bin": 9,
+        "n": 1692,
+        "median_cc": 6.0,
+        "mean_cc": 7.761820330969267,
+        "q25_cc": 4.0,
+        "q75_cc": 10.0
+      },
+      {
+        "bin": 10,
+        "n": 2826,
+        "median_cc": 9.0,
+        "mean_cc": 10.696744515215853,
+        "q25_cc": 6.0,
+        "q75_cc": 14.0
+      },
+      {
+        "bin": 11,
+        "n": 1812,
+        "median_cc": 13.0,
+        "mean_cc": 13.805187637969095,
+        "q25_cc": 8.0,
+        "q75_cc": 18.0
+      },
+      {
+        "bin": 12,
+        "n": 6218,
+        "median_cc": 19.0,
+        "mean_cc": 19.80829848825989,
+        "q25_cc": 15.0,
+        "q75_cc": 23.0
+      },
+      {
+        "bin": 13,
+        "n": 2188,
+        "median_cc": 18.0,
+        "mean_cc": 19.95749542961609,
+        "q25_cc": 15.0,
+        "q75_cc": 23.0
+      },
+      {
+        "bin": 14,
+        "n": 8331,
+        "median_cc": 24.0,
+        "mean_cc": 24.151962549513865,
+        "q25_cc": 21.0,
+        "q75_cc": 26.0
+      },
+      {
+        "bin": 15,
+        "n": 11697,
+        "median_cc": 26.0,
+        "mean_cc": 26.557664358382493,
+        "q25_cc": 24.0,
+        "q75_cc": 29.0
+      },
+      {
+        "bin": 16,
+        "n": 4201,
+        "median_cc": 31.0,
+        "mean_cc": 32.46131873363485,
+        "q25_cc": 26.0,
+        "q75_cc": 35.0
+      },
+      {
+        "bin": 17,
+        "n": 321,
+        "median_cc": 59.0,
+        "mean_cc": 55.504672897196265,
+        "q25_cc": 35.0,
+        "q75_cc": 75.0
+      },
+      {
+        "bin": 18,
+        "n": 55,
+        "median_cc": 39.0,
+        "mean_cc": 45.763636363636365,
+        "q25_cc": 31.0,
+        "q75_cc": 62.5
+      },
+      {
+        "bin": 19,
+        "n": 38,
+        "median_cc": 31.0,
+        "mean_cc": 33.5,
+        "q25_cc": 29.0,
+        "q75_cc": 34.0
+      }
+    ]
+  },
+  "passing_generation_mapping": {
+    "definition": "Generation-level OLS of raw output CC on the prompt composite over generations with pass_rate == 1 and computable CC. kappa_map.by_bin uses numpy round-half-to-even bins of the composite (reviewed convention).",
+    "prompt_threshold": 11.25,
+    "estimated_output_cyclomatic_complexity": 18.51369000485635,
+    "n_prompts": 3835,
+    "by_display_bin_rule": "half-open: bin b holds composites in [b-0.5, b+0.5)",
+    "by_display_bin": [
+      {
+        "bin": 0,
+        "n": 63,
+        "median_cc": 1.0,
+        "mean_cc": 1.4603174603174602,
+        "q25_cc": 1.0,
+        "q75_cc": 2.0
+      },
+      {
+        "bin": 1,
+        "n": 590,
+        "median_cc": 1.0,
+        "mean_cc": 2.4796610169491524,
+        "q25_cc": 1.0,
+        "q75_cc": 2.0
+      },
+      {
+        "bin": 2,
+        "n": 1174,
+        "median_cc": 2.0,
+        "mean_cc": 3.094548551959114,
+        "q25_cc": 1.0,
+        "q75_cc": 5.0
+      },
+      {
+        "bin": 3,
+        "n": 4748,
+        "median_cc": 4.0,
+        "mean_cc": 4.525484414490312,
+        "q25_cc": 2.0,
+        "q75_cc": 6.0
+      },
+      {
+        "bin": 4,
+        "n": 4506,
+        "median_cc": 4.0,
+        "mean_cc": 5.17265867731913,
+        "q25_cc": 2.0,
+        "q75_cc": 8.0
+      },
+      {
+        "bin": 5,
+        "n": 3716,
+        "median_cc": 4.0,
+        "mean_cc": 6.293864370290635,
+        "q25_cc": 2.0,
+        "q75_cc": 9.0
+      },
+      {
+        "bin": 6,
+        "n": 3910,
+        "median_cc": 5.0,
+        "mean_cc": 7.507928388746803,
+        "q25_cc": 3.0,
+        "q75_cc": 13.0
+      },
+      {
+        "bin": 7,
+        "n": 3985,
+        "median_cc": 5.0,
+        "mean_cc": 7.205018820577164,
+        "q25_cc": 3.0,
+        "q75_cc": 10.0
+      },
+      {
+        "bin": 8,
+        "n": 2717,
+        "median_cc": 5.0,
+        "mean_cc": 6.9252852410747145,
+        "q25_cc": 3.0,
+        "q75_cc": 8.0
+      },
+      {
+        "bin": 9,
+        "n": 2235,
+        "median_cc": 6.0,
+        "mean_cc": 7.480984340044743,
+        "q25_cc": 4.0,
+        "q75_cc": 9.0
+      },
+      {
+        "bin": 10,
+        "n": 2316,
+        "median_cc": 9.0,
+        "mean_cc": 10.511226252158895,
+        "q25_cc": 6.0,
+        "q75_cc": 14.0
+      },
+      {
+        "bin": 11,
+        "n": 2322,
+        "median_cc": 12.0,
+        "mean_cc": 13.307493540051679,
+        "q25_cc": 8.0,
+        "q75_cc": 17.0
+      },
+      {
+        "bin": 12,
+        "n": 4988,
+        "median_cc": 18.0,
+        "mean_cc": 19.376503608660787,
+        "q25_cc": 15.0,
+        "q75_cc": 23.0
+      },
+      {
+        "bin": 13,
+        "n": 3418,
+        "median_cc": 19.0,
+        "mean_cc": 20.533937975424223,
+        "q25_cc": 16.0,
+        "q75_cc": 24.0
+      },
+      {
+        "bin": 14,
+        "n": 4956,
+        "median_cc": 24.0,
+        "mean_cc": 23.745560936238903,
+        "q25_cc": 20.0,
+        "q75_cc": 27.0
+      },
+      {
+        "bin": 15,
+        "n": 15072,
+        "median_cc": 26.0,
+        "mean_cc": 26.1526008492569,
+        "q25_cc": 24.0,
+        "q75_cc": 28.0
+      },
+      {
+        "bin": 16,
+        "n": 3918,
+        "median_cc": 30.0,
+        "mean_cc": 31.376722817764165,
+        "q25_cc": 26.0,
+        "q75_cc": 34.0
+      },
+      {
+        "bin": 17,
+        "n": 604,
+        "median_cc": 46.0,
+        "mean_cc": 51.74337748344371,
+        "q25_cc": 34.0,
+        "q75_cc": 72.0
+      },
+      {
+        "bin": 18,
+        "n": 45,
+        "median_cc": 41.0,
+        "mean_cc": 48.55555555555556,
+        "q25_cc": 31.0,
+        "q75_cc": 67.0
+      },
+      {
+        "bin": 19,
+        "n": 48,
+        "median_cc": 31.0,
+        "mean_cc": 33.4375,
+        "q25_cc": 30.0,
+        "q75_cc": 34.25
+      }
+    ]
+  },
+  "library_diagnostic": {
+    "sample": "5,000-prompt benchmark, half-open display bins 13 and 17",
+    "outcome": "prompt-level mean pass_rate over the analyzed models",
+    "covariance": "HC1",
+    "tag_definition": "case-insensitive whole-word match of prompt text against LIBRARY_TERMS (scripts/regenerate_mechanism_diagnostic.py)",
+    "tag_terms": [
+      "numpy",
+      "pandas",
+      "scipy",
+      "sklearn",
+      "scikit",
+      "torch",
+      "tensorflow",
+      "keras",
+      "matplotlib",
+      "seaborn",
+      "django",
+      "flask",
+      "fastapi",
+      "sqlalchemy",
+      "requests",
+      "beautifulsoup",
+      "bs4",
+      "pytest",
+      "asyncio",
+      "aiohttp",
+      "networkx",
+      "sympy",
+      "pillow",
+      "PIL",
+      "boto3",
+      "pydantic",
+      "regex",
+      "itertools",
+      "collections",
+      "heapq",
+      "bisect",
+      "functools",
+      "dataclasses"
+    ],
+    "test_feature_definition": "prompt_features() on stage_d_prompts.jsonl, whose unit_tests are a JSON string: count = occurrences of 'assert', length = raw string length",
+    "source_pool_definition": "1 if construction frame is later_candidate (selection_source stage_d_candidate), else 0",
+    "cell_counts": [
+      {
+        "bin": 13,
+        "construction_frame": "earlier_retained",
+        "n": 75
+      },
+      {
+        "bin": 13,
+        "construction_frame": "later_candidate",
+        "n": 203
+      },
+      {
+        "bin": 17,
+        "construction_frame": "earlier_retained",
+        "n": 1
+      },
+      {
+        "bin": 17,
+        "construction_frame": "later_candidate",
+        "n": 44
+      }
+    ],
+    "primary": {
+      "n": 323,
+      "tag": "mentions_library",
+      "n_tagged": 3,
+      "regressors": [
+        "later_candidate_frame",
+        "prompt_chars",
+        "prompt_words",
+        "n_unit_tests",
+        "test_chars",
+        "reference_cc",
+        "composite_std",
+        "mentions_library",
+        "composite"
+      ],
+      "coefficient": -0.4866125222424923,
+      "robust_standard_error": 0.05371943251774147,
+      "p_value": 1.3236864331948217e-19,
+      "r_squared": 0.2558859796813605,
+      "coefficients": {
+        "const": 1.1097827027493965,
+        "later_candidate_frame": 0.24383861962804448,
+        "prompt_chars": 8.922399092034744e-05,
+        "prompt_words": -0.0013324530516682055,
+        "n_unit_tests": -0.002912385878528212,
+        "test_chars": -5.345630689622452e-05,
+        "reference_cc": 0.0012260148212953847,
+        "composite_std": -0.06315087906747616,
+        "mentions_library": -0.4866125222424923,
+        "composite": -0.016946618641453137
+      },
+      "robust_standard_errors": {
+        "const": 0.2745505133741369,
+        "later_candidate_frame": 0.044075682358937336,
+        "prompt_chars": 0.000148408016365857,
+        "prompt_words": 0.0009331895526946569,
+        "n_unit_tests": 0.02157373858357729,
+        "test_chars": 2.866793668829462e-05,
+        "reference_cc": 0.0021646521489367843,
+        "composite_std": 0.01518038387923464,
+        "mentions_library": 0.05371943251774147,
+        "composite": 0.01167805981644361
+      },
+      "p_values": {
+        "const": 5.29564658013261e-05,
+        "later_candidate_frame": 3.161109902120512e-08,
+        "prompt_chars": 0.5477018865586329,
+        "prompt_words": 0.1533355471125473,
+        "n_unit_tests": 0.8926143968628133,
+        "test_chars": 0.06222735441167866,
+        "reference_cc": 0.5711357584875771,
+        "composite_std": 3.182033427432855e-05,
+        "mentions_library": 1.3236864331948217e-19,
+        "composite": 0.14673804522614647
+      }
+    },
+    "variants": {
+      "labeler_flag_tag": {
+        "n": 323,
+        "tag": "names_external_library",
+        "n_tagged": 5,
+        "regressors": [
+          "later_candidate_frame",
+          "prompt_chars",
+          "prompt_words",
+          "n_unit_tests",
+          "test_chars",
+          "reference_cc",
+          "composite_std",
+          "names_external_library",
+          "composite"
+        ],
+        "coefficient": -0.47059830414502346,
+        "robust_standard_error": 0.05953031056221733,
+        "p_value": 2.6752926150579076e-15,
+        "r_squared": 0.2684853624388397
+      },
+      "regex_tag_parsed_tests": {
+        "n": 323,
+        "tag": "mentions_library",
+        "n_tagged": 3,
+        "regressors": [
+          "later_candidate_frame",
+          "prompt_chars",
+          "prompt_words",
+          "n_unit_tests_parsed",
+          "test_chars_parsed",
+          "reference_cc",
+          "composite_std",
+          "mentions_library",
+          "composite"
+        ],
+        "coefficient": -0.4846933383652016,
+        "robust_standard_error": 0.05386759927405574,
+        "p_value": 2.3015144317482524e-19,
+        "r_squared": 0.25598285682592903
+      },
+      "labeler_flag_tag_parsed_tests": {
+        "n": 323,
+        "tag": "names_external_library",
+        "n_tagged": 5,
+        "regressors": [
+          "later_candidate_frame",
+          "prompt_chars",
+          "prompt_words",
+          "n_unit_tests_parsed",
+          "test_chars_parsed",
+          "reference_cc",
+          "composite_std",
+          "names_external_library",
+          "composite"
+        ],
+        "coefficient": -0.4688800385928949,
+        "robust_standard_error": 0.05901171814480642,
+        "p_value": 1.9334475793177e-15,
+        "r_squared": 0.2685081778425257
+      }
+    },
+    "reviewed_value_note": "The reviewed n=459 estimate (-0.0501, SE 0.0978, p 0.608) used the 24-bin equal-support frame (benchmark plus OpenCodeInstruct mined-pool prompts; source pool = mined vs benchmark), which is not part of these inputs; see scripts/regenerate_mechanism_diagnostic.py."
+  }
+}

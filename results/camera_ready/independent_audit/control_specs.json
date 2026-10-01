@@ -1,0 +1,339 @@
+{
+  "scored_dir": "data/stage_d/scored_independent_audit",
+  "n_prompts": 5000,
+  "minimum_regime_size": 500,
+  "mean_pooled": {
+    "unadjusted": {
+      "threshold": 14.0,
+      "sup_wald": 151.14755101522917,
+      "n_low": 3703,
+      "n_high": 1297,
+      "mean_pass_low": 0.8338464308218562,
+      "mean_pass_high": 0.9014282042809414,
+      "raw_regime_gap": 0.06758177345908523,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.992269684969021,
+        "maximum": 10.43430553228055
+      },
+      "specification": "by_side",
+      "controls": [],
+      "adjusted_jump_at_selected": {
+        "jump": 0.06758177345908467,
+        "se_hc1": 0.006586222428227436,
+        "p_value": 1.0551687912502268e-24
+      }
+    },
+    "task_type_additive": {
+      "threshold": 14.0,
+      "sup_wald": 78.56635135794814,
+      "n_low": 3703,
+      "n_high": 1297,
+      "mean_pass_low": 0.8338464308218562,
+      "mean_pass_high": 0.9014282042809414,
+      "raw_regime_gap": 0.06758177345908523,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 6.098915865595496,
+        "maximum": 10.376783006993554
+      },
+      "specification": "additive",
+      "controls": [
+        "tt_array_matrix_grid",
+        "tt_data_structures_algorithms",
+        "tt_logic_validation",
+        "tt_numeric_math",
+        "tt_other",
+        "tt_parsing_serialization",
+        "tt_simulation_stateful",
+        "tt_string_text"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": 0.0036373422367101532,
+        "se_hc1": 0.008187762597708178,
+        "p_value": 0.6568681413100452
+      }
+    },
+    "task_type_by_side": {
+      "threshold": 11.5,
+      "sup_wald": 26.909511748039815,
+      "n_low": 2906,
+      "n_high": 2094,
+      "mean_pass_low": 0.8425507160882246,
+      "mean_pass_high": 0.8636262336835403,
+      "raw_regime_gap": 0.021075517595315674,
+      "threshold_grid_candidates": 29,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 4.46660001336085,
+        "maximum": 6.816322746906406
+      },
+      "specification": "by_side",
+      "controls": [
+        "tt_array_matrix_grid",
+        "tt_data_structures_algorithms",
+        "tt_logic_validation",
+        "tt_numeric_math",
+        "tt_other",
+        "tt_parsing_serialization",
+        "tt_simulation_stateful",
+        "tt_string_text"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": -0.06210801008394147,
+        "se_hc1": 0.00882683199894512,
+        "p_value": 1.9744823326194115e-12
+      }
+    },
+    "frame_additive": {
+      "threshold": 14.25,
+      "sup_wald": 88.44937812365808,
+      "n_low": 3837,
+      "n_high": 1163,
+      "mean_pass_low": 0.8355771498070168,
+      "mean_pass_high": 0.9035048929287967,
+      "raw_regime_gap": 0.06792774312177985,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.867913178963766,
+        "maximum": 9.413429685386589
+      },
+      "specification": "additive",
+      "controls": [
+        "later"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": 0.017522670244555748,
+        "se_hc1": 0.007018572684401502,
+        "p_value": 0.01253851866882459
+      }
+    },
+    "frame_by_side": {
+      "threshold": 14.25,
+      "sup_wald": 58.960105884193595,
+      "n_low": 3837,
+      "n_high": 1163,
+      "mean_pass_low": 0.8355771498070168,
+      "mean_pass_high": 0.9035048929287967,
+      "raw_regime_gap": 0.06792774312177985,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_raw": 0.0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 5.904598911102735,
+        "maximum": 9.473900087351439
+      },
+      "specification": "by_side",
+      "controls": [
+        "later"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": 0.017522670244555748,
+        "se_hc1": 0.007018572684401502,
+        "p_value": 0.01253851866882459
+      }
+    },
+    "task_type_and_frame_additive": {
+      "threshold": 14.25,
+      "sup_wald": 51.144460630385325,
+      "n_low": 3837,
+      "n_high": 1163,
+      "mean_pass_low": 0.8355771498070168,
+      "mean_pass_high": 0.9035048929287967,
+      "raw_regime_gap": 0.06792774312177985,
+      "threshold_grid_candidates": 36,
+      "wild_bootstrap": {
+        "seed": 42,
+        "draws": 300,
+        "exceedances": 0,
+        "p_finite_mc": 0.0033222591362126247,
+        "q95": 6.165375227305468,
+        "maximum": 9.651160239215946
+      },
+      "specification": "additive",
+      "controls": [
+        "tt_array_matrix_grid",
+        "tt_data_structures_algorithms",
+        "tt_logic_validation",
+        "tt_numeric_math",
+        "tt_other",
+        "tt_parsing_serialization",
+        "tt_simulation_stateful",
+        "tt_string_text",
+        "later"
+      ],
+      "adjusted_jump_at_selected": {
+        "jump": -0.019946730203995865,
+        "se_hc1": 0.008313931641217746,
+        "p_value": 0.016431232168071873
+      }
+    },
+    "adjusted_jumps_at_unadjusted_threshold": {
+      "threshold": 14.0,
+      "none": {
+        "jump": 0.06758177345908467,
+        "se_hc1": 0.006586222428227436,
+        "p_value": 1.0551687912502268e-24
+      },
+      "task_type": {
+        "jump": 0.0036373422367101532,
+        "se_hc1": 0.008187762597708178,
+        "p_value": 0.6568681413100452
+      },
+      "frame": {
+        "jump": 0.015620298632484524,
+        "se_hc1": 0.007080238975559931,
+        "p_value": 0.02737123090992002
+      },
+      "task_type_and_frame": {
+        "jump": -0.028303032119600776,
+        "se_hc1": 0.008621008549546633,
+        "p_value": 0.0010269763367995327
+      }
+    }
+  },
+  "model_specific": {
+    "azure_kimi-k2.5": {
+      "unadjusted": {
+        "threshold": 14.0,
+        "sup_wald": 60.53712945311117,
+        "n_low": 3703,
+        "n_high": 1297,
+        "mean_pass_low": 0.8172562786929517,
+        "mean_pass_high": 0.8007710100231302,
+        "raw_regime_gap": -0.016485268669821473,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 0,
+          "p_raw": 0.0,
+          "p_finite_mc": 0.0033222591362126247,
+          "q95": 6.120484903492012,
+          "maximum": 10.693053243993702
+        },
+        "specification": "by_side"
+      },
+      "frame_additive": {
+        "threshold": 14.25,
+        "sup_wald": 45.51869470964598,
+        "n_low": 3837,
+        "n_high": 1163,
+        "mean_pass_low": 0.8168621318738598,
+        "mean_pass_high": 0.8001719690455719,
+        "raw_regime_gap": -0.016690162828287947,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 0,
+          "p_finite_mc": 0.0033222591362126247,
+          "q95": 6.295656405410776,
+          "maximum": 11.152567658591865
+        },
+        "specification": "additive"
+      },
+      "frame_by_side": {
+        "threshold": 14.25,
+        "sup_wald": 32.028675675515785,
+        "n_low": 3837,
+        "n_high": 1163,
+        "mean_pass_low": 0.8168621318738598,
+        "mean_pass_high": 0.8001719690455719,
+        "raw_regime_gap": -0.016690162828287947,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 0,
+          "p_raw": 0.0,
+          "p_finite_mc": 0.0033222591362126247,
+          "q95": 5.497691608165382,
+          "maximum": 7.607271870479731
+        },
+        "specification": "by_side"
+      }
+    },
+    "google_gemini-3.1-pro-preview": {
+      "unadjusted": {
+        "threshold": 10.75,
+        "sup_wald": 9.59676683074994,
+        "n_low": 2677,
+        "n_high": 2323,
+        "mean_pass_low": 0.8721329846843481,
+        "mean_pass_high": 0.7931984502798105,
+        "raw_regime_gap": -0.07893453440453757,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 2,
+          "p_raw": 0.006666666666666667,
+          "p_finite_mc": 0.009966777408637873,
+          "q95": 6.526673058298065,
+          "maximum": 10.2622394700375
+        },
+        "specification": "by_side"
+      },
+      "frame_additive": {
+        "threshold": 14.75,
+        "sup_wald": 6.261009894653565,
+        "n_low": 4295,
+        "n_high": 705,
+        "mean_pass_low": 0.8453084982537834,
+        "mean_pass_high": 0.7754609929078015,
+        "raw_regime_gap": -0.06984750534598194,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 20,
+          "p_finite_mc": 0.06976744186046512,
+          "q95": 6.836678338340939,
+          "maximum": 10.217106688806608
+        },
+        "specification": "additive"
+      },
+      "frame_by_side": {
+        "threshold": 14.75,
+        "sup_wald": 7.767612841608186,
+        "n_low": 4295,
+        "n_high": 705,
+        "mean_pass_low": 0.8453084982537834,
+        "mean_pass_high": 0.7754609929078015,
+        "raw_regime_gap": -0.06984750534598194,
+        "threshold_grid_candidates": 36,
+        "wild_bootstrap": {
+          "seed": 42,
+          "draws": 300,
+          "exceedances": 1,
+          "p_raw": 0.0033333333333333335,
+          "p_finite_mc": 0.006644518272425249,
+          "q95": 5.308011354718446,
+          "maximum": 8.506728300044765
+        },
+        "specification": "by_side"
+      }
+    }
+  }
+}
