@@ -8,7 +8,8 @@ Zhao (University of Wisconsin–Milwaukee), accepted at the NeurIPS 2026
 Evaluations & Datasets track. Preprint:
 [arXiv:2609.19616](https://arxiv.org/abs/2609.19616).
 
-- Paper source: [`paper/Scratch-NeurIps.tex`](paper/Scratch-NeurIps.tex) (camera-ready)
+- Paper: [`paper/Scratch-NeurIps.pdf`](paper/Scratch-NeurIps.pdf) (camera-ready). The
+  LaTeX source is not distributed with this repository.
 - Benchmark data: the release (prompts, per-judge rubric scores, all 105,000
   generations with three outcome definitions, audit verdicts, and Lizard
   complexity, the outcome audit's known-answer sets, human calibration grades,
@@ -109,8 +110,7 @@ outcome). Camera-ready values are in `results/camera_ready/`.
 |   `-- model_reference.md
 |-- paper/
 |   |-- README.md
-|   |-- Scratch-NeurIps.tex
-|   `-- *.png
+|   `-- Scratch-NeurIps.pdf
 |-- release/            (dataset card, Croissant RAI fields, license notes)
 |-- results/
 |   |-- camera_ready/    (every camera-ready result, one folder per outcome definition)

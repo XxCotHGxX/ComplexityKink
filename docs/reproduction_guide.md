@@ -169,7 +169,8 @@ Then run:
 python scripts/generate_stage_d_paper_figures.py
 ```
 
-It writes the six filenames used by the revised manuscript:
+It writes the six figures used in the paper (the images are not tracked in this
+repository):
 
 - `paper/pipeline.png`
 - `paper/complexity_kink.png`
