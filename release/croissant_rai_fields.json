@@ -12,8 +12,8 @@
     "LLM-judge measurement. The prompt-side complexity index is the mean of four LLM judges scoring a published six-dimension rubric. Inter-judge reliability is high (composite ICC(2,1) = 0.872 on 4,998 complete prompts), but agreement with human graders on a disagreement-enriched 200-prompt sample is moderate and rater-dependent (Pearson r = 0.41, ICC(2,1) = 0.40; the two human graders correlate 0.56 on a 50-prompt overlap). The index is a proxy for intended solution structure, not ground truth.",
     "Construction-frame composition. The benchmark combines 2,246 prompts retained from an earlier prefix-scan draw with 2,754 later candidates that deliberately supplemented high reference-solution complexity. The two frames differ sharply in mean index (7.92 vs 11.42) and mean pass rate (0.747 vs 0.880), and their changing mixture drives much of the pooled pattern. Sampling was stratified on a preliminary single-rater (o4-mini) score, not on the final index, so the final index is not balanced.",
     "Sparse extremes. Display bins 0 and 17-19 of the main benchmark hold 3, 45, 6, and 5 prompts; the 365-prompt extension adds only 14 prompts above bin 16.",
-    "Outcome definition differs by frame. For earlier_retained prompts, 23,848 of 47,166 generation rows have pass_rate set to 1.0 or 0.0 from an o4-mini harness-audit verdict rather than the raw fraction of passing tests; later_candidate rows use the raw harness fraction. The raw fraction is released as harness_pass_rate for every row. TODO(author): confirm this description and reconcile it with the manuscript's definition of pass rate as the fraction of supplied unit tests passed.",
-    "Unit-test quality. Tests come from OpenCodeInstruct and can be incomplete, over-specified (for example, requiring a particular function name), or wrong. For 1,259 of the 2,246 earlier_retained prompts the NVIDIA-supplied average_test_score of the source reference solution is below 1.0 (491 at 0.0); all 2,754 later_candidate prompts and all 365 extension prompts have a passing reference. TODO(author): confirm whether earlier-frame prompts were intended to require a passing reference.",
+    "Outcome definitions. Three outcome columns are released for every generation. pass_rate (primary) is the verdict of an independent LLM auditor (MiMo-V2.6-Pro): 'correct' sets 1.0, 'incorrect' sets 0.0, and uncertain, unparseable, or cut-off responses keep the harness value, so for 98.9% of rows it is a binary verdict rather than a fraction of passing tests. harness_pass_rate is the raw fraction of unit-test assertions that passed. pass_rate_reviewed is the reviewed (submitted) version's outcome, in which an o4-mini audit set values to 1.0 or 0.0 for earlier_retained prompts only (23,848 of 47,166 rows). The paper reports results under all three.",
+    "Unit-test quality. Tests come from OpenCodeInstruct and can be incomplete, over-specified (for example, requiring a particular function name), or wrong. For 1,259 of the 2,246 earlier_retained prompts the NVIDIA-supplied average_test_score of the source reference solution is below 1.0 (491 at 0.0); all 2,754 later_candidate prompts and all 365 extension prompts have a passing reference. The paper reports this as a difference between the two construction frames.",
     "Heterogeneous generation settings. Settings were not uniform across models, access routes, and construction frames: recovered batch records show temperature 0.0, 0.2, or not sent (provider default), output-token caps from 2,048 to 8,192 (configurations list up to 65,536), and two different system prompts. Per-row settings are recoverable for 24,675 of 105,000 generations; the rest are documented only at the model level. Several open-weight models were served locally as 4-bit or 8-bit GGUF quantizations, and the model labeled 'Mistral Small 2412' was served as Devstral-Small-2505 (Q4_K_M).",
     "Point-in-time model snapshots. Generations were collected between February and May 2026 (extension and robustness runs in July 2026) from hosted APIs whose model versions can change or be retired; results may not be reproducible by re-querying the same model names.",
     "Missing values. Generated-output Lizard complexity is null for 1,052 of 105,000 generations; 208 generations contain no extractable code; 129 retain markdown fences. The extension and fixed-version runs did not retain generated code, so those configs contain outcomes only.",
@@ -30,7 +30,7 @@
   ],
   "rai:personalSensitiveInformation": [
     "None of the sensitive categories (gender, socio-economic status, geography, language, age, culture, experience or seniority, health or medical data, political or religious beliefs) is recorded about any person.",
-    "Human rubric grades from two research-team members are released under pseudonymous IDs (grader_1 = first author, grader_2 = second grader); no names, contact details, or demographics are included. TODO(author): confirm that the second grader agreed to public release of their pseudonymous grades.",
+    "Human rubric grades from two research-team members are released under pseudonymous IDs (grader_1 = first author, grader_2 = second grader); no names, contact details, or demographics are included. Both graders agreed to the public release of their pseudonymous grades.",
     "Prompts, unit tests, and generated code are programming tasks and may contain fictitious names, placeholder email addresses, and placeholder credentials (for example, 'your_api_key_here') inherited from the source dataset or produced by models. A scan of every released text field found no real API keys, bearer tokens, account or deployment identifiers, request identifiers, endpoint URLs, or local filesystem paths belonging to the authors."
   ],
   "rai:dataUseCases": [
@@ -116,7 +116,7 @@
     {
       "@type": "prov:Activity",
       "prov:label": "Harness audit of earlier-frame outcomes",
-      "description": "For earlier_retained generations, o4-mini judged whether the harness verdict reflected semantic correctness (for example, a function-name mismatch). Verdicts 'correct' and 'incorrect' set pass_rate to 1.0 and 0.0; 'uncertain' or unaudited rows keep the harness value. TODO(author): confirm this step belongs in the camera-ready description.",
+      "description": "For earlier_retained generations, o4-mini judged whether the harness verdict reflected semantic correctness (for example, a function-name mismatch). Verdicts 'correct' and 'incorrect' set pass_rate_reviewed to 1.0 and 0.0; 'uncertain' or unaudited rows keep the harness value. This is the reviewed (submitted) version's outcome, reported as a secondary analysis in the paper; the primary pass_rate comes from the independent audit.",
       "prov:wasAssociatedWith": [
         {
           "@type": "prov:Agent",
@@ -192,7 +192,7 @@
   ],
   "rai:annotationsPerItem": "Four LLM judge scores per main and extension prompt (4,998 main prompts complete; one prompt with three and one with two). Human grades: one grade for 150 prompts and two grades for 50 prompts. Task type: one label per prompt, four labels for a 500-prompt subset.",
   "rai:annotatorDemographics": [
-    "Two human graders, both members of the research team with Python programming experience; no demographic information was collected. TODO(author): confirm."
+    "Two human graders, both members of the research team with Python programming experience; no demographic information was collected."
   ],
   "rai:machineAnnotationTools": [
     "o4-mini, gpt-5.5, Llama 4 Maverick, and Command A via Azure AI Foundry (rubric judges; task-type labelers)",
@@ -200,5 +200,5 @@
     "DeepSeek-V3.2 via Azure AI Foundry (paraphrase and Java/C++ re-expression)",
     "Lizard 1.21.0 (cyclomatic complexity)"
   ],
-  "rai:dataReleaseMaintenancePlan": "Version 1.0.0 corresponds to the NeurIPS 2026 camera-ready paper and will not be modified in place; corrections will be released as new versions with a changelog. The same files are mirrored on Hugging Face and Harvard Dataverse; the Dataverse DOI is the archival reference. TODO(author): add the DOI, maintainer contact, and issue-reporting channel."
+  "rai:dataReleaseMaintenancePlan": "Version 1.0.0 corresponds to the NeurIPS 2026 camera-ready paper and will not be modified in place; corrections will be released as new versions with a changelog. The same files are mirrored on Hugging Face and Harvard Dataverse; the Dataverse DOI is the archival reference. Maintainer: Michael Hernandez (herna273@uwm.edu). Report issues at https://github.com/uwm-se/ComplexityKink/issues. Hugging Face: https://huggingface.co/datasets/XxCotHGxX/complexity-kink-research."
 }

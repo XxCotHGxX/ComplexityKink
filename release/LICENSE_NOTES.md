@@ -2,8 +2,11 @@
 
 These notes are for the authors' review before upload. They list what each part
 of the release derives from and which third-party terms may apply. **Nothing
-here is a legal conclusion.** The license in `README.md` (`cc-by-4.0`) and in
-`croissant.json` is a placeholder until the authors decide.
+here is a legal conclusion.** **Decision (2026-10-16, Michael Hernandez):** the
+compilation is released under CC BY 4.0, with a notice in the `README.md`
+Licensing section that model outputs remain subject to the providers' terms.
+`README.md` (`cc-by-4.0`) and `croissant.json` already carry it. The flags below
+(items 1, 2, 3, 4, 7) are still open checks to close before upload.
 
 ## 1. Source data: OpenCodeInstruct
 

@@ -1843,8 +1843,7 @@ class Builder:
                             "and Lizard output complexity, plus robustness subsets, for 5,000 OpenCodeInstruct "
                             "prompts and a 365-prompt audit-clean high-complexity extension."),
             "license": "https://creativecommons.org/licenses/by/4.0/",
-            # The code repository links the dataset; replace with the dataset page once it is published.
-            "url": "https://github.com/uwm-se/ComplexityKink",
+            "url": "https://huggingface.co/datasets/XxCotHGxX/complexity-kink-research",
             "version": "1.0.0",
             "datePublished": dt.date.today().isoformat(),
             "creator": [{"@type": "sc:Person", "name": "Michael Hernandez",

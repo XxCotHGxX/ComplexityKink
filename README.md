@@ -10,11 +10,13 @@ Evaluations & Datasets track. Preprint:
 
 - Paper: [`paper/Scratch-NeurIps.pdf`](paper/Scratch-NeurIps.pdf) (camera-ready). The
   LaTeX source is not distributed with this repository.
-- Benchmark data: the release (prompts, per-judge rubric scores, all 105,000
-  generations with three outcome definitions, audit verdicts, and Lizard
-  complexity, the outcome audit's known-answer sets, human calibration grades,
-  and the 365-prompt extension, with Croissant metadata) will be linked here;
-  its dataset card and builder are in [`release/`](release/) and
+- Benchmark data (CC BY 4.0):
+  [huggingface.co/datasets/XxCotHGxX/complexity-kink-research](https://huggingface.co/datasets/XxCotHGxX/complexity-kink-research).
+  It holds the prompts, per-judge rubric scores, all 105,000 generations with
+  three outcome definitions, audit verdicts, and Lizard complexity, the outcome
+  audit's known-answer sets, human calibration grades, and the 365-prompt
+  extension, with Croissant metadata. Its dataset card source and builder are in
+  [`release/`](release/) and
   [`scripts/build_public_release.py`](scripts/build_public_release.py).
 - Outcome audit: [`docs/independent_audit_protocol.md`](docs/independent_audit_protocol.md)
   documents how every unit-test verdict was reviewed by an independent LLM

@@ -124,7 +124,7 @@ complexity of at most 10.
 ```python
 from datasets import load_dataset
 
-repo = "TODO-author/complexity-kink"  # TODO(author): the Hugging Face repo id, once created
+repo = "XxCotHGxX/complexity-kink-research"
 prompts = load_dataset(repo, "prompts", split="test")
 gens = load_dataset(repo, "generations", split="test")
 
@@ -744,11 +744,24 @@ GUI windows. Execute them only in an isolated sandbox without network access.
 
 ## Licensing
 
-<!-- TODO(author): choose the release license after reviewing release/LICENSE_NOTES.md; cc-by-4.0 in the header is a placeholder. -->
-Prompts, unit tests, and reference-solution metadata derive from OpenCodeInstruct
-(CC BY 4.0; attribution: NVIDIA). Generated code, judge scores, labels, and
-rewrites are outputs of third-party models whose providers' terms may govern
-redistribution; see the `models` config for the full list of models and routes.
+This compilation (the selection, scores, labels, audit verdicts, outcomes, and
+documentation) is released under the Creative Commons Attribution 4.0
+International License (CC BY 4.0):
+<https://creativecommons.org/licenses/by/4.0/>.
+
+**Source data.** Prompts, unit tests, and reference-solution metadata derive from
+OpenCodeInstruct by NVIDIA (CC BY 4.0; Ahmad et al., 2025, arXiv:2504.04030).
+Changes made: we select a 5,000-prompt subset and a 365-prompt extension, parse
+`unit_tests` into a list, and add derived fields (rubric scores, task-type
+labels, and output and reference complexity). The source reference solutions
+are not redistributed.
+
+**Model outputs.** Generated code, judge scores, labels, and rewrites are outputs
+of third-party models. CC BY 4.0 applies to this compilation; it does not change
+the terms of the model providers, which may limit how their outputs are used
+(for example, to develop competing models). Users are responsible for complying
+with those terms. The `models` config lists every model and access route. Training
+on this data is out of scope (see above).
 
 ## Citation
 
