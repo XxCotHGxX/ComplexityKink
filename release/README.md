@@ -124,7 +124,7 @@ complexity of at most 10.
 ```python
 from datasets import load_dataset
 
-repo = "XxCotHGxX/complexity-kink-research"
+repo = "uwm-software-engineering/complexity-kink-research"
 prompts = load_dataset(repo, "prompts", split="test")
 gens = load_dataset(repo, "generations", split="test")
 

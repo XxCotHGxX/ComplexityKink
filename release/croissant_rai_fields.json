@@ -200,5 +200,5 @@
     "DeepSeek-V3.2 via Azure AI Foundry (paraphrase and Java/C++ re-expression)",
     "Lizard 1.21.0 (cyclomatic complexity)"
   ],
-  "rai:dataReleaseMaintenancePlan": "Version 1.0.0 corresponds to the NeurIPS 2026 camera-ready paper and will not be modified in place; corrections will be released as new versions with a changelog. The same files are mirrored on Hugging Face and Harvard Dataverse; the Dataverse DOI is the archival reference. Maintainer: Michael Hernandez (herna273@uwm.edu). Report issues at https://github.com/uwm-se/ComplexityKink/issues. Hugging Face: https://huggingface.co/datasets/XxCotHGxX/complexity-kink-research."
+  "rai:dataReleaseMaintenancePlan": "Version 1.0.0 corresponds to the NeurIPS 2026 camera-ready paper and will not be modified in place; corrections will be released as new versions with a changelog. The same files are mirrored on Hugging Face and Harvard Dataverse; the Dataverse DOI is the archival reference. Maintainer: Michael Hernandez (herna273@uwm.edu). Report issues at https://github.com/uwm-se/ComplexityKink/issues. Hugging Face: https://huggingface.co/datasets/uwm-software-engineering/complexity-kink-research (a mirror with identical files is at https://huggingface.co/datasets/XxCotHGxX/complexity-kink-research)."
 }

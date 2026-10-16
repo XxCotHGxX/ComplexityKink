@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-10-16T19:43:23+00:00",
+  "generated_at_utc": "2026-10-16T19:56:45+00:00",
   "pitfall_stale_ensemble_overlap": 2151,
   "judge_rows_dropped_invalid": {
     "gpt-5.5": 4,
@@ -723,6 +723,6 @@
       "sha256": "425dd4dc2fe1f377cacdb04d7305e254a721a27887a0a349214e103a344ccdec"
     }
   },
-  "release_total_bytes": 52501020,
+  "release_total_bytes": 52501170,
   "release_dir": "data/public_release"
 }

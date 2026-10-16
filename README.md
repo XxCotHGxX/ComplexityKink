@@ -11,7 +11,8 @@ Evaluations & Datasets track. Preprint:
 - Paper: [`paper/Scratch-NeurIps.pdf`](paper/Scratch-NeurIps.pdf) (camera-ready). The
   LaTeX source is not distributed with this repository.
 - Benchmark data (CC BY 4.0):
-  [huggingface.co/datasets/XxCotHGxX/complexity-kink-research](https://huggingface.co/datasets/XxCotHGxX/complexity-kink-research).
+  [huggingface.co/datasets/uwm-software-engineering/complexity-kink-research](https://huggingface.co/datasets/uwm-software-engineering/complexity-kink-research)
+  (mirror: [XxCotHGxX/complexity-kink-research](https://huggingface.co/datasets/XxCotHGxX/complexity-kink-research)).
   It holds the prompts, per-judge rubric scores, all 105,000 generations with
   three outcome definitions, audit verdicts, and Lizard complexity, the outcome
   audit's known-answer sets, human calibration grades, and the 365-prompt
