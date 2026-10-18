@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Build the public Complexity Kink dataset release (local build only).
 
-This script assembles the Hugging Face / Harvard Dataverse release of the data
+This script assembles the Hugging Face release of the data
 behind "The Complexity Kink" (NeurIPS 2026 Evaluations & Datasets track) from
 the retained raw bundle. It never uploads anything and never contacts a
 network service. It reads only from ``<data-root>/data`` and writes:
@@ -568,9 +568,9 @@ CONFIGS: dict[str, dict[str, Any]] = {
     },
     "human_calibration": {
         "description": "Blinded human rubric grades: 200 prompts by grader_1 (first author) and a 50-prompt overlap by "
-                       "grader_2 (second research-team member); LLM scores hidden during grading (250 rows).",
+                       "grader_2 (second author); LLM scores hidden during grading (250 rows).",
         "fields": [
-            ("grader", S, "grader_1 (first author, 200 prompts) or grader_2 (second research-team member, 50 prompts)."),
+            ("grader", S, "grader_1 (first author, 200 prompts) or grader_2 (second author, 50 prompts)."),
             ("prompt_id", S, "Prompt identifier (joins to prompts)."),
             ("worksheet_row", I, "Position in the grader's randomized worksheet (grader_2 received the first 50 rows of grader_1's order)."),
             *dim_fields("", I, "Human grade"),

@@ -103,12 +103,12 @@ Items that deserve particular attention (flags, not conclusions):
 6. **Full-text rewrites.** `paraphrase_prompts` and `cross_language_prompts`
    contain complete DeepSeek-V3.2 rewrites of CC BY 4.0 prompts; they are
    derivative text of both the source prompt and the model output.
-7. **Human grades.** `human_calibration` contains the pseudonymous grades of a
-   second research-team member (`grader_2`). Confirm their consent to public
-   release; the source files identified graders by name and the release does
-   not.
+7. **Human grades.** `human_calibration` contains the pseudonymous grades of
+   the two authors (`grader_1`, `grader_2`). Resolved: the second author
+   (`grader_2`) confirmed consent to public release on 2026-10-17. The source
+   files identified graders by name; the release does not.
 8. **Compilation license.** Options to consider include CC BY 4.0 for the
    compilation (matching the source) with a notice that model outputs remain
    subject to their providers' terms, or a more restrictive license if any
    provider term requires it. This choice must also be entered in the Croissant
-   `license` field and the Dataverse terms tab.
+   `license` field.

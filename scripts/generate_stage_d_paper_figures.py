@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -50,7 +51,8 @@ TAIL_REPLICATION_PATH = RESULTS_DIR / "tail_extension_replication.csv"
 OUTPUT_CC_CURVE_PATH = RESULTS_DIR / "pass_vs_output_cc.csv"
 REVERSE_CELL_PATH = RESULTS_DIR / "reverse_threshold_zero_pass_cells.csv"
 ROBUSTNESS_SUMMARY_PATH = RESULTS_DIR / "robustness_summary.json"
-PAPER_DIR = ROOT / "paper"
+# CK_FIGURE_DIR redirects the PNG output (default: the paper folder).
+PAPER_DIR = Path(os.environ.get("CK_FIGURE_DIR", ROOT / "paper"))
 
 FIG_DPI = 220
 BLUE = "#2f6fbb"
@@ -513,16 +515,19 @@ def save_output_cc_diagnostic() -> None:
         linewidth=3,
     )
     ax_cell.add_patch(highlight)
-    ax_cell.text(
-        0,
-        1.38,
-        "reverse-threshold\ncell",
-        ha="center",
-        va="bottom",
-        color=RED,
-        fontsize=7.0,
-        weight="bold",
+    reverse_cell_legend = ax_cell.legend(
+        handles=[Patch(facecolor="none", edgecolor=RED, linewidth=2.2, label="reverse-threshold\ncell")],
+        loc="center left",
+        bbox_to_anchor=(1.03, 0.25),
+        frameon=False,
+        handlelength=1.1,
+        handleheight=1.5,
+        borderaxespad=0.0,
+        prop={"size": 7.0, "weight": "bold"},
+        labelcolor=RED,
     )
+    # Keep the legend out of tight_layout so the panels and canvas keep their size.
+    reverse_cell_legend.set_in_layout(False)
     ax_cell.set_xticks([0, 1])
     ax_cell.set_xticklabels(
         [r"Output CC $\leq 10$", "Output CC > 10"],
@@ -628,15 +633,15 @@ def save_heatmap(model_frames: dict[str, pd.DataFrame], per_model: pd.DataFrame,
         labels.append(DISPLAY_NAMES.get(model_id, model_id))
     heat = pd.DataFrame(rows, index=labels)
 
-    fig, ax = plt.subplots(figsize=(11.0, 8.3))
+    fig, ax = plt.subplots(figsize=(5.5, 4.7))  # drawn at print width so fonts print 1:1
     arr = heat.to_numpy(dtype=float)
     im = ax.imshow(arr, aspect="auto", cmap="RdYlGn", interpolation="nearest", vmin=0.0, vmax=1.0)
     ax.set_yticks(np.arange(len(heat.index)))
-    ax.set_yticklabels(heat.index)
+    ax.set_yticklabels(heat.index, fontsize=6.5)
     ax.set_xticks(np.arange(len(heat.columns)))
-    ax.set_xticklabels([str(col) for col in heat.columns])
-    ax.set_xlabel("Prompt-composite display bin")
-    ax.set_title("Each model's own kink (diamond) by prompt complexity", fontsize=18, weight="bold", pad=10)
+    ax.set_xticklabels([str(col) for col in heat.columns], fontsize=6.5)
+    ax.set_xlabel("Prompt-composite display bin", fontsize=7.5)
+    ax.set_title("Each model's own kink (diamond) by prompt complexity", fontsize=8.5, weight="bold", pad=5)
 
     for y in range(arr.shape[0]):
         for x in range(arr.shape[1]):
@@ -645,33 +650,37 @@ def save_heatmap(model_frames: dict[str, pd.DataFrame], per_model: pd.DataFrame,
                 label = "-"
                 color = "#1f2937"
             else:
-                label = f"{val:.0%}"
+                label = f"{100 * val:.0f}"
                 rgba = im.cmap(im.norm(val))
                 luminance = 0.2126 * rgba[0] + 0.7152 * rgba[1] + 0.0722 * rgba[2]
                 color = "white" if luminance < HEATMAP_TEXT_LIGHTNESS_CUTOFF else "#111827"
-            ax.text(x, y, label, ha="center", va="center", fontsize=10.0, weight="bold", color=color)
+            ax.text(x, y, label, ha="center", va="center", fontsize=6.5, weight="bold", color=color)
 
     for y, model_id in enumerate(ordered_models):
         gamma = threshold_by_model[model_id]
         marker_x = int(half_open_integer_bin([gamma])[0]) - DENSE_MIN_COMPOSITE_BIN
         if 0 <= marker_x < len(bins):
+            # Small corner marker so the diamond does not cover the percentage.
             ax.scatter(
-                marker_x,
-                y,
+                marker_x + 0.32,
+                y - 0.30,
                 marker="D",
-                s=110,
-                facecolor="#315a2f",
-                edgecolor="none",
-                alpha=0.55,
+                s=11,
+                facecolor="#111827",
+                edgecolor="white",
+                linewidth=0.4,
                 zorder=3,
             )
 
     ax.set_xticks(np.arange(-0.5, len(heat.columns), 1), minor=True)
     ax.set_yticks(np.arange(-0.5, len(heat.index), 1), minor=True)
-    ax.grid(which="minor", color="white", linestyle="-", linewidth=1.0)
+    ax.grid(which="minor", color="white", linestyle="-", linewidth=0.7)
     ax.tick_params(which="minor", bottom=False, left=False)
-    cbar = fig.colorbar(im, ax=ax, fraction=0.035, pad=0.02)
-    cbar.set_label("Mean pass rate")
+    cbar = fig.colorbar(im, ax=ax, fraction=0.04, pad=0.015)
+    cbar.set_ticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    cbar.set_ticklabels(["0", "20", "40", "60", "80", "100"])
+    cbar.ax.tick_params(labelsize=6.5)
+    cbar.set_label("Mean pass rate (%)", fontsize=7.5)
     fig.tight_layout()
     fig.savefig(PAPER_DIR / "heatmap_E_per_model_kink.png", dpi=FIG_DPI, bbox_inches="tight")
     plt.close(fig)
@@ -714,35 +723,59 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
 
     sources = ["Lizard CC = 1", "Lizard CC 2-5", "Lizard CC 6-10", "Lizard CC 11-20", "Lizard CC 21+"]
     targets = ["Rubric 0-6", "Rubric >6-8", "Rubric >8-10", f"Rubric >10-{gamma:g}", f"Rubric >{gamma:g}"]
-    labels = sources + targets
-    idx = {label: i for i, label in enumerate(labels)}
+    hard_targets = {"Rubric >8-10", f"Rubric >10-{gamma:g}", f"Rubric >{gamma:g}"}
+    easy_looking = {"Lizard CC = 1", "Lizard CC 2-5", "Lizard CC 6-10"}  # output CC <= 10
+    idx = {label: i for i, label in enumerate(sources + targets)}
+
+    total = int(flows["count"].sum())
+    src_n = flows.groupby("source")["count"].sum().reindex(sources).fillna(0).astype(int)
+    tgt_n = flows.groupby("target")["count"].sum().reindex(targets).fillna(0).astype(int)
+    mismatch = flows[flows["source"].isin(easy_looking) & flows["target"].isin(hard_targets)]
+    n_mismatch = int(mismatch["count"].sum())
+    n_easy_looking = int(src_n[list(easy_looking)].sum())
+
+    # Neutral gray for flows where output CC and the prompt index agree; saturated red for the
+    # failures whose output CC is <= 10 although the prompt index is > 8 (darkest for CC = 1 stubs).
     link_colors = []
     for _, row in flows.iterrows():
-        target_high = row["target"] in {"Rubric >8-10", f"Rubric >10-{gamma:g}", f"Rubric >{gamma:g}"}
-        direct_misclass = row["source"] == "Lizard CC = 1" and target_high
-        low_output_high_prompt = row["source"] in {"Lizard CC = 1", "Lizard CC 2-5", "Lizard CC 6-10"} and target_high
-        if direct_misclass:
-            link_colors.append("rgba(184, 58, 58, 0.70)")
-        elif low_output_high_prompt:
-            link_colors.append("rgba(214, 128, 42, 0.45)")
+        if row["source"] in easy_looking and row["target"] in hard_targets:
+            link_colors.append("rgba(122, 20, 20, 0.88)" if row["source"] == "Lizard CC = 1" else "rgba(206, 52, 52, 0.78)")
         else:
-            link_colors.append("rgba(47, 111, 187, 0.22)")
+            link_colors.append("rgba(140, 146, 156, 0.26)")
+
+    # Node boxes sized by count with visible gaps (fixed layout; y is the node centre).
+    plot_h = 490 - 132 - 50
+    pad_px = 16
+    def centres(counts: pd.Series) -> list[float]:
+        scale = (plot_h - pad_px * (len(counts) - 1)) / counts.sum()
+        out, top = [], 0.0
+        for n in counts:
+            h = n * scale
+            out.append((top + h / 2) / plot_h)
+            top += h + pad_px
+        return out
+
+    node_labels = [f"{lab}  ({int(n):,})" for lab, n in src_n.items()] + [f"{lab}  ({int(n):,})" for lab, n in tgt_n.items()]
+    node_colors = (
+        ["#f4cccc" if lab in easy_looking else "#e5e7eb" for lab in sources]
+        + ["#f4cccc" if lab in hard_targets else "#e5e7eb" for lab in targets]
+    )
 
     fig = go.Figure(
         go.Sankey(
             arrangement="fixed",
             node=dict(
-                pad=20,
-                thickness=18,
-                label=labels,
-                color=["#d9e8f6"] * len(sources) + ["#dff1e8"] * len(targets),
-                line=dict(color="#777777", width=0.5),
-                x=[0.02] * len(sources) + [0.80] * len(targets),
-                y=[0.02, 0.20, 0.40, 0.62, 0.82, 0.05, 0.24, 0.43, 0.62, 0.82],
+                pad=pad_px,
+                thickness=16,
+                label=node_labels,
+                color=node_colors,
+                line=dict(color="#555555", width=0.6),
+                x=[0.02] * len(sources) + [0.98] * len(targets),
+                y=centres(src_n) + centres(tgt_n),
             ),
             link=dict(
-                source=[idx[s] for s in flows["source"]],
-                target=[idx[t] for t in flows["target"]],
+                source=[idx[x] for x in flows["source"]],
+                target=[idx[x] for x in flows["target"]],
                 value=flows["count"],
                 color=link_colors,
                 hovertemplate="%{source.label} -> %{target.label}<br>%{value:,} failed generations<extra></extra>",
@@ -750,35 +783,46 @@ def save_sankey(model_frames: dict[str, pd.DataFrame], summary: dict) -> None:
         )
     )
     fig.update_layout(
-        width=1100,
-        height=600,
-        margin=dict(l=35, r=210, t=85, b=35),
+        width=800,
+        height=490,
+        margin=dict(l=12, r=12, t=132, b=50),
         font=dict(size=14, color="#1f2937"),
         title=dict(
             text="Failed generations: output CC can understate prompt complexity",
-            x=0.5,
-            xanchor="center",
-            font=dict(size=22),
+            x=0.5, xanchor="center", y=0.985, yanchor="top",
+            font=dict(size=18),
         ),
         annotations=[
-            dict(x=0.02, y=1.08, xref="paper", yref="paper", text="Lizard CC on generated output", showarrow=False, font=dict(size=16, color="#1f2937")),
-            dict(x=0.80, y=1.08, xref="paper", yref="paper", text="Ensemble rubric composite on prompt", showarrow=False, font=dict(size=16, color="#1f2937")),
             dict(
-                x=0.5,
-                y=-0.03,
-                xref="paper",
-                yref="paper",
+                x=0.5, y=1.235, xref="paper", yref="paper", xanchor="center", yanchor="bottom", showarrow=False,
                 text=(
-                    f"Generations with outcome 0 (failed) and computable Lizard CC (n={len(flow_df):,}). "
-                    "Red/orange flows have Lizard CC <= 10 but prompt rubric > 8."
+                    f"<b>{n_mismatch:,} of {total:,} failures ({n_mismatch / total:.1%}) look simple to output CC "
+                    f"(\u2264 10) but score &gt; 8 on the prompt-side index</b>"
                 ),
-                showarrow=False,
+                font=dict(size=15, color="#b02a2a"),
+            ),
+            dict(
+                x=0.5, y=1.145, xref="paper", yref="paper", xanchor="center", yanchor="bottom", showarrow=False,
+                text=(
+                    f"Nearly half ({n_mismatch / n_easy_looking:.0%}) of all failures with output CC \u2264 10 "
+                    f"({n_mismatch:,} of {n_easy_looking:,}) come from prompts rated &gt; 8."
+                ),
+                font=dict(size=13, color="#1f2937"),
+            ),
+            dict(x=0.0, y=1.075, xref="paper", yref="paper", xanchor="left", text="<b>What output CC says</b> (generated code)", showarrow=False, font=dict(size=14, color="#1f2937")),
+            dict(x=1.0, y=1.075, xref="paper", yref="paper", xanchor="right", text="<b>What the prompt-side index says</b>", showarrow=False, font=dict(size=14, color="#1f2937")),
+            dict(
+                x=0.5, y=-0.012, xref="paper", yref="paper", yanchor="top", showarrow=False,
+                text=(
+                    f"Generations with outcome 0 (failed) and computable Lizard CC (n={total:,}). Counts in parentheses.<br>"
+                    "Red flows: output CC &#8804; 10 but prompt index &gt; 8 (darkest: single-line stubs, CC = 1). Gray flows agree."
+                ),
                 font=dict(size=12, color="#5b6472"),
             ),
         ],
         paper_bgcolor="white",
     )
-    fig.write_image(PAPER_DIR / "sankey.png", scale=2)
+    fig.write_image(PAPER_DIR / "sankey.png", scale=3)
 
 
 def main() -> None:
@@ -788,13 +832,24 @@ def main() -> None:
         action="store_true",
         help="Build pipeline, tail-extension, and output-CC PNGs from aggregate inputs.",
     )
+    parser.add_argument(
+        "--only",
+        help="Comma-separated PNG names to build (for example sankey.png); default builds all.",
+    )
     args = parser.parse_args()
+    only = {name.strip() for name in args.only.split(",")} if args.only else None
+
+    def want(name: str) -> bool:
+        return only is None or name in only
 
     style_matplotlib()
     PAPER_DIR.mkdir(parents=True, exist_ok=True)
-    save_pipeline()
-    save_tail_extension()
-    save_output_cc_diagnostic()
+    if want("pipeline.png"):
+        save_pipeline()
+    if want("tail_extension.png"):
+        save_tail_extension()
+    if want("pass_vs_output_cc.png"):
+        save_output_cc_diagnostic()
 
     if args.revision_only:
         names = ["pipeline.png", "tail_extension.png", "pass_vs_output_cc.png"]
@@ -809,9 +864,12 @@ def main() -> None:
     combined = build_combined_df(model_frames)
     per_model = pd.read_csv(PER_MODEL_SUMMARY_PATH)
 
-    save_complexity_kink(combined, summary)
-    save_heatmap(model_frames, per_model, summary)
-    save_sankey(model_frames, summary)
+    if want("complexity_kink.png"):
+        save_complexity_kink(combined, summary)
+    if want("heatmap_E_per_model_kink.png"):
+        save_heatmap(model_frames, per_model, summary)
+    if want("sankey.png"):
+        save_sankey(model_frames, summary)
 
     print("Wrote paper figures:")
     for name in [
@@ -823,7 +881,8 @@ def main() -> None:
         "sankey.png",
     ]:
         path = PAPER_DIR / name
-        print(f"  {path} ({path.stat().st_size:,} bytes)")
+        if path.exists() and want(name):
+            print(f"  {path} ({path.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":

@@ -266,6 +266,6 @@ three-model table. The construction-frame command validates complete 5,000
 prompt mapping and 21 by 5,000 model coverage before fitting the sensitivity.
 
 The raw benchmark, extension, and generated responses are distributed in the
-public dataset release (Hugging Face, with an archival Harvard Dataverse copy),
+public dataset release on Hugging Face,
 where their licenses, hashes, and provenance are documented separately from the
 source repository.

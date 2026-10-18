@@ -26,7 +26,11 @@ images are not tracked) and by default reads the primary-outcome scored files
 python scripts/generate_stage_d_paper_figures.py
 ```
 
-`CK_SCORED_DIR` and `CK_RESULTS_DIR` select another outcome. The extension
+`CK_SCORED_DIR` and `CK_RESULTS_DIR` select another outcome. `CK_FIGURE_DIR` writes the
+PNGs to another folder, and `--only sankey.png,pass_vs_output_cc.png` rebuilds just
+the named figures. The Sankey export needs a plotly image engine; the camera-ready
+PNGs were rendered with `plotly==5.24.1` and `kaleido==0.2.1` (kaleido 1.x, as pinned
+in `requirements.txt`, needs a local Chrome). The extension
 tables and figure use raw harness outcomes on both sides, because the extension
 runs saved no code to audit. Display bin $b$ contains composite values in
 $[b-0.5,b+0.5)$, so exact half-point boundaries enter the higher bin; threshold

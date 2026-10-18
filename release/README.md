@@ -495,11 +495,11 @@ Repeated-sampling subset: 359 main prompts x 4 models x 5 draws at temperature 0
 
 #### `human_calibration` (250 rows)
 
-Blinded human rubric grades: 200 prompts by grader_1 (first author) and a 50-prompt overlap by grader_2 (second research-team member); LLM scores hidden during grading (250 rows).
+Blinded human rubric grades: 200 prompts by grader_1 (first author) and a 50-prompt overlap by grader_2 (second author); LLM scores hidden during grading (250 rows).
 
 | Field | Type | Description |
 |---|---|---|
-| `grader` | string | grader_1 (first author, 200 prompts) or grader_2 (second research-team member, 50 prompts). |
+| `grader` | string | grader_1 (first author, 200 prompts) or grader_2 (second author, 50 prompts). |
 | `prompt_id` | string | Prompt identifier (joins to prompts). |
 | `worksheet_row` | int | Position in the grader's randomized worksheet (grader_2 received the first 50 rows of grader_1's order). |
 | `branching` | int | Human grade for the branching dimension (0-4 scale). |
@@ -730,11 +730,11 @@ Metadata for every model whose outputs or labels appear in the release: develope
 ## Personal and sensitive information
 
 No sensitive attributes are recorded about any person. Human grades are released
-under pseudonymous IDs (`grader_1` = first author, `grader_2` = second
-research-team member) without names or demographics. Prompts and code may contain
-fictitious names, placeholder emails, and placeholder credentials from the
-source dataset or model outputs; an automated scan of every released text field
-found no real keys, tokens, account or deployment identifiers, or local paths.
+under pseudonymous IDs (`grader_1` = first author, `grader_2` = second author)
+without names or demographics. Prompts and code may contain fictitious names,
+placeholder emails, and placeholder credentials from the source dataset or model
+outputs; an automated scan of every released text field found no real keys,
+tokens, account or deployment identifiers, or local paths.
 
 ## Safety
 

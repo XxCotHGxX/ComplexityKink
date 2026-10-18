@@ -50,6 +50,6 @@ extension does not silently replace them with newer versions.
 ## Judge separation
 
 The four rubric judges are outside the 21-model evaluation panel. Their shared
-job is to score intended solution structure from the prompt, before any
-evaluated model generates code. Their scores are averaged at the
-prompt-dimension level and retained separately for inter-rater diagnostics.
+job is to score intended solution structure from the prompt text alone,
+without seeing any generated code, test results, or other model outputs. Their
+scores are averaged at the prompt-dimension level and retained separately for inter-rater diagnostics.
